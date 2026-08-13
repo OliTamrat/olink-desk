@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Prisma
+packages/database/generated/
+
+# Logs & OS
+npm-debug.log*
+pnpm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Credentials — belt and braces
+*serviceAccount*.json
+*.pem
+*.key

@@ -1,0 +1,434 @@
+// Olink Desk — domain model v1
+//
+// Invariants (PROJECT_GUIDELINES.md):
+// - Every tenant-data model carries organizationId with an index; every query filters by it.
+// - AuditLog.entityId is TEXT — always pass String(uuid), never a raw UUID object.
+// - Migrations are append-only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Tenancy & people ----------
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum SubscriptionInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum PlanTier {
+  FREE
+  TEAM
+  BUSINESS
+  ENTERPRISE
+}
+
+model Organization {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  // Customer-facing languages this tenant serves (subset of en/am/om/ti/so)
+  languages       String[] @default(["en", "am"])
+  defaultLanguage String   @default("en")
+  timezone        String   @default("Africa/Addis_Ababa")
+
+  // Subscription lifecycle — ported pattern from Olink Dispatch.
+  // Enforcement is opt-in so nothing locks out until billing is live.
+  subscriptionTier      PlanTier              @default(FREE)
+  subscriptionStatus    SubscriptionStatus    @default(TRIAL)
+  subscriptionInterval  SubscriptionInterval?
+  subscriptionPeriodEnd DateTime?
+  subscriptionEnforced  Boolean               @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  contacts         Contact[]
+  tickets          Ticket[]
+  ticketMessages   TicketMessage[]
+  callLogs         CallLog[]
+  tasks            Task[]
+  queues           Queue[]
+  slaPolicies      SlaPolicy[]
+  dispositionCodes DispositionCode[]
+  auditLogs        AuditLog[]
+  channelAccounts  ChannelAccount[]
+}
+
+enum UserRole {
+  AGENT
+  SUPERVISOR
+  ADMIN
+  AUDITOR // read-only
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+model User {
+  id             String     @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  email        String
+  phone        String?
+  name         String
+  role         UserRole   @default(AGENT)
+  status       UserStatus @default(INVITED)
+  locale       String     @default("en")
+  passwordHash String?
+
+  // Progressive lockout — ported pattern from Onekof.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTickets Ticket[]        @relation("TicketAssignee")
+  messages        TicketMessage[]
+  callLogs        CallLog[]
+  assignedTasks   Task[]          @relation("TaskAssignee")
+  createdTasks    Task[]          @relation("TaskCreator")
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+}
+
+// Phone-number-first identity: phone is the primary key of Ethiopian
+// customer identity. Email and Telegram are optional attachments.
+model Contact {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  phone      String
+  name       String?
+  email      String?
+  telegramId String?
+  language   String  @default("am")
+  smsConsent Boolean @default(true)
+  notes      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets  Ticket[]
+  messages TicketMessage[]
+  callLogs CallLog[]
+
+  @@unique([organizationId, phone])
+  @@index([organizationId, telegramId])
+}
+
+// ---------- Tickets & the unified timeline ----------
+
+enum Channel {
+  TELEGRAM
+  PHONE
+  SMS
+  WEB
+  EMAIL
+  WHATSAPP
+  WALK_IN
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  PENDING // waiting on customer
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Ticket {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Human-facing per-org ticket number, assigned by application logic
+  // (per-org sequence), unique within the tenant.
+  number Int
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+
+  channel  Channel
+  subject  String?
+  category String?
+  language String         @default("am")
+  status   TicketStatus   @default(NEW)
+  priority TicketPriority @default(NORMAL)
+
+  assigneeId String?
+  assignee   User?   @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  queueId    String?
+  queue      Queue?  @relation(fields: [queueId], references: [id])
+
+  // SLA timers — due dates computed from SlaPolicy business hours at creation.
+  slaPolicyId        String?
+  slaPolicy          SlaPolicy? @relation(fields: [slaPolicyId], references: [id])
+  firstResponseDueAt DateTime?
+  resolveDueAt       DateTime?
+  firstRespondedAt   DateTime?
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+
+  // CSAT — surveyed on the channel the ticket arrived on.
+  csatScore   Int?
+  csatComment String?
+
+  // Duplicate handling: a merged ticket points at its survivor.
+  mergedIntoId String?
+  mergedInto   Ticket?  @relation("TicketMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom   Ticket[] @relation("TicketMerge")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages TicketMessage[]
+  callLogs CallLog[]
+  tasks    Task[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status])
+  @@index([organizationId, assigneeId])
+  @@index([organizationId, contactId])
+  @@index([organizationId, createdAt])
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+  NOTE // internal, never customer-visible
+}
+
+model TicketMessage {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+
+  direction MessageDirection
+  channel   Channel
+  body      String
+
+  authorUserId String?
+  authorUser   User?    @relation(fields: [authorUserId], references: [id])
+  contactId    String?
+  contact      Contact? @relation(fields: [contactId], references: [id])
+
+  // Channel-side id (Telegram message id, SMS provider id, email Message-ID)
+  // for dedup and threading.
+  externalId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, ticketId, createdAt])
+  @@index([organizationId, externalId])
+}
+
+// ---------- Call tracking (logging, never carriage) ----------
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+  MISSED
+}
+
+model CallLog {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  direction   CallDirection
+  phoneNumber String
+  startedAt   DateTime      @default(now())
+  durationSec Int?
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+  agentId   String?
+  agent     User?    @relation(fields: [agentId], references: [id])
+  ticketId  String?
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+
+  dispositionCodeId String?
+  dispositionCode   DispositionCode? @relation(fields: [dispositionCodeId], references: [id])
+  outcomeNotes      String?
+
+  followUpTaskId String? @unique
+  followUpTask   Task?   @relation(fields: [followUpTaskId], references: [id])
+
+  // Reference row from an imported CDR (Ethio Telecom CCaaS / PBX export),
+  // for after-the-fact call ↔ ticket matching.
+  cdrRef String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, startedAt])
+  @@index([organizationId, phoneNumber])
+  @@index([organizationId, ticketId])
+}
+
+model DispositionCode {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  code   String
+  label  String
+  active Boolean @default(true)
+
+  callLogs CallLog[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+}
+
+// ---------- Tasks ----------
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+model Task {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  ticketId String?
+  ticket   Ticket? @relation(fields: [ticketId], references: [id])
+
+  title       String
+  description String?
+  status      TaskStatus     @default(TODO)
+  priority    TicketPriority @default(NORMAL)
+  dueAt       DateTime?
+
+  assigneeId  String?
+  assignee    User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdById String
+  createdBy   User    @relation("TaskCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  callLog CallLog?
+
+  @@index([organizationId, status])
+  @@index([organizationId, assigneeId])
+  @@index([organizationId, ticketId])
+}
+
+// ---------- Routing & SLA ----------
+
+model Queue {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  name String
+
+  tickets Ticket[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model SlaPolicy {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  name                 String
+  firstResponseMinutes Int
+  resolveMinutes       Int
+  // Business-hours definition: work week + hours + Ethiopian public holidays.
+  // Structured JSON so tenants configure without schema changes.
+  businessHours Json
+  escalation    Json?
+  isDefault     Boolean @default(false)
+
+  tickets Ticket[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+// ---------- Channel accounts (per-tenant credentials) ----------
+
+enum ChannelAccountKind {
+  TELEGRAM_BOT
+  SMS_AFROMESSAGE
+  SMS_GEEZSMS
+  SMS_FALCONVAS
+  EMAIL_INBOUND
+}
+
+model ChannelAccount {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  kind   ChannelAccountKind
+  label  String
+  // Provider credentials/config (bot token, sender id, API key reference).
+  // Encrypted at the application layer before storage.
+  config Json
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, kind])
+}
+
+// ---------- Audit ----------
+
+model AuditLog {
+  id             BigInt @id @default(autoincrement())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  actorUserId String?
+  action      String
+  entityType  String
+  // TEXT by fleet convention — always pass String(uuid), never a raw UUID.
+  entityId String
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, entityType, entityId])
+}
