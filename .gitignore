@@ -34,3 +34,6 @@ Thumbs.db
 *serviceAccount*.json
 *.pem
 *.key
+
+# TypeScript incremental build state
+*.tsbuildinfo

@@ -24,8 +24,12 @@ conventions of the Olink fleet (Onekof, Dispatch, School Bus).
   contact/ticket/call data not present in the database.
 - **Audit log everything.** Every agent action writes `AuditLog` with actor,
   action, entityType, entityId (TEXT — always `String(uuid)`), metadata.
-- **Localization scope:** English, Amharic, Afaan Oromo, Tigrinya, Somali.
-  Customer-facing content is per-tenant bilingual. No other languages.
+- **Localization scope:** English, Amharic, Afaan Oromo, Tigrinya, Somali,
+  Swahili — the fleet's six languages (founder decision 2026-08-14, ADR 0003;
+  previously five, Swahili added to match Bank Assist). Customer-facing
+  content is per-tenant bilingual. No other languages. Per the fleet's
+  multilingual golden rule, a feature that adds a customer-facing string adds
+  all six in the same change.
 - **Billing is push-payment.** Chapa/Telebirr/invoice — never assume
   card-on-file auto-renewal exists.
 

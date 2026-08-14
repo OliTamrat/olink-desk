@@ -1,5 +1,5 @@
 # Olink Desk — Session Briefing
-> Last updated: 2026-08-13 — repository founded; scaffold + domain model committed.
+> Last updated: 2026-08-14 — full channel parity with Bank Assist (all 7 adapters) + USSD built; six languages incl. Swahili; CI on every push (ADRs 0002, 0003).
 
 Read `PROJECT_GUIDELINES.md` for standing rules (IP/attribution, invariants).
 The founding market analysis is
@@ -16,16 +16,19 @@ fintech/banks/MFIs, ride-hailing/delivery, BPOs, government service desks,
 utilities. Decision record: standalone repo, NOT an Onekof fork or module —
 see `docs/decisions/0001`.
 
-## Current status (2026-08-13 — day one)
+## Current status (2026-08-14)
 
 | Area | Status |
 |---|---|
-| Repository | Scaffolded: monorepo (pnpm + turbo), apps/web, packages/database |
-| Domain model | Prisma schema v1: Organization, User, Contact, Ticket, TicketMessage, CallLog, Task, Queue, SlaPolicy, DispositionCode, AuditLog |
-| Docs | OKM skeleton + founding market analysis + ADR 0001 |
-| GitHub | **Repo `OliTamrat/olink-desk` must be created by founder** (integration cannot create repos); push pending |
-| Dependencies | NOT yet installed/built — first `pnpm install` + `pnpm build` verification is the next engineering step |
-| Everything else | Not started |
+| Repository | Monorepo (pnpm + turbo): apps/web, packages/database, packages/channels, packages/i18n. `pnpm install` + `pnpm build` verified green |
+| CI | **`.github/workflows/ci.yml` on every push**: typecheck + build + full test suite against a Postgres 16 service container. Green CI is the verification — no manual local run required. `turbo.json#globalEnv` must list `DATABASE_URL`/`CHANNEL_CONFIG_KEY` (Turbo v2 strict env mode strips undeclared vars) |
+| Domain model | Prisma schema v1 + Conversation model (channel-side identity, ADR 0002); Channel enum covers all 8 channels incl. USSD; no migrations generated yet (first `prisma migrate dev` happens when a real DB exists) |
+| Channels | **Full Bank Assist parity + USSD (ADRs 0002, 0003).** `packages/channels`: shared `channelReply()` spine, honest catalogue (8 entries, none `planned`), sealed credentials (AES-256-GCM, `CHANNEL_CONFIG_KEY`), constant-time secrets. **Implemented + tested: web, Telegram, Viber, WhatsApp/Messenger/Instagram (one Meta module), SMS (aggregator contract), USSD (synchronous CON/END sessions)** |
+| i18n | `packages/i18n`: **six languages (en/am/om/ti/so/sw)**, interpolating `t()`, rules-first `detectLanguage()`, TSV review export. All non-EN strings are drafts pending native review (`packages/i18n/review/strings.tsv`) |
+| Tests | 82 passing (vitest): per-adapter contract tests, webhook idempotency, tenant-isolation guard, language parity, signature/crypto fail-closed |
+| API routes | Webhooks: `telegram`, `viber`, `meta` (GET handshake + POST), `sms`, `ussd` per-org; web channel POST; admin-guarded catalogue GET, telegram/viber connect, `PUT /api/orgs/[org]/channels/[kind]` credential store (interim `DESK_ADMIN_SECRET` guard until the auth port) |
+| Docs | OKM skeleton + market analysis + ADRs 0001–0003 |
+| Everything else | Not started (auth port, agent console, CRUD UI, SLA, billing) |
 
 ## Build plan (3 months, aligned to Onekof launch)
 

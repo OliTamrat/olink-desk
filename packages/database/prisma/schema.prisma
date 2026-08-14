@@ -66,6 +66,7 @@ model Organization {
   dispositionCodes DispositionCode[]
   auditLogs        AuditLog[]
   channelAccounts  ChannelAccount[]
+  conversations    Conversation[]
 }
 
 enum UserRole {
@@ -130,12 +131,46 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tickets  Ticket[]
-  messages TicketMessage[]
-  callLogs CallLog[]
+  tickets       Ticket[]
+  messages      TicketMessage[]
+  callLogs      CallLog[]
+  conversations Conversation[]
 
   @@unique([organizationId, phone])
   @@index([organizationId, telegramId])
+}
+
+// ---------- Channel conversations ----------
+
+// One row per (organization, channel, external user) — the channel-side
+// identity a webhook can actually see, ported from Bank Assist's Conversation.
+// A Telegram chat id or a widget session id is not a Contact: the person's
+// phone (Desk's primary identity) is unknown until they share it. Contact
+// linkage is optional and attached later, exactly like Bank Assist's contact
+// capture. Tickets thread through this row: an inbound message reuses the
+// conversation's newest open ticket, else opens a new one (ADR 0002).
+model Conversation {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  channel        Channel
+  externalUserId String
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
+
+  // Sticky conversation language: set from detection, kept until a later
+  // message carries a clear different signal (Bank Assist finding #5).
+  language String @default("en")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets Ticket[]
+
+  @@unique([organizationId, channel, externalUserId])
+  @@index([organizationId, contactId])
 }
 
 // ---------- Tickets & the unified timeline ----------
@@ -144,9 +179,13 @@ enum Channel {
   TELEGRAM
   PHONE
   SMS
+  USSD
   WEB
   EMAIL
   WHATSAPP
+  MESSENGER
+  INSTAGRAM
+  VIBER
   WALK_IN
 }
 
@@ -176,6 +215,9 @@ model Ticket {
 
   contactId String?
   contact   Contact? @relation(fields: [contactId], references: [id])
+
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
 
   channel  Channel
   subject  String?
@@ -215,6 +257,7 @@ model Ticket {
   tasks    Task[]
 
   @@unique([organizationId, number])
+  @@index([organizationId, conversationId])
   @@index([organizationId, status])
   @@index([organizationId, assigneeId])
   @@index([organizationId, contactId])
@@ -389,9 +432,14 @@ model SlaPolicy {
 
 enum ChannelAccountKind {
   TELEGRAM_BOT
+  VIBER_BOT
+  META_WHATSAPP
+  META_MESSENGER
+  META_INSTAGRAM
   SMS_AFROMESSAGE
   SMS_GEEZSMS
   SMS_FALCONVAS
+  USSD_GATEWAY
   EMAIL_INBOUND
 }
 
