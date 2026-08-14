@@ -1,0 +1,22 @@
+{
+  "en": {
+    "greeting": "Hello! You have reached {org} customer support. Send us your message and our team will reply to you here.",
+    "ticket_opened": "Thank you — your message has reached {org}. Your ticket number is {number}. Our team will reply to you here."
+  },
+  "am": {
+    "greeting": "ሰላም! የ{org} የደንበኞች አገልግሎት ነው። መልዕክትዎን ይላኩልን — ቡድናችን እዚሁ ይመልስልዎታል።",
+    "ticket_opened": "አመሰግናለሁ — መልዕክትዎ ለ{org} ደርሷል። የቲኬት ቁጥርዎ {number} ነው። ቡድናችን እዚሁ ይመልስልዎታል።"
+  },
+  "om": {
+    "greeting": "Akkam! Kun tajaajila maamiltootaa {org} ti. Ergaa keessan nuuf ergaa — gareen keenya asuma deebii isiniif kenna.",
+    "ticket_opened": "Galatoomaa — ergaan keessan {org} qaqqabeera. Lakkoofsi tiikeetii keessanii {number} dha. Gareen keenya asuma deebii isiniif kenna."
+  },
+  "ti": {
+    "greeting": "ሰላም! እዚ ኣገልግሎት ዓማዊል {org} እዩ። መልእኽትኹም ስደዱልና — ጋንታና ኣብዚ ክምልሰልኩም እዩ።",
+    "ticket_opened": "የቐንየለይ — መልእኽትኹም ናብ {org} በጺሑ እዩ። ቁጽሪ ቲኬትኩም {number} እዩ። ጋንታና ኣብዚ ክምልሰልኩም እዩ።"
+  },
+  "so": {
+    "greeting": "Salaan! Kani waa adeegga macaamiisha ee {org}. Fariintaada noo soo dir — kooxdayadu halkan ayay kaaga jawaabi doontaa.",
+    "ticket_opened": "Mahadsanid — fariintaadu waxay gaartay {org}. Lambarka tikidhkaagu waa {number}. Kooxdayadu halkan ayay kaaga jawaabi doontaa."
+  }
+}

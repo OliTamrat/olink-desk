@@ -1,5 +1,5 @@
 # Olink Desk — Session Briefing
-> Last updated: 2026-08-13 — repository founded; scaffold + domain model committed.
+> Last updated: 2026-08-14 — Bank Assist channel framework ported; Telegram + web channels live in code (ADR 0002).
 
 Read `PROJECT_GUIDELINES.md` for standing rules (IP/attribution, invariants).
 The founding market analysis is
@@ -16,16 +16,18 @@ fintech/banks/MFIs, ride-hailing/delivery, BPOs, government service desks,
 utilities. Decision record: standalone repo, NOT an Onekof fork or module —
 see `docs/decisions/0001`.
 
-## Current status (2026-08-13 — day one)
+## Current status (2026-08-14)
 
 | Area | Status |
 |---|---|
-| Repository | Scaffolded: monorepo (pnpm + turbo), apps/web, packages/database |
-| Domain model | Prisma schema v1: Organization, User, Contact, Ticket, TicketMessage, CallLog, Task, Queue, SlaPolicy, DispositionCode, AuditLog |
-| Docs | OKM skeleton + founding market analysis + ADR 0001 |
-| GitHub | **Repo `OliTamrat/olink-desk` must be created by founder** (integration cannot create repos); push pending |
-| Dependencies | NOT yet installed/built — first `pnpm install` + `pnpm build` verification is the next engineering step |
-| Everything else | Not started |
+| Repository | Monorepo (pnpm + turbo): apps/web, packages/database, packages/channels, packages/i18n. `pnpm install` + `pnpm build` verified green |
+| Domain model | Prisma schema v1 + Conversation model (channel-side identity, ADR 0002); Channel enum covers all 7 channels; no migrations generated yet (first `prisma migrate dev` happens when a real DB exists) |
+| Channels | **Framework ported from Bank Assist (ADR 0002).** `packages/channels`: shared `channelReply()` spine, honest catalogue, sealed credentials (AES-256-GCM, `CHANNEL_CONFIG_KEY`), constant-time secrets. **Telegram + web adapters implemented and tested**; Viber/Meta/SMS are `planned` catalogue entries with reference implementations finished in Bank Assist |
+| i18n | `packages/i18n`: 5-language tables (en/am/om/ti/so), interpolating `t()`, rules-first `detectLanguage()`, TSV review export. AM/OM/TI/SO strings are drafts pending native review (`packages/i18n/review/strings.tsv`) |
+| Tests | 44 passing (vitest): adapter contract, webhook idempotency, tenant-isolation guard, language parity. DB tests run against local Postgres via `prisma db push` + `DATABASE_URL` + `CHANNEL_CONFIG_KEY` |
+| API routes | `POST /api/webhooks/telegram/[org]`, `POST /api/channels/web/[org]`, admin-guarded `GET /api/orgs/[org]/channels` + `POST .../channels/telegram/connect` (interim `DESK_ADMIN_SECRET` guard until the auth port) |
+| Docs | OKM skeleton + market analysis + ADR 0001 + ADR 0002 |
+| Everything else | Not started (auth port, agent console, CRUD UI, SLA, billing) |
 
 ## Build plan (3 months, aligned to Onekof launch)
 
