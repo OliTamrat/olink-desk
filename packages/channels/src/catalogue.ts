@@ -55,7 +55,7 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
   {
     key: "whatsapp",
     name: "WhatsApp",
-    status: PLANNED,
+    status: AVAILABLE,
     blurb:
       "Technically the same shape as Telegram: a webhook in, a send call " +
       "out. The work is the account, not the code.",
@@ -68,7 +68,7 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
   {
     key: "messenger",
     name: "Facebook Messenger",
-    status: PLANNED,
+    status: AVAILABLE,
     blurb:
       "Same Meta plumbing as WhatsApp, so doing one makes the other cheap. " +
       "Worth pairing with whichever you start.",
@@ -79,7 +79,7 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
   {
     key: "instagram",
     name: "Instagram Direct",
-    status: PLANNED,
+    status: AVAILABLE,
     blurb:
       "Reaches a younger audience than the phone line does. Requires a " +
       "professional account linked to the Page.",
@@ -90,7 +90,7 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
   {
     key: "viber",
     name: "Viber",
-    status: PLANNED,
+    status: AVAILABLE,
     blurb:
       "Still common in parts of the diaspora, and — like Telegram — " +
       "self-serve to turn on.",
@@ -101,13 +101,26 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
   {
     key: "sms",
     name: "SMS",
-    status: PLANNED,
+    status: AVAILABLE,
     blurb:
       "The only channel that reaches a customer with no smartphone and no " +
       "data. Also the only one that costs money per message.",
     needs: [
       "A shortcode or sender ID and an aggregator agreement (AfroMessage, GeezSMS, or Ethio Telecom direct).",
       "A per-message budget: unlike the others, every reply has a price.",
+    ],
+  },
+  {
+    key: "ussd",
+    name: "USSD",
+    status: AVAILABLE,
+    blurb:
+      "Dial *code# from any phone — no smartphone, no data, no app. The " +
+      "customer leaves a message and gets a ticket number on screen; the " +
+      "follow-up comes by phone or SMS.",
+    needs: [
+      "A USSD shortcode and gateway agreement — in Ethiopia that runs through Ethio Telecom or an aggregator in front of them.",
+      "The gateway pointed at the desk's USSD webhook with the shared secret.",
     ],
   },
 ];

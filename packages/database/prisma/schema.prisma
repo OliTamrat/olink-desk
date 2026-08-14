@@ -179,6 +179,7 @@ enum Channel {
   TELEGRAM
   PHONE
   SMS
+  USSD
   WEB
   EMAIL
   WHATSAPP
@@ -438,6 +439,7 @@ enum ChannelAccountKind {
   SMS_AFROMESSAGE
   SMS_GEEZSMS
   SMS_FALCONVAS
+  USSD_GATEWAY
   EMAIL_INBOUND
 }
 

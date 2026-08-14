@@ -52,7 +52,7 @@ describe("t()", () => {
   });
 
   it("falls back to English for unsupported languages", () => {
-    expect(t("sw", "greeting", { org: "Acme" })).toEqual(
+    expect(t("fr", "greeting", { org: "Acme" })).toEqual(
       t("en", "greeting", { org: "Acme" }),
     );
     expect(t(null, "greeting", { org: "Acme" })).toEqual(
@@ -71,9 +71,10 @@ describe("detectLanguage", () => {
     expect(detectLanguage("ሰላም ኣነ ሓገዝ እደሊ")).toBe("ti");
   });
 
-  it("recognises Afaan Oromo and Somali by marker words", () => {
+  it("recognises Afaan Oromo, Somali and Swahili by marker words", () => {
     expect(detectLanguage("Akkam, gargaarsa barbaada")).toBe("om");
     expect(detectLanguage("Fadlan waxaan rabaa caawimaad")).toBe("so");
+    expect(detectLanguage("Tafadhali nataka msaada na huduma")).toBe("sw");
   });
 
   it("unmarked Latin prose is English by elimination", () => {

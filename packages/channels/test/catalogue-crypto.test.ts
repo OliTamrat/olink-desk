@@ -8,7 +8,7 @@ import {
 } from "../src/crypto";
 
 describe("catalogue", () => {
-  it("lists all seven channels", () => {
+  it("lists all eight channels", () => {
     expect(CATALOGUE.map((c) => c.key)).toEqual([
       "web",
       "telegram",
@@ -17,7 +17,12 @@ describe("catalogue", () => {
       "instagram",
       "viber",
       "sms",
+      "ussd",
     ]);
+  });
+
+  it("every built adapter reads available, none planned", () => {
+    expect(CATALOGUE.some((c) => c.status === "planned")).toBe(false);
   });
 
   it("every non-live channel states what it needs", () => {

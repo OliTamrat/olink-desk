@@ -1,0 +1,70 @@
+# CI — typecheck, build, and the full test suite against a real Postgres.
+# Every push to every branch is verified here; nothing depends on a manual
+# local run. The DB-backed suites (channel spine, adapters, tenancy guards)
+# run against the service container via `prisma db push`, exactly as they run
+# locally.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: olink_desk_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/olink_desk_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @olink-desk/database prisma:generate
+
+      - name: Push schema to the test database
+        run: pnpm --filter @olink-desk/database exec prisma db push
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        env:
+          # Throwaway key for the sealed-credential round-trips in tests —
+          # not a secret, and never a production value.
+          CHANNEL_CONFIG_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+        run: pnpm test

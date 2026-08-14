@@ -3,16 +3,18 @@
 //
 // The strings live in strings.json, not in code, so a linguist can review a
 // TSV (`pnpm --filter @olink-desk/i18n export:tsv`) and corrections land as a
-// data edit, never a retyped Ge'ez literal. EN is authored; AM/OM/TI/SO are
-// drafts composed from Bank Assist's reviewed sentence patterns and must go
-// through native review before a pilot.
+// data edit, never a retyped Ge'ez literal. EN is authored; AM/OM/TI/SO/SW
+// are drafts composed from Bank Assist's reviewed sentence patterns and must
+// go through native review before a pilot.
 //
-// Localization scope is fixed by PROJECT_GUIDELINES.md: en/am/om/ti/so and no
-// other languages. Bank Assist's Swahili column deliberately did not port.
+// Localization scope matches the fleet's six languages (founder decision
+// 2026-08-14, ADR 0003): en/am/om/ti/so/sw — the same set Bank Assist ships.
+// SW is appended last, not inserted alphabetically, mirroring Bank Assist's
+// column ordering so review tooling ported later cannot mis-map columns.
 
 import rawStrings from "./strings.json";
 
-export const SUPPORTED_LANGUAGES = ["en", "am", "om", "ti", "so"] as const;
+export const SUPPORTED_LANGUAGES = ["en", "am", "om", "ti", "so", "sw"] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_NAMES: Record<Language, string> = {
@@ -21,6 +23,7 @@ export const LANGUAGE_NAMES: Record<Language, string> = {
   om: "Afaan Oromoo",
   ti: "ትግርኛ",
   so: "Soomaali",
+  sw: "Kiswahili",
 };
 
 const STRINGS = rawStrings as Record<Language, Record<string, string>>;
@@ -42,6 +45,11 @@ export const NOTES: Record<string, string> = {
     "Auto-acknowledgement sent once when a new ticket is opened from an inbound " +
     "message. {org} is the organization's name, {number} the human-facing ticket " +
     "number. It promises a reply in this same chat — keep that promise explicit.",
+  message_received:
+    "Closing screen when a message joins an EXISTING ticket on a channel that " +
+    "must answer something (USSD ends every session with a screen). {number} is " +
+    "the ticket number. Unlike ticket_opened it must NOT promise a reply 'here' " +
+    "— a USSD session cannot be re-entered; the follow-up comes by phone or SMS.",
 };
 
 /**
@@ -100,6 +108,15 @@ const SOMALI_WORDS = new Set([
   "mahadsanid", "magacaygu", "aniga", "adiga", "annaga", "iyaga", "maxaa",
   "macmiilka", "warqad", "dhibaato", "caawimaad", "su'aal", "jawaab",
 ]);
+// Swahili is well-documented enough that this list did not need a native
+// speaker to discover its disambiguation shape (the Bank Assist finding); it
+// still needs one to confirm coverage before a pilot.
+const SWAHILI_WORDS = new Set([
+  "huduma", "nataka", "ninahitaji", "tafadhali", "habari", "asante",
+  "jina", "langu", "yangu", "wapi", "lini", "vipi", "ngapi", "jinsi",
+  "ninaweza", "kutuma", "tuma", "malipo", "kiasi", "maelezo", "msaada",
+  "karibu", "samahani", "shida", "tatizo", "ujumbe", "jibu",
+]);
 const ENGLISH_WORDS = new Set([
   "the", "how", "what", "is", "my", "open", "can", "i", "to", "tell", "me",
   "more", "about", "your", "you", "do", "does", "are", "where", "when",
@@ -113,10 +130,10 @@ const LATIN_PROSE_WORDS = 3;
 
 /**
  * Best-effort detection; null means "no signal, keep the conversation's
- * sticky language". Among the five supported languages only English, Afaan
- * Oromo and Somali use Latin script, so unmarked Latin prose is English by
- * elimination — with a word-count floor so a bare "ATM" or "OK" mid-Amharic
- * conversation cannot flip the language (Bank Assist finding #5).
+ * sticky language". Among the six supported languages only English, Afaan
+ * Oromo, Somali and Swahili use Latin script, so unmarked Latin prose is
+ * English by elimination — with a word-count floor so a bare "ATM" or "OK"
+ * mid-Amharic conversation cannot flip the language (Bank Assist finding #5).
  */
 export function detectLanguage(text: string): Language | null {
   if (ETHIOPIC.test(text)) {
@@ -126,18 +143,21 @@ export function detectLanguage(text: string): Language | null {
   if (words.size === 0) return null;
   let om = 0;
   let so = 0;
+  let sw = 0;
   let en = 0;
   for (const w of words) {
     if (OROMO_WORDS.has(w)) om += 1;
     if (SOMALI_WORDS.has(w)) so += 1;
+    if (SWAHILI_WORDS.has(w)) sw += 1;
     if (ENGLISH_WORDS.has(w)) en += 1;
   }
-  const localBest = Math.max(om, so);
+  const localBest = Math.max(om, so, sw);
   if (Math.max(localBest, en) === 0) {
     return words.size >= LATIN_PROSE_WORDS ? "en" : null;
   }
   if (en >= localBest) return "en";
-  // "waan" is in both local lists; prefer the language with more distinct
-  // hits, and a tie goes to Oromo (the original Bank Assist priority).
-  return om >= so ? "om" : "so";
+  // Ties preserve the Bank Assist priority: om, then so, then sw — Swahili
+  // is the newest and least-reviewed list, so it never wins a tie.
+  if (om === localBest) return "om";
+  return so === localBest ? "so" : "sw";
 }
