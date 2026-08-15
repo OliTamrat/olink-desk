@@ -67,4 +67,5 @@ export {
   ussdConnected,
   type UssdConfig,
 } from "./ussd";
-export { handleWebMessage } from "./web";
+export { sendAgentReply, type ReplyOutcome } from "./outbound";
+export { handleWebMessage, listWebMessages } from "./web";

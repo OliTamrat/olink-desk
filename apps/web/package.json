@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@olink-desk/auth": "workspace:*",
     "@olink-desk/channels": "workspace:*",
     "@olink-desk/database": "workspace:*",
     "@olink-desk/i18n": "workspace:*",

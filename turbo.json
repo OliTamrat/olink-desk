@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DATABASE_URL", "CHANNEL_CONFIG_KEY"],
+  "globalEnv": ["DATABASE_URL", "CHANNEL_CONFIG_KEY", "JWT_SECRET"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
