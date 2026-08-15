@@ -23,6 +23,11 @@ COPY . .
 # arrives at runtime via the environment.
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm --filter @olink-desk/database prisma:generate
 RUN pnpm --filter @olink-desk/web build
+# Prisma's query engine lives deep in pnpm's store and Next's standalone
+# tracer misses it (found in production: every DB route threw
+# "could not locate the Query Engine for runtime debian-openssl-3.0.x").
+# Drop it next to the schema — a location the client always searches.
+RUN cp node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/libquery_engine-* packages/database/prisma/
 
 FROM node:20-slim AS runtime
 WORKDIR /app
