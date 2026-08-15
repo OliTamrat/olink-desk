@@ -4,7 +4,7 @@ import { connectTelegram } from "@olink-desk/channels";
 import { prisma } from "@olink-desk/database";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { requireAdminSecret } from "../../../../../../../lib/admin-guard";
+import { isGuardDenied, requireOrgAdmin } from "../../../../../../../lib/org-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -12,15 +12,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { org: string } },
 ) {
-  const denied = requireAdminSecret(request);
-  if (denied) return denied;
-
-  const organization = await prisma.organization.findUnique({
-    where: { slug: params.org },
-  });
-  if (!organization) {
-    return NextResponse.json({ error: "Unknown organization" }, { status: 404 });
-  }
+  const guard = await requireOrgAdmin(request, params.org);
+  if (isGuardDenied(guard)) return guard;
+  const { organization } = guard;
 
   let botToken: unknown;
   try {
@@ -28,7 +22,7 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  if (typeof botToken !== "string" || botToken.length < 10) {
+  if (typeof botToken !== "string" || botToken.trim().length < 10) {
     return NextResponse.json({ error: "botToken is required" }, { status: 400 });
   }
 
@@ -44,7 +38,8 @@ export async function POST(
     const { webhookUrl } = await connectTelegram({
       db: prisma,
       organization,
-      botToken,
+      // Trimmed: a token pasted from a phone arrives wearing whitespace.
+      botToken: botToken.trim(),
       appBaseUrl,
     });
     return NextResponse.json({ webhookUrl });

@@ -8,7 +8,7 @@ import { ChannelAccountKind, prisma } from "@olink-desk/database";
 import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { requireAdminSecret } from "../../../../../../lib/admin-guard";
+import { isGuardDenied, requireOrgAdmin } from "../../../../../../lib/org-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -58,18 +58,13 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { org: string; kind: string } },
 ) {
-  const denied = requireAdminSecret(request);
-  if (denied) return denied;
+  const guard = await requireOrgAdmin(request, params.org);
+  if (isGuardDenied(guard)) return guard;
+  const { organization } = guard;
 
   const spec = STORABLE[params.kind];
   if (!spec) {
     return NextResponse.json({ error: "Unknown channel kind" }, { status: 404 });
-  }
-  const organization = await prisma.organization.findUnique({
-    where: { slug: params.org },
-  });
-  if (!organization) {
-    return NextResponse.json({ error: "Unknown organization" }, { status: 404 });
   }
 
   let payload: Record<string, unknown>;

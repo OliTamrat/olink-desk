@@ -10,7 +10,7 @@ import {
 import { prisma } from "@olink-desk/database";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { requireAdminSecret } from "../../../../../lib/admin-guard";
+import { isGuardDenied, requireOrgAdmin } from "../../../../../lib/org-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +18,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { org: string } },
 ) {
-  const denied = requireAdminSecret(request);
-  if (denied) return denied;
-
-  const organization = await prisma.organization.findUnique({
-    where: { slug: params.org },
-  });
-  if (!organization) {
-    return NextResponse.json({ error: "Unknown organization" }, { status: 404 });
-  }
+  const guard = await requireOrgAdmin(request, params.org);
+  if (isGuardDenied(guard)) return guard;
+  const { organization } = guard;
   const [telegram, viber, meta, sms, ussd] = await Promise.all([
     telegramConnected(prisma, organization.id),
     viberConnected(prisma, organization.id),

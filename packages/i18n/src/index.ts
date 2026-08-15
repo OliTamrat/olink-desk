@@ -13,6 +13,7 @@
 // column ordering so review tooling ported later cannot mis-map columns.
 
 import rawStrings from "./strings.json";
+import rawUiStrings from "./ui_strings.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "am", "om", "ti", "so", "sw"] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
@@ -27,6 +28,11 @@ export const LANGUAGE_NAMES: Record<Language, string> = {
 };
 
 const STRINGS = rawStrings as Record<Language, Record<string, string>>;
+// The staff console's own chrome — a separate table from what customers are
+// sent, because the reviewers differ (Bank Assist keeps ui/admin strings
+// apart from assistant strings for the same reason). Same golden rule: a
+// console screen ships its words in all six languages in the same change.
+const UI_STRINGS = rawUiStrings as Record<Language, Record<string, string>>;
 
 export function isSupportedLanguage(value: string): value is Language {
   return (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
@@ -52,6 +58,49 @@ export const NOTES: Record<string, string> = {
     "— a USSD session cannot be re-entered; the follow-up comes by phone or SMS.",
 };
 
+// Reviewer notes for the console table. The audience is staff (agents and
+// admins), so the register is workplace-polite; proper nouns (Olink Desk,
+// Telegram, BotFather, Webhook, demo) stay untranslated, per the fleet rule.
+export const UI_NOTES: Record<string, string> = {
+  ui_login_title: "Heading of the staff sign-in page.",
+  ui_login_subtitle: "Line under the sign-in heading. 'Olink Desk' is a product name — keep it.",
+  ui_workspace: "Form label: the organization's short identifier used to sign in.",
+  ui_workspace_hint: "Help text under the workspace field. 'demo' is a literal example value — keep it.",
+  ui_email: "Form label for the email field.",
+  ui_password: "Form label for the password field.",
+  ui_sign_in: "The sign-in button.",
+  ui_signing_in: "Button text while the sign-in request is running.",
+  ui_wrong_credentials: "Error when workspace/email/password do not match. Deliberately does not say which was wrong.",
+  ui_locked_out: "Error after repeated failed sign-ins; the account unlocks by itself.",
+  ui_sign_out: "The sign-out button in the console header.",
+  ui_channels_title: "Heading of the Channels page (Telegram, WhatsApp, SMS…).",
+  ui_channels_subtitle: "Line under the Channels heading. {org} is the organization's name.",
+  ui_loading: "Shown while a page or card is fetching data.",
+  ui_live: "Badge on a channel that is connected and working.",
+  ui_available: "Badge on a channel that is built but not yet connected.",
+  ui_needs: "Heading of the list of things required to connect a channel.",
+  ui_tg_token_label: "Label of the input where the admin pastes the Telegram bot token. @BotFather is Telegram's official bot — keep the name.",
+  ui_tg_connect: "Button that saves the pasted token and registers the webhook.",
+  ui_tg_connecting: "Button text while connecting.",
+  ui_tg_connected_as: "Success line. {bot} is the bot's Telegram username, shown as @name.",
+  ui_tg_replace_hint: "Help text: pasting a new token replaces the old one, and a token revoked in BotFather must be re-pasted. 'Revoke' is BotFather's own action name.",
+  ui_tg_token_dead: "Warning when the saved token no longer works because it was revoked. Tells the admin the one action that fixes it.",
+  ui_tg_webhook_ok: "Status line: Telegram has our webhook registered. 'Webhook' is a technical term — keep it.",
+  ui_tg_webhook_wrong: "Warning: Telegram is registered to a different address; re-pasting the token repairs it.",
+  ui_tg_last_error: "Shows Telegram's own most recent delivery error. {error} is the raw message from Telegram, usually English.",
+  ui_tg_connect_failed: "Error when the connect attempt is rejected. {error} is the reason.",
+  ui_not_connected: "Status line for a channel with nothing connected yet.",
+  ui_status_unknown: "Shown when the console could not reach Telegram to check. {error} is the reason.",
+  ui_register_title: "Heading of the create-a-workspace (organization sign-up) page.",
+  ui_org_name: "Form label: the organization's full display name.",
+  ui_your_name: "Form label: the registering person's own name.",
+  ui_register: "The create-workspace button.",
+  ui_creating: "Button text while the workspace is being created.",
+  ui_register_failed: "Error when creation is rejected (taken slug, weak password…). {error} is the reason from the server, usually English.",
+  ui_go_sign_in: "Link from the register page to the sign-in page.",
+  ui_go_register: "Link from the sign-in page to the register page.",
+};
+
 /**
  * Translate a string key, interpolating {placeholders}. Unknown language or
  * missing key falls back to English: a customer reading an English sentence in
@@ -63,9 +112,27 @@ export function t(
   key: string,
   params: Record<string, string | number> = {},
 ): string {
+  return translate(STRINGS, language, key, params);
+}
+
+/** `t()` for the staff console's own labels and messages. */
+export function tUi(
+  language: string | null | undefined,
+  key: string,
+  params: Record<string, string | number> = {},
+): string {
+  return translate(UI_STRINGS, language, key, params);
+}
+
+function translate(
+  table: Record<Language, Record<string, string>>,
+  language: string | null | undefined,
+  key: string,
+  params: Record<string, string | number>,
+): string {
   const lang: Language =
     language && isSupportedLanguage(language) ? language : "en";
-  const template = STRINGS[lang][key] ?? STRINGS.en[key];
+  const template = table[lang][key] ?? table.en[key];
   if (template === undefined) {
     throw new Error(`Unknown i18n key: ${key}`);
   }
@@ -77,6 +144,11 @@ export function t(
 /** The whole table, for tests and the TSV export. */
 export function allStrings(): Record<Language, Record<string, string>> {
   return STRINGS;
+}
+
+/** The console table, for tests and the TSV export. */
+export function allUiStrings(): Record<Language, Record<string, string>> {
+  return UI_STRINGS;
 }
 
 // ---------------------------------------------------------------- detection

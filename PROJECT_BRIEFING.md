@@ -1,5 +1,19 @@
 # Olink Desk — Session Briefing
-> Last updated: 2026-08-15 — Phase 2 opened: auth (Onekof port) + outbound reply path + first migrations + deploy-on-green pipeline (ADR 0004). Console UI is the next slice.
+> Last updated: 2026-08-15 — Staging is LIVE on Cloud Run. Console slice 1 shipped: /login + /channels with the paste-a-token Telegram connect and a self-diagnosing status card (ADR 0005). Next slice: inbox + ticket timeline.
+
+## Staging (live)
+
+- **Service URL:** `https://olink-desk-894460273330.us-east1.run.app`
+  (APP_BASE_URL alias: `https://olink-desk-dadh353x6a-ue.a.run.app`)
+- GCP project `olink-desk` (dedicated, Olink billing), region `us-east1`,
+  deployer/runtime SA split, secrets in Secret Manager, Supabase Postgres.
+- `GET /api/health` answers "is main actually live?" in one request; the
+  deploy pipeline fails its run if this is not green (smoke gate).
+- Demo tenant: org slug `demo` (Olink Demo), admin `olitamrat@gmail.com`.
+- **Connecting Telegram is a screen, not a script:** sign in → Channels →
+  paste the BotFather token → Connect. The card shows token validity,
+  webhook registration and Telegram's last delivery error live (ADR 0005).
+  If the token is ever revoked in BotFather, paste the new one there.
 
 Read `PROJECT_GUIDELINES.md` for standing rules (IP/attribution, invariants).
 The founding market analysis is
@@ -31,9 +45,10 @@ see `docs/decisions/0001`.
 | Outbound replies | `sendAgentReply()` in packages/channels: delivers on the ticket's own channel (Telegram/Viber/WhatsApp/Messenger/Instagram/SMS; WEB = recorded + widget polls `GET /api/channels/web/[org]/messages`; USSD/PHONE/EMAIL/WALK_IN refuse — no transport). Records OUTBOUND only when the channel accepted; sets firstRespondedAt; NEW→OPEN |
 | Migrations | Real Prisma migrations from `init` (20260815022918); CI applies the chain to an empty DB every run (`migrate deploy`, no more db push) |
 | Deploy | `deploy.yml` — Bank Assist pattern: fires off CI-green on main; skips cleanly until `GCP_SA_KEY`/`GCP_PROJECT_ID` exist. **Founder runbook: `docs/runbooks/gcp-staging-setup.md`** (dedicated GCP project on the Olink billing account, deployer/runtime SA split, Secret Manager). Dockerfile = Next standalone on node:20-slim, port 8080, cloud-agnostic (ADR 0004) |
-| Tests | 100 passing (12 auth + 77 channels + 11 i18n) |
-| Docs | OKM skeleton + market analysis + ADRs 0001–0004 |
-| Next slice | **Agent console UI** (login, inbox, ticket timeline + reply box, channel-connect screens) with its strings in all six languages; then Phase 3 (SLA, queues, wallboard) |
+| Tests | 109 passing (12 auth + 87 channels + 15 i18n — the CI run is the exact count) |
+| Console | **Slice 1 live:** `/login` + `/channels` — Telegram paste-token connect card with live self-diagnosis (`GET …/channels/telegram/status`: getMe + getWebhookInfo, token never returned). Org admin routes take session auth (ADMIN of the URL's org); `x-desk-admin` kept as the automation door (ADR 0005). Console chrome strings: `ui_strings.json` + `tUi()`, six languages, own review TSV |
+| Docs | OKM skeleton + market analysis + ADRs 0001–0005 |
+| Next slice | **Inbox + ticket timeline + reply box**, then remaining channel-connect screens (Viber/Meta/SMS/USSD, web embed); then Phase 3 (SLA, queues, wallboard). Known i18n gap: catalogue names/blurbs are English-only literals (pre-existing, tracked in ADR 0005) |
 
 ## Build plan (3 months, aligned to Onekof launch)
 

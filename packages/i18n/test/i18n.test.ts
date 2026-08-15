@@ -2,17 +2,30 @@ import { describe, expect, it } from "vitest";
 
 import {
   allStrings,
+  allUiStrings,
   detectLanguage,
   NOTES,
   SUPPORTED_LANGUAGES,
   t,
+  tUi,
+  UI_NOTES,
 } from "../src/index";
 
-describe("string tables", () => {
+// Both tables are held to the same three invariants — customer strings and
+// console strings alike. The golden rule does not stop at the widget.
+const TABLES: Array<{
+  name: string;
+  strings: Record<string, Record<string, string>>;
+  notes: Record<string, string>;
+}> = [
+  { name: "strings", strings: allStrings(), notes: NOTES },
+  { name: "ui_strings", strings: allUiStrings(), notes: UI_NOTES },
+];
+
+describe.each(TABLES)("string table $name", ({ strings, notes }) => {
   // The multilingual completion rule: a key that exists in English exists in
   // every language, in the same change. This test is what enforces it.
-  it("every key exists in all five languages", () => {
-    const strings = allStrings();
+  it("every key exists in all six languages", () => {
     const enKeys = Object.keys(strings.en).sort();
     for (const lang of SUPPORTED_LANGUAGES) {
       expect(Object.keys(strings[lang]).sort(), `language ${lang}`).toEqual(
@@ -22,15 +35,14 @@ describe("string tables", () => {
   });
 
   it("every key carries a reviewer note", () => {
-    for (const key of Object.keys(allStrings().en)) {
-      expect(NOTES[key], `note for ${key}`).toBeTruthy();
+    for (const key of Object.keys(strings.en)) {
+      expect(notes[key], `note for ${key}`).toBeTruthy();
     }
   });
 
   // A translation that drops a placeholder renders a sentence missing its
   // ticket number. Placeholders must survive every language.
   it("placeholders match across languages", () => {
-    const strings = allStrings();
     for (const key of Object.keys(strings.en)) {
       const enPlaceholders = (strings.en[key].match(/\{\w+\}/g) ?? []).sort();
       for (const lang of SUPPORTED_LANGUAGES) {
@@ -38,6 +50,15 @@ describe("string tables", () => {
         expect(got, `${lang}.${key}`).toEqual(enPlaceholders);
       }
     }
+  });
+});
+
+describe("tUi()", () => {
+  it("interpolates and falls back to English like t()", () => {
+    expect(tUi("en", "ui_tg_connected_as", { bot: "Olink_Desk_Bot" })).toContain(
+      "Olink_Desk_Bot",
+    );
+    expect(tUi("fr", "ui_sign_in")).toEqual(tUi("en", "ui_sign_in"));
   });
 });
 
