@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import {
+  colors,
   LanguagePicker,
   tUi,
   ui,
@@ -40,7 +41,7 @@ export default function RegisterPage() {
         }),
       });
       if (resp.ok) {
-        router.push("/channels");
+        router.push("/dashboard");
         return;
       }
       const body = (await resp.json().catch(() => null)) as
@@ -85,10 +86,10 @@ export default function RegisterPage() {
           <LanguagePicker lang={lang} onChange={setLang} />
         </div>
         <form onSubmit={submit} style={ui.card}>
-          <h1 style={{ margin: 0, fontSize: 22 }}>
+          <h1 style={ui.h1}>
             {tUi(lang, "ui_register_title")}
           </h1>
-          <p style={{ margin: "4px 0 20px", color: "#475467", fontSize: 14 }}>
+          <p style={{ margin: "4px 0 20px", color: colors.textSecondary, fontSize: 14 }}>
             {tUi(lang, "ui_login_subtitle")}
           </p>
 
@@ -103,7 +104,7 @@ export default function RegisterPage() {
               required
             />
           </label>
-          <p style={{ margin: "4px 0 14px", color: "#667085", fontSize: 12 }}>
+          <p style={{ margin: "4px 0 14px", color: colors.textMuted, fontSize: 12 }}>
             {tUi(lang, "ui_workspace_hint")}
           </p>
           {field(tUi(lang, "ui_your_name"), name, setName, "text", "name")}
@@ -117,7 +118,7 @@ export default function RegisterPage() {
           </button>
 
           <p style={{ margin: "16px 0 0", fontSize: 13, textAlign: "center" }}>
-            <Link href="/login" style={{ color: "#1d4ed8" }}>
+            <Link href="/login" style={{ color: colors.accent }}>
               {tUi(lang, "ui_go_sign_in")}
             </Link>
           </p>
