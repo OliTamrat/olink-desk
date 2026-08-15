@@ -183,6 +183,91 @@ export async function telegramConnected(
   return Boolean(config?.botToken);
 }
 
+export interface TelegramStatus {
+  connected: boolean;
+  /** null = Telegram unreachable, so validity is unknown — not "invalid". */
+  tokenValid: boolean | null;
+  botUsername: string | null;
+  expectedWebhookUrl: string;
+  registeredWebhookUrl: string | null;
+  webhookMatches: boolean | null;
+  pendingUpdates: number | null;
+  lastErrorMessage: string | null;
+  probeError: string | null;
+}
+
+/**
+ * Live health of a tenant's Telegram connection, asked of Telegram itself:
+ * does the stored token still work (getMe), and is the webhook actually
+ * pointed at us (getWebhookInfo)? This exists because both failures are
+ * invisible from the inside — a token revoked in BotFather after connect
+ * leaves our record looking fine while every send silently dies. The token
+ * never leaves this function.
+ */
+export async function telegramStatus(opts: {
+  db: PrismaClient;
+  organization: Organization;
+  appBaseUrl: string;
+}): Promise<TelegramStatus> {
+  const { db, organization, appBaseUrl } = opts;
+  const expectedWebhookUrl = `${appBaseUrl}/api/webhooks/telegram/${organization.slug}`;
+  const status: TelegramStatus = {
+    connected: false,
+    tokenValid: null,
+    botUsername: null,
+    expectedWebhookUrl,
+    registeredWebhookUrl: null,
+    webhookMatches: null,
+    pendingUpdates: null,
+    lastErrorMessage: null,
+    probeError: null,
+  };
+
+  const config = await activeTelegramConfig(db, organization.id).catch(() => null);
+  if (!config?.botToken) return status;
+  status.connected = true;
+
+  try {
+    const me = await fetch(`${API}/bot${config.botToken}/getMe`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    const meBody = (await me.json().catch(() => null)) as
+      | { ok?: boolean; result?: { username?: string } }
+      | null;
+    status.tokenValid = Boolean(meBody?.ok);
+    status.botUsername = meBody?.result?.username ?? null;
+  } catch (err) {
+    status.probeError = String(err);
+    return status;
+  }
+  if (!status.tokenValid) return status;
+
+  try {
+    const info = await fetch(`${API}/bot${config.botToken}/getWebhookInfo`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    const infoBody = (await info.json().catch(() => null)) as
+      | {
+          ok?: boolean;
+          result?: {
+            url?: string;
+            pending_update_count?: number;
+            last_error_message?: string;
+          };
+        }
+      | null;
+    if (infoBody?.ok && infoBody.result) {
+      status.registeredWebhookUrl = infoBody.result.url || null;
+      status.webhookMatches = infoBody.result.url === expectedWebhookUrl;
+      status.pendingUpdates = infoBody.result.pending_update_count ?? null;
+      status.lastErrorMessage = infoBody.result.last_error_message ?? null;
+    }
+  } catch (err) {
+    status.probeError = String(err);
+  }
+  return status;
+}
+
 /**
  * Connect a BotFather token for a tenant. The credential is stored and
  * committed BEFORE setWebhook is called, because Telegram may validate the

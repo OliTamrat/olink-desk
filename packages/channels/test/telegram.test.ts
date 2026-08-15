@@ -4,7 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { sealChannelConfig } from "../src/crypto";
-import { handleTelegramWebhook, parseUpdate } from "../src/telegram";
+import { handleTelegramWebhook, parseUpdate, telegramStatus } from "../src/telegram";
 import { createOrg, prisma } from "./helpers";
 
 const SECRET = "s3cret-webhook-token";
@@ -197,5 +197,116 @@ describe("handleTelegramWebhook", () => {
         where: { ticketId: ticket!.id, direction: "OUTBOUND" },
       }),
     ).toBe(0);
+  });
+});
+
+// telegramStatus asks Telegram getMe + getWebhookInfo with the stored token.
+// The contract that matters: a revoked token reads tokenValid=false (the
+// silent-bot case this probe exists for), an unreachable Telegram reads
+// tokenValid=null (unknown, not invalid), and the token itself never appears
+// in the result.
+describe("telegramStatus", () => {
+  const APP = "https://desk.example.com";
+
+  function telegramApi(handlers: {
+    getMe?: () => unknown;
+    getWebhookInfo?: () => unknown;
+  }) {
+    fetchMock.mockImplementation((url: string) => {
+      const body = url.includes("getMe")
+        ? handlers.getMe?.()
+        : handlers.getWebhookInfo?.();
+      return Promise.resolve(
+        new Response(JSON.stringify(body ?? { ok: false }), { status: 200 }),
+      );
+    });
+  }
+
+  it("reports not-connected with no account and calls nothing", async () => {
+    const org = await createOrg();
+    const status = await telegramStatus({
+      db: prisma,
+      organization: org,
+      appBaseUrl: APP,
+    });
+    expect(status.connected).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports a healthy connection with the registered webhook matching", async () => {
+    const org = await connectedOrg();
+    const expectedUrl = `${APP}/api/webhooks/telegram/${org.slug}`;
+    telegramApi({
+      getMe: () => ({ ok: true, result: { username: "Olink_Desk_Bot" } }),
+      getWebhookInfo: () => ({
+        ok: true,
+        result: { url: expectedUrl, pending_update_count: 0 },
+      }),
+    });
+    const status = await telegramStatus({
+      db: prisma,
+      organization: org,
+      appBaseUrl: APP,
+    });
+    expect(status).toMatchObject({
+      connected: true,
+      tokenValid: true,
+      botUsername: "Olink_Desk_Bot",
+      webhookMatches: true,
+      registeredWebhookUrl: expectedUrl,
+    });
+    expect(JSON.stringify(status)).not.toContain("12345:token");
+  });
+
+  it("reports a revoked token as invalid, not as unknown", async () => {
+    const org = await connectedOrg();
+    telegramApi({
+      getMe: () => ({ ok: false, error_code: 401, description: "Unauthorized" }),
+    });
+    const status = await telegramStatus({
+      db: prisma,
+      organization: org,
+      appBaseUrl: APP,
+    });
+    expect(status.connected).toBe(true);
+    expect(status.tokenValid).toBe(false);
+    // Only getMe was called — no point asking for webhook info with a dead token.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces a webhook pointed elsewhere and Telegram's last error", async () => {
+    const org = await connectedOrg();
+    telegramApi({
+      getMe: () => ({ ok: true, result: { username: "Olink_Desk_Bot" } }),
+      getWebhookInfo: () => ({
+        ok: true,
+        result: {
+          url: "https://old-host.example.com/hook",
+          pending_update_count: 7,
+          last_error_message: "Wrong response from the webhook: 403 Forbidden",
+        },
+      }),
+    });
+    const status = await telegramStatus({
+      db: prisma,
+      organization: org,
+      appBaseUrl: APP,
+    });
+    expect(status.webhookMatches).toBe(false);
+    expect(status.pendingUpdates).toBe(7);
+    expect(status.lastErrorMessage).toContain("403");
+  });
+
+  it("an unreachable Telegram reads unknown (null), never invalid", async () => {
+    const org = await connectedOrg();
+    fetchMock.mockRejectedValue(new Error("ECONNRESET"));
+    const status = await telegramStatus({
+      db: prisma,
+      organization: org,
+      appBaseUrl: APP,
+    });
+    expect(status.connected).toBe(true);
+    expect(status.tokenValid).toBeNull();
+    expect(status.probeError).toContain("ECONNRESET");
   });
 });

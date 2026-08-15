@@ -25,8 +25,10 @@ export {
   sendMessage as sendTelegramMessage,
   setWebhook as setTelegramWebhook,
   telegramConnected,
+  telegramStatus,
   type ParsedUpdate,
   type TelegramConfig,
+  type TelegramStatus,
 } from "./telegram";
 export {
   connectViber,
