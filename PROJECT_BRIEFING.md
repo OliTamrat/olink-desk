@@ -1,5 +1,5 @@
 # Olink Desk — Session Briefing
-> Last updated: 2026-08-14 — full channel parity with Bank Assist (all 7 adapters) + USSD built; six languages incl. Swahili; CI on every push (ADRs 0002, 0003).
+> Last updated: 2026-08-15 — Phase 2 opened: auth (Onekof port) + outbound reply path + first migrations + deploy-on-green pipeline (ADR 0004). Console UI is the next slice.
 
 Read `PROJECT_GUIDELINES.md` for standing rules (IP/attribution, invariants).
 The founding market analysis is
@@ -27,8 +27,13 @@ see `docs/decisions/0001`.
 | i18n | `packages/i18n`: **six languages (en/am/om/ti/so/sw)**, interpolating `t()`, rules-first `detectLanguage()`, TSV review export. All non-EN strings are drafts pending native review (`packages/i18n/review/strings.tsv`) |
 | Tests | 82 passing (vitest): per-adapter contract tests, webhook idempotency, tenant-isolation guard, language parity, signature/crypto fail-closed |
 | API routes | Webhooks: `telegram`, `viber`, `meta` (GET handshake + POST), `sms`, `ussd` per-org; web channel POST; admin-guarded catalogue GET, telegram/viber connect, `PUT /api/orgs/[org]/channels/[kind]` credential store (interim `DESK_ADMIN_SECRET` guard until the auth port) |
-| Docs | OKM skeleton + market analysis + ADRs 0001–0003 |
-| Everything else | Not started (auth port, agent console, CRUD UI, SLA, billing) |
+| Auth | `packages/auth` — Onekof pattern ported: bcrypt (bcryptjs, cost 12), progressive lockout (5 free attempts, doubling lock, 60m cap), stateless HS256 JWT sessions (`JWT_SECRET` fails closed), org registration (first user = ACTIVE ADMIN). Routes: register/login/logout/me. `requireUser()` guard scopes every staff route by the SESSION's organizationId, re-reading the user row per request so disable/role changes bite immediately |
+| Outbound replies | `sendAgentReply()` in packages/channels: delivers on the ticket's own channel (Telegram/Viber/WhatsApp/Messenger/Instagram/SMS; WEB = recorded + widget polls `GET /api/channels/web/[org]/messages`; USSD/PHONE/EMAIL/WALK_IN refuse — no transport). Records OUTBOUND only when the channel accepted; sets firstRespondedAt; NEW→OPEN |
+| Migrations | Real Prisma migrations from `init` (20260815022918); CI applies the chain to an empty DB every run (`migrate deploy`, no more db push) |
+| Deploy | `deploy.yml` — Bank Assist pattern: fires off CI-green on main; skips cleanly until `GCP_SA_KEY`/`GCP_PROJECT_ID` exist. **Founder runbook: `docs/runbooks/gcp-staging-setup.md`** (dedicated GCP project on the Olink billing account, deployer/runtime SA split, Secret Manager). Dockerfile = Next standalone on node:20-slim, port 8080, cloud-agnostic (ADR 0004) |
+| Tests | 100 passing (12 auth + 77 channels + 11 i18n) |
+| Docs | OKM skeleton + market analysis + ADRs 0001–0004 |
+| Next slice | **Agent console UI** (login, inbox, ticket timeline + reply box, channel-connect screens) with its strings in all six languages; then Phase 3 (SLA, queues, wallboard) |
 
 ## Build plan (3 months, aligned to Onekof launch)
 

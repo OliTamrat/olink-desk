@@ -76,3 +76,52 @@ export async function handleWebMessage(opts: {
     },
   };
 }
+
+/**
+ * The widget's read side: the conversation's messages, oldest first, so an
+ * agent's reply (recorded by sendAgentReply) reaches the customer on the
+ * next poll. The session id is the authentication, exactly as it is for
+ * posting — it grants exactly the conversation it names, nothing else.
+ */
+export async function listWebMessages(opts: {
+  db: PrismaClient;
+  orgSlug: string;
+  sessionId: unknown;
+}): Promise<WebMessageResult> {
+  const { db, orgSlug } = opts;
+  const organization = await db.organization.findUnique({
+    where: { slug: orgSlug },
+  });
+  if (!organization) {
+    return { status: 404, body: { error: "Unknown organization" } };
+  }
+  const sessionId = typeof opts.sessionId === "string" ? opts.sessionId : "";
+  if (!SESSION_ID_RE.test(sessionId)) {
+    return { status: 400, body: { error: "Invalid session id" } };
+  }
+  const conversation = await db.conversation.findUnique({
+    where: {
+      organizationId_channel_externalUserId: {
+        organizationId: organization.id,
+        channel: "WEB",
+        externalUserId: sessionId,
+      },
+    },
+  });
+  if (!conversation) return { status: 200, body: { messages: [] } };
+  const tickets = await db.ticket.findMany({
+    where: { organizationId: organization.id, conversationId: conversation.id },
+    select: { id: true },
+  });
+  const messages = await db.ticketMessage.findMany({
+    where: {
+      organizationId: organization.id,
+      ticketId: { in: tickets.map((t) => t.id) },
+      direction: { in: ["INBOUND", "OUTBOUND"] }, // NOTEs are never customer-visible
+    },
+    orderBy: { createdAt: "asc" },
+    take: 200,
+    select: { id: true, direction: true, body: true, createdAt: true },
+  });
+  return { status: 200, body: { messages } };
+}

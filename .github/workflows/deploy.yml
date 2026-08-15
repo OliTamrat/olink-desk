@@ -1,0 +1,116 @@
+# Deploy to Cloud Run — the Bank Assist pattern: triggered by CI succeeding
+# on main, so unverified code never deploys. Required GitHub secrets:
+# GCP_SA_KEY and GCP_PROJECT_ID, nothing else — every other value is
+# discovered or lives in GCP Secret Manager.
+# Setup (one-time, founder-side): docs/runbooks/gcp-staging-setup.md.
+#
+# Until those two secrets exist the job skips cleanly rather than failing,
+# so main does not wear a red X for missing infrastructure.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# Queue, never cancel: a deploy runs migrations against a live database
+# (Bank Assist lesson — Cloud Run also aborts concurrent service updates).
+concurrency:
+  group: deploy-cloud-run
+  cancel-in-progress: false
+
+env:
+  REGION: us-east1
+  SERVICE: olink-desk
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check GCP is configured
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.GCP_SA_KEY != '' && secrets.GCP_PROJECT_ID != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "GCP_SA_KEY / GCP_PROJECT_ID not set — skipping deploy (see docs/runbooks/gcp-staging-setup.md)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          ref: main
+
+      - uses: google-github-actions/auth@v2
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        if: steps.gate.outputs.skip == 'false'
+
+      - name: Build and push image
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          IMAGE="$REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/olink-desk/app:${GITHUB_SHA::7}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.skip == 'false'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Run database migrations
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          # Strip trailing whitespace AND a UTF-8 BOM — both have shipped a
+          # broken DATABASE_URL in this fleet before, and both produce the
+          # same useless parse error an empty string does.
+          RAW="$(gcloud secrets versions access latest --secret=olink-desk-database-url)" || exit 1
+          DATABASE_URL="$(printf '%s' "$RAW" | sed 's/^\xEF\xBB\xBF//' | tr -d '[:space:]')"
+          [ -n "$DATABASE_URL" ] || { echo "DATABASE_URL secret is empty"; exit 1; }
+          export DATABASE_URL
+          pnpm install --frozen-lockfile
+          pnpm --filter @olink-desk/database exec prisma migrate deploy
+
+      - name: Deploy to Cloud Run
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE" \
+            --region "$REGION" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --port 8080 \
+            --allow-unauthenticated \
+            --min-instances 0 \
+            --service-account "olink-desk-runtime@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com" \
+            --set-secrets "DATABASE_URL=olink-desk-database-url:latest,JWT_SECRET=olink-desk-jwt-secret:latest,CHANNEL_CONFIG_KEY=olink-desk-channel-config-key:latest,DESK_ADMIN_SECRET=olink-desk-admin-secret:latest" \
+            --quiet
+
+      - name: Set APP_BASE_URL from the service URL
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          URL="$(gcloud run services describe "$SERVICE" --region "$REGION" --project "${{ secrets.GCP_PROJECT_ID }}" --format 'value(status.url)')" || exit 1
+          # --update-env-vars MERGES; --set-env-vars would silently wipe the
+          # rest of the environment (Bank Assist lesson, verbatim).
+          gcloud run services update "$SERVICE" \
+            --region "$REGION" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --update-env-vars "APP_BASE_URL=$URL" \
+            --quiet
+          echo "Deployed: $URL"
