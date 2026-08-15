@@ -91,6 +91,14 @@ export const UI_NOTES: Record<string, string> = {
   ui_tg_connect_failed: "Error when the connect attempt is rejected. {error} is the reason.",
   ui_not_connected: "Status line for a channel with nothing connected yet.",
   ui_status_unknown: "Shown when the console could not reach Telegram to check. {error} is the reason.",
+  ui_register_title: "Heading of the create-a-workspace (organization sign-up) page.",
+  ui_org_name: "Form label: the organization's full display name.",
+  ui_your_name: "Form label: the registering person's own name.",
+  ui_register: "The create-workspace button.",
+  ui_creating: "Button text while the workspace is being created.",
+  ui_register_failed: "Error when creation is rejected (taken slug, weak password…). {error} is the reason from the server, usually English.",
+  ui_go_sign_in: "Link from the register page to the sign-in page.",
+  ui_go_register: "Link from the sign-in page to the register page.",
 };
 
 /**

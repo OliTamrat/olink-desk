@@ -1,6 +1,7 @@
 "use client";
 // Staff sign-in. On success the session cookie is set by the API and the
 // browser moves to /channels — the screen this console slice exists for.
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -101,6 +102,12 @@ export default function LoginPage() {
           <button type="submit" disabled={busy} style={{ ...ui.button, width: "100%" }}>
             {busy ? tUi(lang, "ui_signing_in") : tUi(lang, "ui_sign_in")}
           </button>
+
+          <p style={{ margin: "16px 0 0", fontSize: 13, textAlign: "center" }}>
+            <Link href="/register" style={{ color: "#1d4ed8" }}>
+              {tUi(lang, "ui_go_register")}
+            </Link>
+          </p>
         </form>
       </div>
     </main>

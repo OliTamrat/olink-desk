@@ -28,7 +28,15 @@
   "ui_tg_last_error": "Telegram's last delivery error: {error}",
   "ui_tg_connect_failed": "Could not connect: {error}",
   "ui_not_connected": "Not connected yet.",
-  "ui_status_unknown": "Could not check the connection: {error}"
+  "ui_status_unknown": "Could not check the connection: {error}",
+  "ui_register_title": "Create your workspace",
+  "ui_org_name": "Organization name",
+  "ui_your_name": "Your name",
+  "ui_register": "Create workspace",
+  "ui_creating": "Creating…",
+  "ui_register_failed": "Could not create the workspace: {error}",
+  "ui_go_sign_in": "Already have a workspace? Sign in",
+  "ui_go_register": "New here? Create a workspace"
  },
  "am": {
   "ui_login_title": "ይግቡ",
@@ -59,7 +67,15 @@
   "ui_tg_last_error": "የTelegram የመጨረሻ የመላኪያ ስህተት: {error}",
   "ui_tg_connect_failed": "መገናኘት አልተቻለም: {error}",
   "ui_not_connected": "እስካሁን አልተገናኘም።",
-  "ui_status_unknown": "ግንኙነቱን ማረጋገጥ አልተቻለም: {error}"
+  "ui_status_unknown": "ግንኙነቱን ማረጋገጥ አልተቻለም: {error}",
+  "ui_register_title": "የሥራ ቦታዎን ይፍጠሩ",
+  "ui_org_name": "የድርጅት ስም",
+  "ui_your_name": "ስምዎ",
+  "ui_register": "የሥራ ቦታ ይፍጠሩ",
+  "ui_creating": "በመፍጠር ላይ…",
+  "ui_register_failed": "የሥራ ቦታውን መፍጠር አልተቻለም: {error}",
+  "ui_go_sign_in": "የሥራ ቦታ አለዎት? ይግቡ",
+  "ui_go_register": "አዲስ ነዎት? የሥራ ቦታ ይፍጠሩ"
  },
  "om": {
   "ui_login_title": "Seenaa",
@@ -90,7 +106,15 @@
   "ui_tg_last_error": "Dogoggora ergaa Telegram isa dhumaa: {error}",
   "ui_tg_connect_failed": "Walqabsiisuun hin danda'amne: {error}",
   "ui_not_connected": "Ammatti hin walqabanne.",
-  "ui_status_unknown": "Walqabsiisa mirkaneessuun hin danda'amne: {error}"
+  "ui_status_unknown": "Walqabsiisa mirkaneessuun hin danda'amne: {error}",
+  "ui_register_title": "Iddoo hojii keessan uumaa",
+  "ui_org_name": "Maqaa dhaabbataa",
+  "ui_your_name": "Maqaa keessan",
+  "ui_register": "Iddoo hojii uumi",
+  "ui_creating": "Uumaa jira…",
+  "ui_register_failed": "Iddoo hojii uumuun hin danda'amne: {error}",
+  "ui_go_sign_in": "Iddoo hojii qabduu? Seenaa",
+  "ui_go_register": "Haaraa dhuftanii? Iddoo hojii uumaa"
  },
  "ti": {
   "ui_login_title": "እተዉ",
@@ -121,7 +145,15 @@
   "ui_tg_last_error": "ናይ Telegram ናይ መወዳእታ ናይ ምልኣኽ ጌጋ: {error}",
   "ui_tg_connect_failed": "ምርኻብ ኣይተኻእለን: {error}",
   "ui_not_connected": "ክሳብ ሕጂ ኣይተራኸበን።",
-  "ui_status_unknown": "ርክብ ምርግጋጽ ኣይተኻእለን: {error}"
+  "ui_status_unknown": "ርክብ ምርግጋጽ ኣይተኻእለን: {error}",
+  "ui_register_title": "ናይ ስራሕ ቦታኹም ፍጠሩ",
+  "ui_org_name": "ስም ትካል",
+  "ui_your_name": "ስምኩም",
+  "ui_register": "ናይ ስራሕ ቦታ ፍጠሩ",
+  "ui_creating": "ይፈጥር ኣሎ…",
+  "ui_register_failed": "ናይ ስራሕ ቦታ ምፍጣር ኣይተኻእለን: {error}",
+  "ui_go_sign_in": "ናይ ስራሕ ቦታ ኣለኩም ድዩ? እተዉ",
+  "ui_go_register": "ሓድሽ ዲኹም? ናይ ስራሕ ቦታ ፍጠሩ"
  },
  "so": {
   "ui_login_title": "Gal",
@@ -152,7 +184,15 @@
   "ui_tg_last_error": "Khaladkii ugu dambeeyay ee Telegram: {error}",
   "ui_tg_connect_failed": "Lama xiri karin: {error}",
   "ui_not_connected": "Weli lama xirin.",
-  "ui_status_unknown": "Xiriirka lama hubin karin: {error}"
+  "ui_status_unknown": "Xiriirka lama hubin karin: {error}",
+  "ui_register_title": "Samee goobta shaqadaada",
+  "ui_org_name": "Magaca hay'adda",
+  "ui_your_name": "Magacaaga",
+  "ui_register": "Samee goobta shaqada",
+  "ui_creating": "Waa la samaynayaa…",
+  "ui_register_failed": "Goobta shaqada lama samayn karin: {error}",
+  "ui_go_sign_in": "Goob shaqo ma leedahay? Gal",
+  "ui_go_register": "Ma cusub tahay? Samee goobta shaqada"
  },
  "sw": {
   "ui_login_title": "Ingia",
@@ -183,6 +223,14 @@
   "ui_tg_last_error": "Hitilafu ya mwisho ya utumaji ya Telegram: {error}",
   "ui_tg_connect_failed": "Imeshindwa kuunganisha: {error}",
   "ui_not_connected": "Bado haijaunganishwa.",
-  "ui_status_unknown": "Imeshindwa kukagua muunganisho: {error}"
+  "ui_status_unknown": "Imeshindwa kukagua muunganisho: {error}",
+  "ui_register_title": "Unda eneo lako la kazi",
+  "ui_org_name": "Jina la shirika",
+  "ui_your_name": "Jina lako",
+  "ui_register": "Unda eneo la kazi",
+  "ui_creating": "Inaunda…",
+  "ui_register_failed": "Imeshindwa kuunda eneo la kazi: {error}",
+  "ui_go_sign_in": "Una eneo la kazi? Ingia",
+  "ui_go_register": "Mgeni? Unda eneo la kazi"
  }
 }
