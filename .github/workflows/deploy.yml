@@ -114,3 +114,24 @@ jobs:
             --update-env-vars "APP_BASE_URL=$URL" \
             --quiet
           echo "Deployed: $URL"
+          echo "SERVICE_URL=$URL" >> "$GITHUB_ENV"
+
+      # A deploy is not done until the running revision proves itself. The
+      # runner CAN reach the service, so this is where breakage gets caught
+      # and named — never by whoever opens the product first.
+      - name: Post-deploy smoke test
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          echo "Probing $SERVICE_URL/api/health"
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /tmp/health.json -w '%{http_code}' "$SERVICE_URL/api/health" || true)
+            body=$(cat /tmp/health.json 2>/dev/null || echo '(no body)')
+            echo "attempt $i: HTTP $code  $body"
+            if [ "$code" = "200" ]; then
+              echo "Deploy healthy."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Deploy is UNHEALTHY — failing the run. Last response above names the broken component."
+          exit 1
