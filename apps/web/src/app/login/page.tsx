@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import {
+  colors,
   LanguagePicker,
   tUi,
   ui,
@@ -32,7 +33,7 @@ export default function LoginPage() {
         body: JSON.stringify({ orgSlug: orgSlug.trim(), email: email.trim(), password }),
       });
       if (resp.ok) {
-        router.push("/channels");
+        router.push("/dashboard");
         return;
       }
       setError(
@@ -54,8 +55,8 @@ export default function LoginPage() {
           <LanguagePicker lang={lang} onChange={setLang} />
         </div>
         <form onSubmit={submit} style={ui.card}>
-          <h1 style={{ margin: 0, fontSize: 22 }}>{tUi(lang, "ui_login_title")}</h1>
-          <p style={{ margin: "4px 0 20px", color: "#475467", fontSize: 14 }}>
+          <h1 style={ui.h1}>{tUi(lang, "ui_login_title")}</h1>
+          <p style={{ margin: "4px 0 20px", color: colors.textSecondary, fontSize: 14 }}>
             {tUi(lang, "ui_login_subtitle")}
           </p>
 
@@ -69,7 +70,7 @@ export default function LoginPage() {
               required
             />
           </label>
-          <p style={{ margin: "4px 0 14px", color: "#667085", fontSize: 12 }}>
+          <p style={{ margin: "4px 0 14px", color: colors.textMuted, fontSize: 12 }}>
             {tUi(lang, "ui_workspace_hint")}
           </p>
 
@@ -104,7 +105,7 @@ export default function LoginPage() {
           </button>
 
           <p style={{ margin: "16px 0 0", fontSize: 13, textAlign: "center" }}>
-            <Link href="/register" style={{ color: "#1d4ed8" }}>
+            <Link href="/register" style={{ color: colors.accent }}>
               {tUi(lang, "ui_go_register")}
             </Link>
           </p>

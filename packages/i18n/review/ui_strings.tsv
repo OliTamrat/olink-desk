@@ -36,3 +36,24 @@ ui_creating	Creating…	በመፍጠር ላይ…	Uumaa jira…	ይፈጥር ኣ
 ui_register_failed	Could not create the workspace: {error}	የሥራ ቦታውን መፍጠር አልተቻለም: {error}	Iddoo hojii uumuun hin danda'amne: {error}	ናይ ስራሕ ቦታ ምፍጣር ኣይተኻእለን: {error}	Goobta shaqada lama samayn karin: {error}	Imeshindwa kuunda eneo la kazi: {error}	Error when creation is rejected (taken slug, weak password…). {error} is the reason from the server, usually English.
 ui_go_sign_in	Already have a workspace? Sign in	የሥራ ቦታ አለዎት? ይግቡ	Iddoo hojii qabduu? Seenaa	ናይ ስራሕ ቦታ ኣለኩም ድዩ? እተዉ	Goob shaqo ma leedahay? Gal	Una eneo la kazi? Ingia	Link from the register page to the sign-in page.
 ui_go_register	New here? Create a workspace	አዲስ ነዎት? የሥራ ቦታ ይፍጠሩ	Haaraa dhuftanii? Iddoo hojii uumaa	ሓድሽ ዲኹም? ናይ ስራሕ ቦታ ፍጠሩ	Ma cusub tahay? Samee goobta shaqada	Mgeni? Unda eneo la kazi	Link from the sign-in page to the register page.
+ui_nav_dashboard	Dashboard	ዳሽቦርድ	Daashboordii	ዳሽቦርድ	Dashboorka	Dashibodi	Sidebar navigation item: the overview screen with today's numbers.
+ui_nav_inbox	Inbox	የገቢ መልዕክቶች	Sanduuqa ergaa	ሳጹን መልእኽቲ	Sanduuqa fariimaha	Kikasha	Sidebar navigation item: the list of customer tickets.
+ui_kpi_open	Open now	አሁን ክፍት	Amma banaa	ሕጂ ክፉት	Hadda furan	Zilizo wazi sasa	Stat tile label: tickets currently open (new + open + waiting).
+ui_kpi_new_today	New today	ዛሬ አዲስ	Har'a haaraa	ሎሚ ሓድሽ	Maanta cusub	Mpya leo	Stat tile label: tickets opened today.
+ui_kpi_awaiting	Awaiting first reply	የመጀመሪያ ምላሽ በመጠበቅ ላይ	Deebii jalqabaa eegaa	ናይ መጀመርታ መልሲ ይጽበ ኣሎ	Sugaya jawaabta koowaad	Inasubiri jibu la kwanza	Stat tile label: open tickets no agent has replied to yet.
+ui_by_channel	Tickets by channel	ቲኬቶች በቻናል	Tiikeetota chaanaaliidhaan	ቲኬታት ብቻናል	Tikidhada kanaal ahaan	Tiketi kwa njia	Card heading: count of tickets per channel (Telegram, SMS…).
+ui_recent_tickets	Recent tickets	የቅርብ ጊዜ ቲኬቶች	Tiikeetota dhiheenyaa	ናይ ቀረባ እዋን ቲኬታት	Tikidhada dhawaan	Tiketi za hivi karibuni	Card heading: the most recently active tickets.
+ui_no_tickets	No tickets yet. Connect a channel and incoming messages become tickets here.	እስካሁን ቲኬቶች የሉም። ቻናል ያገናኙ — የሚገቡ መልዕክቶች እዚህ ቲኬቶች ይሆናሉ።	Ammatti tiikeetiin hin jiru. Chaanaalii walqabsiisaa — ergaawwan dhufan asitti tiikeetii ta'u.	ክሳብ ሕጂ ቲኬታት የለዉን። ቻናል ኣራኽቡ — ዝኣትዉ መልእኽትታት ኣብዚ ቲኬታት ይኾኑ።	Weli tikidho ma jiraan. Ku xir kanaal — fariimaha soo galaa halkan tikidho ayay noqdaan.	Bado hakuna tiketi. Unganisha njia — jumbe zinazoingia huwa tiketi hapa.	Empty state of the dashboard/inbox before any customer has written.
+ui_inbox_empty	No tickets in this view.	በዚህ እይታ ቲኬቶች የሉም።	Mul'ata kana keessa tiikeetiin hin jiru.	ኣብዚ ራእይ ቲኬታት የለዉን።	Aragtidan tikidho kuma jiraan.	Hakuna tiketi katika mwonekano huu.	Empty state of the inbox when a status filter matches nothing.
+ui_select_ticket	Select a ticket to read it.	ለማንበብ ቲኬት ይምረጡ።	Dubbisuuf tiikeetii filadhaa.	ንምንባብ ቲኬት ምረጹ።	Dooro tikidh si aad u akhrido.	Chagua tiketi ili kuisoma.	Right pane placeholder before a ticket is selected.
+ui_reply_placeholder	Write a reply…	ምላሽ ይጻፉ…	Deebii barreessaa…	መልሲ ጽሓፉ…	Qor jawaab…	Andika jibu…	Placeholder inside the reply box.
+ui_send	Send	ላክ	Ergi	ስደድ	Dir	Tuma	The send-reply button.
+ui_sending	Sending…	በመላክ ላይ…	Ergaa jira…	ይሰድድ ኣሎ…	Waa la dirayaa…	Inatuma…	Send button while the reply is being delivered.
+ui_reply_failed	Could not send: {error}	መላክ አልተቻለም: {error}	Erguun hin danda'amne: {error}	ምስዳድ ኣይተኻእለን: {error}	Lama diri karin: {error}	Imeshindwa kutuma: {error}	Error when a reply could not be delivered. {error} is the reason.
+ui_all	All	ሁሉም	Hunda	ኩሉ	Dhammaan	Zote	Inbox filter chip meaning no status filter.
+ui_st_new	New	አዲስ	Haaraa	ሓድሽ	Cusub	Mpya	Ticket status: just arrived, unhandled.
+ui_st_open	Open	ክፍት	Banaa	ክፉት	Furan	Wazi	Ticket status: an agent is on it.
+ui_st_pending	Waiting on customer	ደንበኛን በመጠበቅ ላይ	Maamila eegaa	ዓሚል ይጽበ ኣሎ	Sugaya macmiilka	Inamsubiri mteja	Ticket status: waiting for the customer to answer.
+ui_st_resolved	Resolved	ተፈቷል	Furameera	ተፈቲሑ	La xalliyay	Imetatuliwa	Ticket status: solved, pending closure.
+ui_st_closed	Closed	ተዘግቷል	Cufameera	ተዓጽዩ	La xiray	Imefungwa	Ticket status: finished.
+ui_customer	Customer	ደንበኛ	Maamila	ዓሚል	Macmiil	Mteja	Label for the customer side of a conversation timeline.

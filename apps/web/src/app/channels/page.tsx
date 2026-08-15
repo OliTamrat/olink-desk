@@ -3,14 +3,16 @@
 // field, click Connect, and read the live state of the connection right
 // here. The status card asks Telegram itself (via our API), so "the bot is
 // silent" is diagnosed on this page, not in a terminal.
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  LanguagePicker,
+  Badge,
+  colors,
+  ConsoleShell,
   tUi,
   ui,
   useConsoleLanguage,
+  useMe,
 } from "../../lib/console-ui";
 
 interface CatalogueEntry {
@@ -33,14 +35,9 @@ interface TelegramStatus {
   probeError: string | null;
 }
 
-interface Me {
-  organization: { slug: string; name: string };
-}
-
 export default function ChannelsPage() {
-  const router = useRouter();
   const [lang, setLang] = useConsoleLanguage();
-  const [me, setMe] = useState<Me | null>(null);
+  const me = useMe();
   const [channels, setChannels] = useState<CatalogueEntry[]>([]);
   const [tg, setTg] = useState<TelegramStatus | null>(null);
   const [tgError, setTgError] = useState<string | null>(null);
@@ -70,23 +67,16 @@ export default function ChannelsPage() {
   }, []);
 
   useEffect(() => {
+    if (!me) return;
     let cancelled = false;
     (async () => {
-      const resp = await fetch("/api/auth/me");
-      if (resp.status === 401) {
-        router.replace("/login");
-        return;
-      }
-      const body = (await resp.json()) as Me;
-      if (cancelled) return;
-      setMe(body);
-      await refresh(body.organization.slug);
+      await refresh(me.organization.slug);
       if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [refresh, router]);
+  }, [me, refresh]);
 
   async function connectTelegram() {
     if (!me || !token.trim()) return;
@@ -121,66 +111,26 @@ export default function ChannelsPage() {
     }
   }
 
-  async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/login");
-  }
-
   const badge = (status: CatalogueEntry["status"]) => (
-    <span
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        padding: "2px 10px",
-        borderRadius: 999,
-        background: status === "live" ? "#ecfdf3" : "#eff4ff",
-        color: status === "live" ? "#067647" : "#3538cd",
-      }}
-    >
+    <Badge tone={status === "live" ? "success" : "info"}>
       {status === "live" ? tUi(lang, "ui_live") : tUi(lang, "ui_available")}
-    </span>
+    </Badge>
   );
 
   return (
-    <main style={{ ...ui.page, padding: "24px 16px" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
-        <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 20,
-            gap: 12,
-          }}
-        >
-          <div>
-            <h1 style={{ margin: 0, fontSize: 24 }}>
-              {tUi(lang, "ui_channels_title")}
-            </h1>
-            {me ? (
-              <p style={{ margin: "4px 0 0", color: "#475467", fontSize: 14 }}>
-                {tUi(lang, "ui_channels_subtitle", { org: me.organization.name })}
-              </p>
-            ) : null}
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <LanguagePicker lang={lang} onChange={setLang} />
-            <button
-              onClick={signOut}
-              style={{
-                ...ui.button,
-                background: "#fff",
-                color: "#344054",
-                border: "1px solid #d0d5dd",
-              }}
-            >
-              {tUi(lang, "ui_sign_out")}
-            </button>
-          </div>
+    <ConsoleShell lang={lang} onLang={setLang} me={me} active="channels">
+      <div style={{ maxWidth: 760 }}>
+        <header style={{ marginBottom: 20 }}>
+          <h1 style={ui.h1}>{tUi(lang, "ui_channels_title")}</h1>
+          {me ? (
+            <p style={ui.sub}>
+              {tUi(lang, "ui_channels_subtitle", { org: me.organization.name })}
+            </p>
+          ) : null}
         </header>
 
         {loading ? (
-          <p style={{ color: "#475467" }}>{tUi(lang, "ui_loading")}</p>
+          <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>
         ) : (
           <div style={{ display: "grid", gap: 16 }}>
             {/* ------------------------------------------------ Telegram */}
@@ -193,7 +143,7 @@ export default function ChannelsPage() {
                   marginBottom: 10,
                 }}
               >
-                <h2 style={{ margin: 0, fontSize: 18 }}>Telegram</h2>
+                <h2 style={ui.h2}>Telegram</h2>
                 {badge(tg?.connected && tg.tokenValid ? "live" : "available")}
               </div>
 
@@ -258,7 +208,7 @@ export default function ChannelsPage() {
                     : tUi(lang, "ui_tg_connect")}
                 </button>
               </div>
-              <p style={{ margin: "8px 0 0", color: "#667085", fontSize: 12 }}>
+              <p style={{ margin: "8px 0 0", color: colors.textMuted, fontSize: 12 }}>
                 {tUi(lang, "ui_tg_replace_hint")}
               </p>
               {connectError ? (
@@ -279,10 +229,10 @@ export default function ChannelsPage() {
                       marginBottom: 8,
                     }}
                   >
-                    <h2 style={{ margin: 0, fontSize: 18 }}>{c.name}</h2>
+                    <h2 style={ui.h2}>{c.name}</h2>
                     {badge(c.status)}
                   </div>
-                  <p style={{ margin: 0, color: "#475467", fontSize: 14 }}>
+                  <p style={{ margin: 0, color: colors.textSecondary, fontSize: 14 }}>
                     {c.blurb}
                   </p>
                   {c.needs.length > 0 ? (
@@ -292,11 +242,12 @@ export default function ChannelsPage() {
                           margin: "12px 0 4px",
                           fontSize: 13,
                           fontWeight: 600,
+                          color: colors.textBody,
                         }}
                       >
                         {tUi(lang, "ui_needs")}
                       </p>
-                      <ul style={{ margin: 0, paddingLeft: 18, color: "#475467", fontSize: 13 }}>
+                      <ul style={{ margin: 0, paddingLeft: 18, color: colors.textSecondary, fontSize: 13 }}>
                         {c.needs.map((n) => (
                           <li key={n}>{n}</li>
                         ))}
@@ -308,6 +259,6 @@ export default function ChannelsPage() {
           </div>
         )}
       </div>
-    </main>
+    </ConsoleShell>
   );
 }

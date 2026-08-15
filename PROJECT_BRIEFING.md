@@ -48,7 +48,7 @@ see `docs/decisions/0001`.
 | Tests | 109 passing (12 auth + 87 channels + 15 i18n — the CI run is the exact count) |
 | Console | **Slice 1 live:** `/login` + `/channels` — Telegram paste-token connect card with live self-diagnosis (`GET …/channels/telegram/status`: getMe + getWebhookInfo, token never returned). Org admin routes take session auth (ADMIN of the URL's org); `x-desk-admin` kept as the automation door (ADR 0005). Console chrome strings: `ui_strings.json` + `tUi()`, six languages, own review TSV |
 | Docs | OKM skeleton + market analysis + ADRs 0001–0005 |
-| Next slice | **Inbox + ticket timeline + reply box**, then remaining channel-connect screens (Viber/Meta/SMS/USSD, web embed); then Phase 3 (SLA, queues, wallboard). Known i18n gap: catalogue names/blurbs are English-only literals (pre-existing, tracked in ADR 0005) |
+| Next slice | ~~Inbox + timeline + reply~~ **shipped in console v2** (dark token design system, shell, /dashboard KPIs, /inbox two-pane with reply-on-channel). Then: remaining channel-connect screens (Viber/Meta/SMS/USSD, web embed); then Phase 3 (SLA, queues, wallboard). Known i18n gap: catalogue names/blurbs are English-only literals (pre-existing, tracked in ADR 0005) |
 
 ## Build plan (3 months, aligned to Onekof launch)
 
