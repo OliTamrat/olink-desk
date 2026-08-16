@@ -45,9 +45,12 @@ see `docs/decisions/0001`.
 | Outbound replies | `sendAgentReply()` in packages/channels: delivers on the ticket's own channel (Telegram/Viber/WhatsApp/Messenger/Instagram/SMS; WEB = recorded + widget polls `GET /api/channels/web/[org]/messages`; USSD/PHONE/EMAIL/WALK_IN refuse — no transport). Records OUTBOUND only when the channel accepted; sets firstRespondedAt; NEW→OPEN |
 | Migrations | Real Prisma migrations from `init` (20260815022918); CI applies the chain to an empty DB every run (`migrate deploy`, no more db push) |
 | Deploy | `deploy.yml` — Bank Assist pattern: fires off CI-green on main; skips cleanly until `GCP_SA_KEY`/`GCP_PROJECT_ID` exist. **Founder runbook: `docs/runbooks/gcp-staging-setup.md`** (dedicated GCP project on the Olink billing account, deployer/runtime SA split, Secret Manager). Dockerfile = Next standalone on node:20-slim, port 8080, cloud-agnostic (ADR 0004) |
-| Tests | 109 passing (12 auth + 87 channels + 15 i18n — the CI run is the exact count) |
+| Tests | 119 passing (12 auth + 82 channels + 15 i18n + 10 sla — the CI run is the exact count) |
 | Console | **Slice 1 live:** `/login` + `/channels` — Telegram paste-token connect card with live self-diagnosis (`GET …/channels/telegram/status`: getMe + getWebhookInfo, token never returned). Org admin routes take session auth (ADMIN of the URL's org); `x-desk-admin` kept as the automation door (ADR 0005). Console chrome strings: `ui_strings.json` + `tUi()`, six languages, own review TSV |
-| Docs | OKM skeleton + market analysis + ADRs 0001–0005 |
+| SLA | `packages/sla` — business-hours clock (Mon–Sat 08:30–17:30 Africa/Addis_Ababa, Ethiopian holidays, fixed-offset arithmetic), per-priority policies seeded lazily (URGENT 15m/4h … LOW 1bd/5bd). Clocks stored at ticket creation, recomputed on re-prioritize. **Breach derived at read time** — no cron in the truth path (ADR 0006) |
+| Lifecycle | `PATCH /api/tickets/[id]` — status/priority/assignee/queue with per-change audit; resolution stamps set on entry, cleared on reopen. Queues + staff-roster APIs |
+| Wallboard | `/wallboard` (SUPERVISOR/ADMIN/AUDITOR): totals, per-queue open/unassigned/at-risk/breached/oldest-wait, agent load, today's medians. 10s poll |
+| Docs | OKM skeleton + market analysis + ADRs 0001–0006 (0006 = industry benchmark + desktop-first decision + SLA model) |
 | Next slice | ~~Inbox + timeline + reply~~ **shipped in console v2** (dark token design system, shell, /dashboard KPIs, /inbox two-pane with reply-on-channel). Then: remaining channel-connect screens (Viber/Meta/SMS/USSD, web embed); then Phase 3 (SLA, queues, wallboard). Known i18n gap: catalogue names/blurbs are English-only literals (pre-existing, tracked in ADR 0005) |
 
 ## Build plan (3 months, aligned to Onekof launch)
