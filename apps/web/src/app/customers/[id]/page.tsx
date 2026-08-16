@@ -19,6 +19,8 @@ import {
   Badge,
   colors,
   ConsoleShell,
+  layout,
+  Split,
   tUi,
   ui,
   useConsoleLanguage,
@@ -46,6 +48,7 @@ interface Detail {
   createdAt: string;
   openCount: number;
   totalCount: number;
+  channels: string[];
   tickets: Array<{
     id: string;
     number: number;
@@ -137,7 +140,7 @@ export default function CustomerPage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="customers">
-      <div style={{ display: "grid", gap: 16, maxWidth: 900 }}>
+      <div style={{ ...layout.wide, display: "grid", gap: 16 }}>
         <Link
           href="/customers"
           style={{ fontSize: 13, color: colors.textSecondary, textDecoration: "none" }}
@@ -192,6 +195,15 @@ export default function CustomerPage() {
               ) : null}
             </div>
 
+            {/* The rail runs beside ALL of the content, not just the
+                history. Beside the history alone, the stats and details cards
+                above it stretched the full width — two numbers floating in a
+                1300px box, which spends the space worse than leaving it
+                empty. */}
+            <Split
+              rail={<ReachRail c={c} lang={lang} />}
+              main={
+                <div style={{ display: "grid", gap: 16 }}>
             <div style={{ ...ui.card, display: "flex", gap: 28, flexWrap: "wrap" }}>
               <Stat label={tUi(lang, "ui_customer_open_tickets")} value={c.openCount} />
               <Stat label={tUi(lang, "ui_customer_total_tickets")} value={c.totalCount} />
@@ -339,10 +351,66 @@ export default function CustomerPage() {
                 ))
               )}
             </div>
+                </div>
+              }
+            />
           </>
         )}
       </div>
     </ConsoleShell>
+  );
+}
+
+/**
+ * The rail answers a question the detail card does not: CAN the desk message
+ * this person? A phone number on file is not the same as a channel they have
+ * written in on — a customer who exists only because staff logged calls has
+ * contact details and no way to be reached, and an agent needs to know that
+ * before promising a reply.
+ *
+ * The two links are the operator's own phone and mail client on purpose. A
+ * message sent from there is NOT on the ticket, which is exactly why they sit
+ * here under "how to reach them" rather than next to the reply box.
+ */
+function ReachRail({ c, lang }: { c: Detail; lang: Parameters<typeof tUi>[0] }) {
+  return (
+    <div style={{ ...ui.card, display: "grid", gap: 12 }}>
+      <strong style={{ fontSize: 14, color: colors.textPrimary }}>
+        {tUi(lang, "ui_customer_reach")}
+      </strong>
+
+      {c.channels.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: colors.textSecondary }}>
+          {tUi(lang, "ui_customer_no_channels")}
+        </p>
+      ) : (
+        <div>
+          <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 6 }}>
+            {tUi(lang, "ui_customer_channels_used")}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {c.channels.map((ch) => (
+              <Badge key={ch} tone="success">
+                {CHANNEL_LABELS[ch] ?? ch}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "grid", gap: 6 }}>
+        {c.phone ? (
+          <a href={`tel:${c.phone}`} style={{ ...ui.buttonGhost, textAlign: "center", textDecoration: "none" }}>
+            {tUi(lang, "ui_customer_call")}
+          </a>
+        ) : null}
+        {c.email ? (
+          <a href={`mailto:${c.email}`} style={{ ...ui.buttonGhost, textAlign: "center", textDecoration: "none" }}>
+            {tUi(lang, "ui_customer_email_them")}
+          </a>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

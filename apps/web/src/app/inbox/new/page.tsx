@@ -14,13 +14,16 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import {
+  Badge,
   colors,
   ConsoleShell,
+  Split,
   tUi,
   ui,
   useConsoleLanguage,
   useMe,
 } from "../../../lib/console-ui";
+import { CHANNEL_LABELS, statusKey } from "../../../lib/tickets";
 
 const LANGS = [
   { code: "en", name: "English" },
@@ -57,6 +60,29 @@ export default function NewTicketPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // What this person has contacted us about before. Fetched as soon as they
+  // are picked, because an agent typing up a call wants to see "they rang
+  // twice last week" WHILE typing, not after the ticket exists.
+  const [history, setHistory] = useState<Array<{
+    id: string;
+    number: number;
+    subject: string | null;
+    status: string;
+    channel: string;
+  }>>([]);
+
+  useEffect(() => {
+    if (!picked) {
+      setHistory([]);
+      return;
+    }
+    void (async () => {
+      const resp = await fetch(`/api/contacts/${picked.id}`);
+      if (!resp.ok) return;
+      const data = (await resp.json()) as { contact: { tickets: typeof history } };
+      setHistory(data.contact.tickets ?? []);
+    })();
+  }, [picked]);
 
   // "Log a ticket for them" carries the customer's id. Re-identifying somebody
   // the agent just clicked on is the small indignity this avoids.
@@ -121,7 +147,46 @@ export default function NewTicketPage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="inbox">
-      <div style={{ display: "grid", gap: 16, maxWidth: 720 }}>
+      <Split
+        railWidth={300}
+        rail={
+          <div style={{ ...ui.card, display: "grid", gap: 10 }}>
+            <strong style={{ fontSize: 14, color: colors.textPrimary }}>
+              {tUi(lang, "ui_new_ticket_context")}
+            </strong>
+            {history.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: colors.textSecondary }}>
+                {tUi(lang, "ui_new_ticket_no_context")}
+              </p>
+            ) : (
+              history.map((t) => (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "grid",
+                    gap: 4,
+                    paddingTop: 8,
+                    borderTop: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <div style={{ fontSize: 13, color: colors.textPrimary }}>
+                    {t.subject ?? "—"}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                    <Badge tone={t.status === "RESOLVED" || t.status === "CLOSED" ? "muted" : "info"}>
+                      {tUi(lang, statusKey(t.status))}
+                    </Badge>
+                    <span style={{ fontSize: 11.5, color: colors.textMuted }}>
+                      #{t.number} · {CHANNEL_LABELS[t.channel] ?? t.channel}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        }
+        main={
+      <div style={{ display: "grid", gap: 16 }}>
         <div>
           <h1 style={ui.h1}>{tUi(lang, "ui_new_ticket_title")}</h1>
           <p style={{ ...ui.sub, maxWidth: 620 }}>{tUi(lang, "ui_new_ticket_subtitle")}</p>
@@ -312,6 +377,8 @@ export default function NewTicketPage() {
           </div>
         </div>
       </div>
+        }
+      />
     </ConsoleShell>
   );
 }

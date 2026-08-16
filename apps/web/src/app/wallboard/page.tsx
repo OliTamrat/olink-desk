@@ -110,7 +110,7 @@ export default function WallboardPage() {
   );
 
   return (
-    <ConsoleShell lang={lang} onLang={setLang} me={me} active="wallboard">
+    <ConsoleShell lang={lang} onLang={setLang} me={me} active="wallboard" fullBleed>
       <header style={{ marginBottom: 20 }}>
         <h1 style={ui.h1}>{tUi(lang, "ui_nav_wallboard")}</h1>
       </header>

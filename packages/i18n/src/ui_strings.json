@@ -307,7 +307,14 @@
     "ui_customer_no_notes": "No notes yet.",
     "ui_customer_saved": "Saved",
     "ui_customer_back": "All customers",
-    "ui_customer_open_record": "Open their record"
+    "ui_customer_open_record": "Open their record",
+    "ui_customer_reach": "How to reach them",
+    "ui_customer_channels_used": "They have written in on",
+    "ui_customer_no_channels": "They have never written in — every ticket here was logged by staff, so the desk cannot message them.",
+    "ui_customer_call": "Call them",
+    "ui_customer_email_them": "Email them",
+    "ui_new_ticket_context": "What they contacted you about before",
+    "ui_new_ticket_no_context": "Pick a customer and anything they have contacted you about before appears here."
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -617,7 +624,14 @@
     "ui_customer_no_notes": "እስካሁን ማስታወሻ የለም።",
     "ui_customer_saved": "ተቀምጧል",
     "ui_customer_back": "ሁሉም ደንበኞች",
-    "ui_customer_open_record": "መዝገባቸውን ክፈት"
+    "ui_customer_open_record": "መዝገባቸውን ክፈት",
+    "ui_customer_reach": "እንዴት እንደሚያገኟቸው",
+    "ui_customer_channels_used": "የጻፉት በ",
+    "ui_customer_no_channels": "ጽፈው አያውቁም — እዚህ ያለው እያንዳንዱ ቲኬት በሠራተኞች የተመዘገበ ነው፣ ስለዚህ ዴስኩ መልእክት ሊልክላቸው አይችልም።",
+    "ui_customer_call": "ይደውሉላቸው",
+    "ui_customer_email_them": "ኢሜይል ይላኩላቸው",
+    "ui_new_ticket_context": "ከዚህ በፊት ስላነጋገሩዎት ጉዳይ",
+    "ui_new_ticket_no_context": "ደንበኛ ይምረጡ፤ ከዚህ በፊት ያነጋገሩዎት ማንኛውም ጉዳይ እዚህ ይታያል።"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -927,7 +941,14 @@
     "ui_customer_no_notes": "Amma yaadannoon hin jiru.",
     "ui_customer_saved": "Olkaa'ameera",
     "ui_customer_back": "Maamiltoota hunda",
-    "ui_customer_open_record": "Galmee isaanii bani"
+    "ui_customer_open_record": "Galmee isaanii bani",
+    "ui_customer_reach": "Akkamitti isaan qunnamtu",
+    "ui_customer_channels_used": "Karaa isaan barreessan",
+    "ui_customer_no_channels": "Takkaa hin barreessine — tikeetiin as jiru hundi hojjettootaan galmaa'e, kanaaf deeskiin ergaa isaanii erguu hin danda'u.",
+    "ui_customer_call": "Bilbili",
+    "ui_customer_email_them": "Iimeelii ergi",
+    "ui_new_ticket_context": "Waa'ee maalii duraan si qunnaman",
+    "ui_new_ticket_no_context": "Maamila filadhu; wanti duraan si qunnaman kamiyyuu asitti mul'ata."
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1237,7 +1258,14 @@
     "ui_customer_no_notes": "ክሳብ ሕጂ መዘኻኸሪ የለን።",
     "ui_customer_saved": "ተዓቂቡ",
     "ui_customer_back": "ኩሎም ዓማዊል",
-    "ui_customer_open_record": "መዝገቦም ክፈት"
+    "ui_customer_open_record": "መዝገቦም ክፈት",
+    "ui_customer_reach": "ከመይ ጌርካ ትረኽቦም",
+    "ui_customer_channels_used": "ዝጸሓፍሉ",
+    "ui_customer_no_channels": "ፈጺሞም ጽሒፎም ኣይፈልጡን — ኩሉ እዚ ትኬት ብሰራሕተኛታት እዩ ተመዝጊቡ፡ ስለዚ እቲ ደስክ መልእኽቲ ክሰደሎም ኣይክእልን።",
+    "ui_customer_call": "ደውለሎም",
+    "ui_customer_email_them": "ኢመይል ስደደሎም",
+    "ui_new_ticket_context": "ቅድሚ ሕጂ ብዛዕባ እንታይ ከም ዝረኸቡኻ",
+    "ui_new_ticket_no_context": "ዓሚል ምረጽ፤ ቅድሚ ሕጂ ዝረኸቡኻ ዝኾነ ነገር ኣብዚ ይረአ።"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1547,7 +1575,14 @@
     "ui_customer_no_notes": "Weli xusuus-qor ma jiro.",
     "ui_customer_saved": "Waa la keydiyay",
     "ui_customer_back": "Macaamiisha oo dhan",
-    "ui_customer_open_record": "Fur diiwaankooda"
+    "ui_customer_open_record": "Fur diiwaankooda",
+    "ui_customer_reach": "Sida loo gaaro",
+    "ui_customer_channels_used": "Waxay ka soo qoreen",
+    "ui_customer_no_channels": "Waligood ma soo qorin — tikidh kasta oo halkan ah shaqaaluhu diiwaan geliyeen, sidaas darteed deesku fariin uma diri karo.",
+    "ui_customer_call": "Wac",
+    "ui_customer_email_them": "Iimayl u dir",
+    "ui_new_ticket_context": "Waxay hore kaaga soo xiriireen",
+    "ui_new_ticket_no_context": "Dooro macmiil, wax kasta oo ay hore kaaga soo xiriireen halkan ayay ka muuqan doonaan."
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1857,6 +1892,13 @@
     "ui_customer_no_notes": "Bado hakuna madokezo.",
     "ui_customer_saved": "Imehifadhiwa",
     "ui_customer_back": "Wateja wote",
-    "ui_customer_open_record": "Fungua rekodi yao"
+    "ui_customer_open_record": "Fungua rekodi yao",
+    "ui_customer_reach": "Jinsi ya kuwafikia",
+    "ui_customer_channels_used": "Wameandika kupitia",
+    "ui_customer_no_channels": "Hawajawahi kuandika — kila tiketi hapa ilisajiliwa na wafanyakazi, hivyo dawati haliwezi kuwatumia ujumbe.",
+    "ui_customer_call": "Wapigie simu",
+    "ui_customer_email_them": "Watumie barua pepe",
+    "ui_new_ticket_context": "Walichowasiliana nawe kuhusu awali",
+    "ui_new_ticket_no_context": "Chagua mteja, na chochote walichowasiliana nawe kuhusu awali kitaonekana hapa."
   }
 }
