@@ -256,7 +256,17 @@
     "ui_kb_publish": "Publish",
     "ui_kb_unpublish": "Unpublish",
     "ui_kb_deflections": "Answered {n} customers without a ticket",
-    "ui_kb_none": "No articles yet. Write the answer your team repeats most, once."
+    "ui_kb_none": "No articles yet. Write the answer your team repeats most, once.",
+    "ui_bulk_macro": "Apply a macro",
+    "ui_bulk_macro_review": "Review before sending",
+    "ui_bulk_macro_group": "{n} customers will receive this in {lang}",
+    "ui_bulk_macro_fellback": "{n} wrote in {from} — this macro has no {from} text, so they receive {lang}",
+    "ui_bulk_macro_undeliverable": "{n} cannot be reached on their channel and will be skipped",
+    "ui_bulk_macro_send": "Send to {n} customers",
+    "ui_bulk_macro_sending": "Sending…",
+    "ui_bulk_macro_sent": "Sent to {n} customers",
+    "ui_bulk_macro_partial": "Sent to {sent}, but {failed} could not be delivered",
+    "ui_bulk_macro_nothing": "None of the selected tickets can be replied to on a channel"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -515,7 +525,17 @@
     "ui_kb_publish": "አትም",
     "ui_kb_unpublish": "ከህትመት አውጣ",
     "ui_kb_deflections": "{n} ደንበኞችን ያለ ቲኬት መልሷል",
-    "ui_kb_none": "እስካሁን ጽሑፍ የለም። ቡድንዎ በጣም የሚደጋግመውን መልስ አንድ ጊዜ ይጻፉ።"
+    "ui_kb_none": "እስካሁን ጽሑፍ የለም። ቡድንዎ በጣም የሚደጋግመውን መልስ አንድ ጊዜ ይጻፉ።",
+    "ui_bulk_macro": "ማክሮ ተግብር",
+    "ui_bulk_macro_review": "ከመላክዎ በፊት ይገምግሙ",
+    "ui_bulk_macro_group": "{n} ደንበኞች ይህን በ{lang} ይቀበላሉ",
+    "ui_bulk_macro_fellback": "{n}ቱ በ{from} ጽፈዋል፤ ይህ ማክሮ የ{from} ጽሑፍ ስለሌለው በ{lang} ይቀበላሉ",
+    "ui_bulk_macro_undeliverable": "{n} በቻናላቸው ሊደረስባቸው አይችልም፤ ይዘለላሉ",
+    "ui_bulk_macro_send": "ለ{n} ደንበኞች ላክ",
+    "ui_bulk_macro_sending": "በመላክ ላይ…",
+    "ui_bulk_macro_sent": "ለ{n} ደንበኞች ተልኳል",
+    "ui_bulk_macro_partial": "ለ{sent} ተልኳል፤ ግን {failed} ሊደርስ አልቻለም",
+    "ui_bulk_macro_nothing": "ከተመረጡት ቲኬቶች መካከል በቻናል ሊመለስላቸው የሚችል የለም"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -774,7 +794,17 @@
     "ui_kb_publish": "Maxxansi",
     "ui_kb_unpublish": "Maxxansa irraa kaasi",
     "ui_kb_deflections": "Maamiltoota {n} tikeetii malee deebiseera",
-    "ui_kb_none": "Amma barruun hin jiru. Deebii gareen keessan irra deddeebi'u, al tokko barreessaa."
+    "ui_kb_none": "Amma barruun hin jiru. Deebii gareen keessan irra deddeebi'u, al tokko barreessaa.",
+    "ui_bulk_macro": "Maakroo hojiirra oolchi",
+    "ui_bulk_macro_review": "Osoo hin ergin dura ilaalaa",
+    "ui_bulk_macro_group": "Maamiltoonni {n} kana {lang}n ni fudhatu",
+    "ui_bulk_macro_fellback": "{n} {from}n barreessan; maakroon kun barruu {from} waan hin qabneef {lang}n fudhatu",
+    "ui_bulk_macro_undeliverable": "{n} karaa chaanaalii isaaniitiin bira ga'uun hin danda'amu; ni darbamu",
+    "ui_bulk_macro_send": "Maamiltoota {n}f ergi",
+    "ui_bulk_macro_sending": "Ergaa jira…",
+    "ui_bulk_macro_sent": "Maamiltoota {n}f ergameera",
+    "ui_bulk_macro_partial": "{sent}f ergameera, garuu {failed} hin geenye",
+    "ui_bulk_macro_nothing": "Tikeetiiwwan filataman keessaa kan chaanaaliidhaan deebi'amuu danda'u hin jiru"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1033,7 +1063,17 @@
     "ui_kb_publish": "ሕተም",
     "ui_kb_unpublish": "ካብ ሕትመት ኣውጽእ",
     "ui_kb_deflections": "{n} ዓማዊል ብዘይ ትኬት መሊሱ",
-    "ui_kb_none": "ክሳብ ሕጂ ጽሑፍ የለን። እቲ ጋንታኹም ብዙሕ ግዜ ዝደግሞ መልሲ ሓንሳብ ጽሓፉ።"
+    "ui_kb_none": "ክሳብ ሕጂ ጽሑፍ የለን። እቲ ጋንታኹም ብዙሕ ግዜ ዝደግሞ መልሲ ሓንሳብ ጽሓፉ።",
+    "ui_bulk_macro": "ማክሮ ተግብር",
+    "ui_bulk_macro_review": "ቅድሚ ምስዳድ ገምግሙ",
+    "ui_bulk_macro_group": "{n} ዓማዊል ነዚ ብ{lang} ክቕበሉ እዮም",
+    "ui_bulk_macro_fellback": "{n} ብ{from} ጽሒፎም፡ እዚ ማክሮ ናይ {from} ጽሑፍ ስለ ዘይብሉ ብ{lang} ክቕበሉ እዮም",
+    "ui_bulk_macro_undeliverable": "{n} ብቻነሎም ክብጻሕዎም ኣይክኣልን፡ ክድርበዩ እዮም",
+    "ui_bulk_macro_send": "ናብ {n} ዓማዊል ስደድ",
+    "ui_bulk_macro_sending": "ይሰድድ ኣሎ…",
+    "ui_bulk_macro_sent": "ናብ {n} ዓማዊል ተላኢኹ",
+    "ui_bulk_macro_partial": "ናብ {sent} ተላኢኹ፡ ግን {failed} ክበጽሕ ኣይከኣለን",
+    "ui_bulk_macro_nothing": "ካብቶም እተመርጹ ትኬታት ብቻነል ክምለሰሎም ዝኽእል የለን"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1292,7 +1332,17 @@
     "ui_kb_publish": "Daabac",
     "ui_kb_unpublish": "Ka saar daabacaadda",
     "ui_kb_deflections": "Wuxuu ka jawaabay {n} macmiil tikidh la'aan",
-    "ui_kb_none": "Weli maqaal ma jiro. Qor jawaabta kooxdaadu ugu badan ku celiso, hal mar."
+    "ui_kb_none": "Weli maqaal ma jiro. Qor jawaabta kooxdaadu ugu badan ku celiso, hal mar.",
+    "ui_bulk_macro": "Codso makro",
+    "ui_bulk_macro_review": "Dib u eeg intaadan dirin",
+    "ui_bulk_macro_group": "{n} macmiil ayaa tan ku heli doona {lang}",
+    "ui_bulk_macro_fellback": "{n} waxay ku qoreen {from}, makradan qoraal {from} ah ma laha, sidaas darteed waxay heli doonaan {lang}",
+    "ui_bulk_macro_undeliverable": "{n} lagama gaari karo kanaalkooda, waana la boodi doonaa",
+    "ui_bulk_macro_send": "U dir {n} macmiil",
+    "ui_bulk_macro_sending": "Waa la dirayaa…",
+    "ui_bulk_macro_sent": "Loo diray {n} macmiil",
+    "ui_bulk_macro_partial": "Loo diray {sent}, laakiin {failed} lama gaadhsiin karin",
+    "ui_bulk_macro_nothing": "Tikidhada la doortay midna kanaal lagama jawaabi karo"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1551,6 +1601,16 @@
     "ui_kb_publish": "Chapisha",
     "ui_kb_unpublish": "Ondoa kwenye uchapishaji",
     "ui_kb_deflections": "Imejibu wateja {n} bila tikiti",
-    "ui_kb_none": "Bado hakuna makala. Andika jibu ambalo timu yako hurudia zaidi, mara moja."
+    "ui_kb_none": "Bado hakuna makala. Andika jibu ambalo timu yako hurudia zaidi, mara moja.",
+    "ui_bulk_macro": "Tumia makro",
+    "ui_bulk_macro_review": "Kagua kabla ya kutuma",
+    "ui_bulk_macro_group": "Wateja {n} watapokea hii kwa {lang}",
+    "ui_bulk_macro_fellback": "{n} waliandika kwa {from}, makro hii haina maandishi ya {from}, hivyo watapokea {lang}",
+    "ui_bulk_macro_undeliverable": "{n} hawawezi kufikiwa kwenye kituo chao na wataruka",
+    "ui_bulk_macro_send": "Tuma kwa wateja {n}",
+    "ui_bulk_macro_sending": "Inatuma…",
+    "ui_bulk_macro_sent": "Imetumwa kwa wateja {n}",
+    "ui_bulk_macro_partial": "Imetumwa kwa {sent}, lakini {failed} hazikufikishwa",
+    "ui_bulk_macro_nothing": "Hakuna tikiti yoyote iliyochaguliwa inayoweza kujibiwa kwenye kituo"
   }
 }
