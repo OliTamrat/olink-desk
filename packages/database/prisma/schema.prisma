@@ -67,6 +67,7 @@ model Organization {
   auditLogs        AuditLog[]
   channelAccounts  ChannelAccount[]
   conversations    Conversation[]
+  macros           Macro[]
 }
 
 enum UserRole {
@@ -108,6 +109,7 @@ model User {
   callLogs        CallLog[]
   assignedTasks   Task[]          @relation("TaskAssignee")
   createdTasks    Task[]          @relation("TaskCreator")
+  createdMacros   Macro[]         @relation("MacroCreator")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -459,6 +461,43 @@ model ChannelAccount {
   updatedAt DateTime @updatedAt
 
   @@index([organizationId, kind])
+}
+
+// ---------- Macros (canned replies) ----------
+
+// A saved reply an agent applies with one click. `bodies` is a JSON map of
+// language code to text ({"en": "...", "am": "..."}) rather than one column
+// per language or one row per translation, because a macro is edited as a
+// single object and a language added to the fleet must not need a migration.
+//
+// The rule that makes this worth building: a macro renders in the CUSTOMER's
+// language, not the agent's (see packages/macros/src/render.ts). The bodies
+// map is what makes that possible.
+model Macro {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  title    String
+  category String?
+  bodies   Json
+
+  // Applied to the ticket after the reply is actually delivered — never at
+  // insert time. A macro that changed the status while the agent was still
+  // reading the draft would move a ticket nobody had answered.
+  setStatus TicketStatus?
+
+  isActive   Boolean @default(true)
+  usageCount Int     @default(0)
+
+  createdById String?
+  createdBy   User?   @relation("MacroCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, title])
+  @@index([organizationId, isActive])
 }
 
 // ---------- Audit ----------
