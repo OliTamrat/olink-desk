@@ -115,3 +115,17 @@ ui_opened	Opened	የተከፈተበት	Yeroo banameef	እተኸፍተሉ	Waqtiga
 ui_language	Language	ቋንቋ	Afaan	ቋንቋ	Luqad	Lugha	Context rail field: the conversation's language.
 ui_phone	Phone	ስልክ	Bilbila	ስልኪ	Taleefan	Simu	Context rail field: the customer's phone number.
 ui_clear	Clear	አጽዳ	Haqi	ኣጽሪ	Nadiifi	Futa	Button that clears the active list filters.
+ui_subject	Subject	ርዕስ	Mata duree	ኣርእስቲ	Mawduuc	Mada	Table column: what the ticket is about.
+ui_requester	Requester	ጠያቂ	Gaafataa	ሓታቲ	Codsadaha	Mwombaji	Table column: the customer who wrote in.
+ui_requested	Requested	የተጠየቀው	Yeroo gaafatame	እተሓትተሉ	Waqtiga la codsaday	Iliombwa	Table column: when the ticket arrived.
+ui_selected	{n} selected	{n} ተመርጠዋል	{n} filatamaniiru	{n} ተመሪጾም	{n} la doortay	{n} zimechaguliwa	Bulk action bar: how many rows are ticked. {n} is a number.
+ui_public_reply	Public reply	ለደንበኛው ምላሽ	Deebii maamilaaf	መልሲ ንዓሚል	Jawaab dadweyne	Jibu la wazi	Composer mode that sends to the customer on their channel.
+ui_internal_note	Internal note	የውስጥ ማስታወሻ	Yaadannoo keessoo	ውሽጣዊ መዘክር	Qoraal gudaha ah	Dokezo la ndani	Composer mode that records a note only staff can read.
+ui_note_placeholder	Write an internal note — the customer never sees this	የውስጥ ማስታወሻ ይጻፉ — ደንበኛው ፈጽሞ አያየውም	Yaadannoo keessoo barreessaa — maamilli gonkumaa hin argu	ውሽጣዊ መዘክር ጽሓፉ — ዓሚል ፈጺሙ ኣይርእዮን	Qor qoraal gudaha ah — macmiilku waligiis ma arko	Andika dokezo la ndani — mteja haoni hili kamwe	Placeholder in the composer while in internal-note mode. The reassurance matters — an agent must never wonder whether the customer saw it.
+ui_note_badge	Internal note	የውስጥ ማስታወሻ	Yaadannoo keessoo	ውሽጣዊ መዘክር	Qoraal gudaha ah	Dokezo la ndani	Label on an internal note in the conversation timeline.
+ui_interaction_history	Interaction history	ያለፈ ግንኙነት	Seenaa walqunnamtii	ናይ ቀደም ርክብ	Taariikhda xiriirka	Historia ya mawasiliano	Right rail heading: this customer's earlier tickets.
+ui_no_history	First time this customer has contacted you.	ደንበኛው ሲያገኝዎት የመጀመሪያው ነው።	Maamilli kun yeroo jalqabaaf isin qunnameera.	እዚ ዓሚል ንመጀመርታ ግዜ እዩ ረኺቡኩም።	Markii ugu horreysay ee macmiilkani kula soo xiriiro.	Ni mara ya kwanza mteja huyu kuwasiliana nawe.	Shown when the customer has no earlier tickets.
+ui_back_to_list	Back to list	ወደ ዝርዝሩ ተመለስ	Gara tarreetti deebi'i	ናብ ዝርዝር ተመለስ	Ku noqo liiska	Rudi kwenye orodha	Link from an open ticket back to the ticket table.
+ui_properties	Properties	ባህሪያት	Amaloota	ባህርያት	Sifooyin	Sifa	Left panel heading on a ticket: its editable fields.
+ui_take_it	Take it	እኔ እወስዳለሁ	Ani nan fudhadha	ኣነ ክወስዶ	Aan qaato	Nichukue	Button that assigns the ticket to the signed-in agent (Zendesk calls this 'take it').
+ui_note_sent	Note added	ማስታወሻ ታክሏል	Yaadannoon dabalameera	መዘክር ተወሲኹ	Qoraalka waa lagu daray	Dokezo limeongezwa	Confirmation after an internal note is recorded.

@@ -29,13 +29,55 @@ export async function POST(
   if (isDenied(principal)) return principal;
 
   let body: unknown;
+  let internal = false;
   try {
-    ({ body } = (await request.json()) as { body?: unknown });
+    const payload = (await request.json()) as { body?: unknown; internal?: unknown };
+    body = payload.body;
+    internal = payload.internal === true;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   if (typeof body !== "string") {
     return NextResponse.json({ error: "body is required" }, { status: 400 });
+  }
+
+  // An internal note is a NOTE row and nothing else: no channel send, no
+  // first-response stamp, no status change. It is the team talking to
+  // itself, and the customer must never be able to receive it — which is
+  // why it never touches sendAgentReply.
+  if (internal) {
+    const trimmed = body.trim();
+    if (!trimmed) {
+      return NextResponse.json({ error: "empty_body" }, { status: 400 });
+    }
+    const ticket = await prisma.ticket.findFirst({
+      where: { id: params.id, organizationId: principal.organization.id },
+      select: { id: true, channel: true },
+    });
+    if (!ticket) {
+      return NextResponse.json({ error: "ticket_not_found" }, { status: 404 });
+    }
+    const note = await prisma.ticketMessage.create({
+      data: {
+        organizationId: principal.organization.id,
+        ticketId: ticket.id,
+        direction: "NOTE",
+        channel: ticket.channel,
+        body: trimmed,
+        authorUserId: principal.user.id,
+      },
+    });
+    await prisma.auditLog.create({
+      data: {
+        organizationId: principal.organization.id,
+        actorUserId: principal.user.id,
+        action: "ticket.note_added",
+        entityType: "ticket",
+        entityId: String(ticket.id),
+        metadata: {},
+      },
+    });
+    return NextResponse.json({ ok: true, messageId: note.id, internal: true });
   }
 
   const result = await sendAgentReply({

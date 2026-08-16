@@ -34,7 +34,30 @@ export async function GET(
   if (!ticket) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  return NextResponse.json({ ticket });
+
+  // Interaction history — what this customer has contacted us about before.
+  // An agent who can see it stops asking people to repeat themselves.
+  const history = ticket.contactId
+    ? await prisma.ticket.findMany({
+        where: {
+          organizationId: principal.organization.id,
+          contactId: ticket.contactId,
+          id: { not: ticket.id },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          number: true,
+          subject: true,
+          status: true,
+          channel: true,
+          createdAt: true,
+        },
+      })
+    : [];
+
+  return NextResponse.json({ ticket, history });
 }
 
 // Ticket lifecycle: status, priority, assignee, queue — the controls every

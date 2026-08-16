@@ -23,6 +23,17 @@ type TicketView = (typeof VIEWS)[number];
 
 const PAGE_SIZE = 100;
 
+// Sortable columns, allowlisted: a sort key from the query string must
+// never reach Prisma unchecked.
+const SORTS = {
+  updated: "updatedAt",
+  created: "createdAt",
+  number: "number",
+  status: "status",
+  priority: "priority",
+} as const;
+type SortKey = keyof typeof SORTS;
+
 export async function GET(request: NextRequest) {
   const principal = await requireUser(request);
   if (isDenied(principal)) return principal;
@@ -82,13 +93,17 @@ export async function GET(request: NextRequest) {
     ];
   }
 
+  const sortParam = params.get("sort");
+  const sort: SortKey = sortParam && sortParam in SORTS ? (sortParam as SortKey) : "updated";
+  const dir = params.get("dir") === "asc" ? "asc" : "desc";
+
   // The count is of the whole filtered set, not the page — "3 of 240" is
   // the number a supervisor is actually asking for.
   const [count, tickets] = await Promise.all([
     prisma.ticket.count({ where }),
     prisma.ticket.findMany({
       where,
-      orderBy: { updatedAt: "desc" },
+      orderBy: { [SORTS[sort]]: dir },
       take: PAGE_SIZE,
       select: {
         id: true,
