@@ -74,6 +74,7 @@ model Organization {
   channelAccounts  ChannelAccount[]
   conversations    Conversation[]
   macros           Macro[]
+  notifications    Notification[]
 }
 
 enum UserRole {
@@ -116,6 +117,7 @@ model User {
   assignedTasks   Task[]          @relation("TaskAssignee")
   createdTasks    Task[]          @relation("TaskCreator")
   createdMacros   Macro[]         @relation("MacroCreator")
+  notifications   Notification[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -260,9 +262,10 @@ model Ticket {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  messages TicketMessage[]
-  callLogs CallLog[]
-  tasks    Task[]
+  messages      TicketMessage[]
+  callLogs      CallLog[]
+  tasks         Task[]
+  notifications Notification[]
 
   @@unique([organizationId, number])
   @@index([organizationId, conversationId])
@@ -504,6 +507,47 @@ model Macro {
 
   @@unique([organizationId, title])
   @@index([organizationId, isActive])
+}
+
+// ---------- Notifications ----------
+
+enum NotificationKind {
+  SLA_AT_RISK
+  SLA_BREACHED
+  UNASSIGNED_WAITING
+}
+
+// Something a person needs to be told about, recorded rather than pushed.
+//
+// The SLA engine computed breach from the beginning, but only inside the
+// wallboard route — so the only thing that knew a promise had been missed
+// was a screen somebody had to be watching. A row here is what turns that
+// derivation into an alarm.
+//
+// `userId` is nullable: a ticket nobody owns is the workspace's problem, and
+// addressing it to an individual would hide it from everyone else.
+model Notification {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  kind   NotificationKind
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  // One notification per (ticket, kind), ever. A cron running every few
+  // minutes must not re-tell a supervisor the same thing twelve times an
+  // hour; the constraint is what makes the escalation pass idempotent
+  // without the pass having to remember anything.
+  @@unique([ticketId, kind])
+  @@index([organizationId, readAt])
+  @@index([organizationId, createdAt])
 }
 
 // ---------- Audit ----------
