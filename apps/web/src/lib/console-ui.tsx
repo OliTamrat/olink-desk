@@ -172,6 +172,13 @@ export const Icons = {
       <path d="M17.5 14.4c2 .6 3.2 2.3 3.2 4.6" />
     </svg>
   ),
+  more: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="5" cy="12" r="1.4" />
+      <circle cx="12" cy="12" r="1.4" />
+      <circle cx="19" cy="12" r="1.4" />
+    </svg>
+  ),
   panel: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -794,6 +801,17 @@ export function ConsoleShell({
   }
 
   const isMobile = useIsMobile();
+  const barShown = useHideOnScroll();
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Four on the bar, the rest behind More. Inbox leads because an agent on a
+  // phone is working tickets; the order is not the desktop's, because a phone
+  // is not a small desktop.
+  const PHONE_PRIMARY = ["inbox", "dashboard", "customers", "knowledge"];
+  const primaryNav = PHONE_PRIMARY.map((k) => nav.find((n) => n.key === k)).filter(
+    (n): n is (typeof nav)[number] => Boolean(n),
+  );
+  const overflowNav = nav.filter((n) => !PHONE_PRIMARY.includes(n.key));
 
   const brand = (
     <Link
@@ -891,7 +909,13 @@ export function ConsoleShell({
           background: colors.bg,
           color: colors.textBody,
           fontFamily: font,
-          overflowX: "hidden",
+          // `clip`, not `hidden`. Per spec, an element with overflow other
+          // than `visible` on ONE axis computes the other to `auto` — so
+          // `overflow-x: hidden` quietly made this div a vertical scroll
+          // CONTAINER, the page scrolled inside it rather than on the window,
+          // and anything listening for window scroll never heard a thing.
+          // `clip` clips without establishing a scroll container.
+          overflowX: "clip",
         }}
       >
         {topBar}
@@ -901,6 +925,16 @@ export function ConsoleShell({
           {sidePanel}
           {children}
         </div>
+        {/* FOUR destinations plus More.
+            Every nav item used to render here at `flex: 1` — nine of them on a
+            390px phone is 43px each, so the labels were clipped and the bar
+            overflowed sideways. Four is what fits legibly; the rest are one
+            tap away rather than illegibly present.
+
+            Which four is a judgement about a phone, not a shrunken desktop:
+            an agent holding a phone is working the Inbox, and everything else
+            is either occasional (Dashboard, Customers) or genuinely
+            desk-bound (Channels, Settings, Wallboard). */}
         <nav
           style={{
             position: "fixed",
@@ -911,14 +945,21 @@ export function ConsoleShell({
             borderTop: `1px solid ${colors.border}`,
             background: colors.surface,
             zIndex: 30,
+            // Slides out of the way rather than disappearing: an agent needs
+            // to see where it went, or the next tap is a hunt.
+            transform: barShown ? "translateY(0)" : "translateY(110%)",
+            transition: "transform .22s ease",
+            // The home indicator on a modern phone sits under this bar.
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
-          {nav.map((item) => (
+          {primaryNav.map((item) => (
             <Link
               key={item.key}
               href={item.href}
               style={{
                 flex: 1,
+                minWidth: 0,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -932,10 +973,100 @@ export function ConsoleShell({
               }}
             >
               {item.icon}
-              {item.label}
+              <span
+                style={{
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+              </span>
             </Link>
           ))}
+          {overflowNav.length > 0 ? (
+            <button
+              onClick={() => setMoreOpen(true)}
+              aria-label={tUi(lang, "ui_nav_more")}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+                padding: "9px 2px 11px",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                fontFamily: font,
+                fontSize: 10.5,
+                // Bold when the page you are on lives in here, so "where am I"
+                // is answerable without opening it.
+                fontWeight: overflowNav.some((i) => i.key === active) ? 700 : 500,
+                color: overflowNav.some((i) => i.key === active)
+                  ? colors.accent
+                  : colors.textSecondary,
+                borderTop: `2px solid ${
+                  overflowNav.some((i) => i.key === active) ? colors.accent : "transparent"
+                }`,
+              }}
+            >
+              {Icons.more}
+              {tUi(lang, "ui_nav_more")}
+            </button>
+          ) : null}
         </nav>
+
+        {/* Everything that did not fit — a sheet from the bottom, where the
+            thumb already is. */}
+        {moreOpen ? (
+          <>
+            <div
+              onClick={() => setMoreOpen(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 40 }}
+            />
+            <div
+              data-more-sheet
+              style={{
+                position: "fixed",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 41,
+                background: colors.surface,
+                borderTop: `1px solid ${colors.border}`,
+                borderRadius: "14px 14px 0 0",
+                padding: "10px 10px calc(14px + env(safe-area-inset-bottom, 0px))",
+                maxHeight: "70vh",
+                overflowY: "auto",
+              }}
+            >
+              {overflowNav.map((item) => (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  onClick={() => setMoreOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "13px 12px",
+                    borderRadius: 9,
+                    textDecoration: "none",
+                    fontSize: 15,
+                    color: item.key === active ? colors.accent : colors.textBody,
+                    fontWeight: item.key === active ? 700 : 500,
+                  }}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : null}
       </div>
     );
   }
@@ -1103,6 +1234,40 @@ export const layout = {
  *    the feature is gone for them — so a customer's phone number is on the
  *    record itself and the panel's `tel:` link is a convenience on top.
  */
+/**
+ * The phone's bottom bar hides when the page is scrolled DOWN and comes back
+ * the moment it is scrolled UP.
+ *
+ * On a phone the bar costs ~60px of a ~700px screen — nearly a tenth of the
+ * reading area, permanently, for navigation an agent uses between tasks
+ * rather than during one. Reappearing on an upward scroll is what makes that
+ * safe: the gesture for "I want to go somewhere" is the same one that brings
+ * it back, so it is never more than a flick away.
+ *
+ * It is always shown near the top, because a short page that never scrolls
+ * far must not be able to leave it hidden.
+ */
+const HIDE_AFTER_PX = 60;
+const SCROLL_NOISE_PX = 6;
+
+function useHideOnScroll(): boolean {
+  const [shown, setShown] = useState(true);
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      // Ignore jitter, or the bar flickers on a trackpad and on the rubber
+      // band at the end of an iOS scroll.
+      if (Math.abs(y - last) < SCROLL_NOISE_PX) return;
+      setShown(y < HIDE_AFTER_PX || y < last);
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return shown;
+}
+
 const CONTEXT_PANEL_KEY = "olink-desk.context-open";
 const CONTEXT_WIDTH = 300;
 

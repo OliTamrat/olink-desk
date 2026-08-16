@@ -8,6 +8,8 @@
 // language with no body is visibly empty rather than quietly absent.
 import { useCallback, useEffect, useState } from "react";
 
+import { renderMacro } from "@olink-desk/macros";
+
 import {
   Badge,
   colors,
@@ -29,6 +31,15 @@ const LANGS = [
   { code: "so", name: "Soomaali" },
   { code: "sw", name: "Kiswahili" },
 ] as const;
+
+// Example values for the preview. Deliberately obvious as examples — a
+// realistic-looking name would be mistaken for something that will be sent.
+const SAMPLE = {
+  customer: "Hana Tadesse",
+  ticketNumber: 1024,
+  agent: "—",
+  organization: "—",
+};
 
 const PLACEHOLDERS = [
   "customer.name",
@@ -76,7 +87,7 @@ const blank = (): Macro => ({
 export default function MacrosPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
-  const { isMobile } = useViewport();
+  const { isMobile, roomy } = useViewport();
 
   const [macros, setMacros] = useState<Macro[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +97,35 @@ export default function MacrosPage() {
   const [editing, setEditing] = useState<Macro | null>(null);
   const [bodyLang, setBodyLang] = useState<string>("en");
   const [saving, setSaving] = useState(false);
+
+  // Rendered through renderMacro — the SAME function a real send uses. A
+  // second, preview-only implementation would drift from it, and a preview
+  // that lies is worse than none.
+  // Tokens the renderer does not know. It strips them — safer than leaking
+  // `{{custmer.name}}` to a customer — but SILENTLY, so the author sees a
+  // sentence with a hole in it and no reason why. Naming them is what makes
+  // the preview catch a typo instead of merely displaying its consequence.
+  const unknownTokens = editing
+    ? [...new Set(
+        (editing.bodies[bodyLang] ?? "")
+          .match(/\{\{[^{}]*\}\}/g)
+          ?.filter((t) => !PLACEHOLDERS.includes(t.slice(2, -2).trim() as (typeof PLACEHOLDERS)[number])) ?? [],
+      )]
+    : [];
+
+  const preview = editing
+    ? (renderMacro(
+        editing.bodies,
+        bodyLang,
+        {
+          customerName: SAMPLE.customer,
+          ticketNumber: SAMPLE.ticketNumber,
+          agentName: me?.user.name ?? SAMPLE.agent,
+          organizationName: me?.organization.name ?? SAMPLE.organization,
+        },
+        bodyLang,
+      )?.text ?? "")
+    : "";
 
   const canWrite = !!me && ["ADMIN", "SUPERVISOR"].includes(me.user.role);
 
@@ -291,23 +331,98 @@ export default function MacrosPage() {
                   );
                 })}
               </div>
-              <textarea
-                value={editing.bodies[bodyLang] ?? ""}
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    bodies: { ...editing.bodies, [bodyLang]: e.target.value },
-                  })
-                }
-                rows={8}
+              {/* Editor left, the customer's own copy right.
+                  An author writes a TEMPLATE; a person reads a MESSAGE. Those
+                  are different texts, and until the second one was visible the
+                  only way to find out that `{{customer.name}}` reads oddly
+                  mid-sentence — or that a placeholder was misspelled and would
+                  reach somebody verbatim — was to send it to a real customer.
+
+                  Stacks on a narrow window, editor first: the preview is the
+                  supporting half. */}
+              <div
                 style={{
-                  ...ui.input,
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  resize: "vertical",
-                  fontFamily: "inherit",
+                  display: "grid",
+                  gap: 12,
+                  gridTemplateColumns: roomy ? "1fr 1fr" : "1fr",
+                  alignItems: "start",
                 }}
-              />
+              >
+                <textarea
+                  value={editing.bodies[bodyLang] ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      bodies: { ...editing.bodies, [bodyLang]: e.target.value },
+                    })
+                  }
+                  rows={10}
+                  style={{
+                    ...ui.input,
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    resize: "vertical",
+                    fontFamily: "inherit",
+                  }}
+                />
+                <div
+                  style={{
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 8,
+                    background: colors.surfaceRaised,
+                    padding: 12,
+                    minHeight: 120,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>
+                    {tUi(lang, "ui_macro_preview")}
+                  </div>
+                  {preview ? (
+                    <>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 13.5,
+                          lineHeight: 1.6,
+                          color: colors.textPrimary,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {preview}
+                      </p>
+                      {unknownTokens.length > 0 ? (
+                        <div style={{ ...ui.warn, fontSize: 11.5, marginTop: 10 }}>
+                          {tUi(lang, "ui_macro_unknown_placeholder", {
+                            n: unknownTokens.length,
+                            list: unknownTokens.join(", "),
+                          })}
+                        </div>
+                      ) : null}
+                      <p
+                        style={{
+                          margin: "10px 0 0",
+                          fontSize: 11.5,
+                          lineHeight: 1.5,
+                          color: colors.textMuted,
+                        }}
+                      >
+                        {tUi(lang, "ui_macro_preview_sample")}
+                      </p>
+                    </>
+                  ) : (
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: colors.textSecondary,
+                      }}
+                    >
+                      {tUi(lang, "ui_macro_preview_empty")}
+                    </p>
+                  )}
+                </div>
+              </div>
               <div
                 style={{
                   display: "flex",

@@ -316,7 +316,12 @@
     "ui_new_ticket_context": "What they contacted you about before",
     "ui_new_ticket_no_context": "Pick a customer and anything they have contacted you about before appears here.",
     "ui_context_show": "Details",
-    "ui_context_hide": "Hide details"
+    "ui_context_hide": "Hide details",
+    "ui_nav_more": "More",
+    "ui_macro_preview": "What the customer receives",
+    "ui_macro_preview_empty": "Type a body and the customer's own copy appears here, with the placeholders filled in.",
+    "ui_macro_preview_sample": "Shown with example values. A real send uses the actual customer, ticket number and agent.",
+    "ui_macro_unknown_placeholder": "{n} placeholder is not one we recognise, so it is removed from the message: {list}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -635,7 +640,12 @@
     "ui_new_ticket_context": "ከዚህ በፊት ስላነጋገሩዎት ጉዳይ",
     "ui_new_ticket_no_context": "ደንበኛ ይምረጡ፤ ከዚህ በፊት ያነጋገሩዎት ማንኛውም ጉዳይ እዚህ ይታያል።",
     "ui_context_show": "ዝርዝሮች",
-    "ui_context_hide": "ዝርዝሮችን ደብቅ"
+    "ui_context_hide": "ዝርዝሮችን ደብቅ",
+    "ui_nav_more": "ተጨማሪ",
+    "ui_macro_preview": "ደንበኛው የሚቀበለው",
+    "ui_macro_preview_empty": "ጽሑፍ ይተይቡ፤ የደንበኛው ቅጂ ቦታ ያዢዎቹ ተሞልተው እዚህ ይታያል።",
+    "ui_macro_preview_sample": "በምሳሌ እሴቶች ታይቷል። ትክክለኛ መላክ ትክክለኛውን ደንበኛ፣ የቲኬት ቁጥር እና ወኪል ይጠቀማል።",
+    "ui_macro_unknown_placeholder": "{n} ቦታ ያዢ የማናውቀው ነው፤ ስለዚህ ከመልእክቱ ይወገዳል፦ {list}"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -954,7 +964,12 @@
     "ui_new_ticket_context": "Waa'ee maalii duraan si qunnaman",
     "ui_new_ticket_no_context": "Maamila filadhu; wanti duraan si qunnaman kamiyyuu asitti mul'ata.",
     "ui_context_show": "Bal'ina",
-    "ui_context_hide": "Bal'ina dhoksi"
+    "ui_context_hide": "Bal'ina dhoksi",
+    "ui_nav_more": "Dabalata",
+    "ui_macro_preview": "Wanti maamilli fudhatu",
+    "ui_macro_preview_empty": "Barruu barreessi; garagalchi maamilichaa iddoo qabdoonni guutamanii asitti mul'ata.",
+    "ui_macro_preview_sample": "Gatiiwwan fakkeenyaatiin agarsiifame. Ergaan dhugaa maamila, lakkoofsa tikeetii fi bakka bu'aa dhugaa fayyadama.",
+    "ui_macro_unknown_placeholder": "Iddoo qabduun {n} kan nuti beeknu miti; kanaaf ergaa keessaa haqama: {list}"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1273,7 +1288,12 @@
     "ui_new_ticket_context": "ቅድሚ ሕጂ ብዛዕባ እንታይ ከም ዝረኸቡኻ",
     "ui_new_ticket_no_context": "ዓሚል ምረጽ፤ ቅድሚ ሕጂ ዝረኸቡኻ ዝኾነ ነገር ኣብዚ ይረአ።",
     "ui_context_show": "ዝርዝራት",
-    "ui_context_hide": "ዝርዝራት ሕባእ"
+    "ui_context_hide": "ዝርዝራት ሕባእ",
+    "ui_nav_more": "ተወሳኺ",
+    "ui_macro_preview": "እቲ ዓሚል ዝቕበሎ",
+    "ui_macro_preview_empty": "ጽሑፍ ጽሓፍ፤ ቅዳሕ እቲ ዓሚል እቶም ቦታ ሓዞቲ ተመሊኦም ኣብዚ ይረአ።",
+    "ui_macro_preview_sample": "ብኣብነታዊ ዋጋታት ተራእዩ። ናይ ብሓቂ ምስዳድ ነቲ ናይ ብሓቂ ዓሚል፡ ቁጽሪ ትኬትን ወኪልን እዩ ዝጥቀም።",
+    "ui_macro_unknown_placeholder": "{n} ቦታ ሓዚ ንሕና እንፈልጦ ኣይኮነን፡ ስለዚ ካብቲ መልእኽቲ ይውገድ፦ {list}"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1592,7 +1612,12 @@
     "ui_new_ticket_context": "Waxay hore kaaga soo xiriireen",
     "ui_new_ticket_no_context": "Dooro macmiil, wax kasta oo ay hore kaaga soo xiriireen halkan ayay ka muuqan doonaan.",
     "ui_context_show": "Faahfaahin",
-    "ui_context_hide": "Qari faahfaahinta"
+    "ui_context_hide": "Qari faahfaahinta",
+    "ui_nav_more": "Wax dheeraad ah",
+    "ui_macro_preview": "Waxa macmiilku helayo",
+    "ui_macro_preview_empty": "Qor qoraal, nuqulka macmiilka oo meelbeddelayaashu buuxsanyihiin ayaa halkan ka soo muuqan doona.",
+    "ui_macro_preview_sample": "Waxaa lagu tusay qiyam tusaale ah. Dirid dhab ah waxay isticmaashaa macmiilka, lambarka tikidhka iyo wakiilka dhabta ah.",
+    "ui_macro_unknown_placeholder": "{n} meelbeddel ma aha mid aan garanayno, sidaas darteed fariinta waa laga saarayaa: {list}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1911,6 +1936,11 @@
     "ui_new_ticket_context": "Walichowasiliana nawe kuhusu awali",
     "ui_new_ticket_no_context": "Chagua mteja, na chochote walichowasiliana nawe kuhusu awali kitaonekana hapa.",
     "ui_context_show": "Maelezo",
-    "ui_context_hide": "Ficha maelezo"
+    "ui_context_hide": "Ficha maelezo",
+    "ui_nav_more": "Zaidi",
+    "ui_macro_preview": "Anachopokea mteja",
+    "ui_macro_preview_empty": "Andika maandishi, na nakala ya mteja itaonekana hapa, na vishikilizi vimejazwa.",
+    "ui_macro_preview_sample": "Imeonyeshwa kwa thamani za mfano. Kutuma halisi hutumia mteja, namba ya tiketi na wakala halisi.",
+    "ui_macro_unknown_placeholder": "Kishikilizi {n} si tunachokitambua, hivyo kinaondolewa kwenye ujumbe: {list}"
   }
 }
