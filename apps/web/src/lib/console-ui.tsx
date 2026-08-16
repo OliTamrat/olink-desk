@@ -141,6 +141,11 @@ export const Icons = {
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   ),
+  macros: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+    </svg>
+  ),
   signOut: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -167,7 +172,7 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "channels" | "wallboard" | "settings";
+  active: "dashboard" | "inbox" | "channels" | "macros" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the Zendesk shape — product rail, then Views).
@@ -185,7 +190,7 @@ export function ConsoleShell({
   }
 
   const nav: Array<{
-    key: "dashboard" | "inbox" | "channels" | "wallboard" | "settings";
+    key: "dashboard" | "inbox" | "channels" | "macros" | "wallboard" | "settings";
     href: string;
     label: string;
     icon: ReactNode;
@@ -193,6 +198,7 @@ export function ConsoleShell({
     { key: "dashboard", href: "/dashboard", label: tUi(lang, "ui_nav_dashboard"), icon: Icons.dashboard },
     { key: "inbox", href: "/inbox", label: tUi(lang, "ui_nav_inbox"), icon: Icons.inbox },
     { key: "channels", href: "/channels", label: tUi(lang, "ui_channels_title"), icon: Icons.channels },
+    { key: "macros", href: "/macros", label: tUi(lang, "ui_nav_macros"), icon: Icons.macros },
   ];
   // The wallboard is a supervision surface; agents work the inbox instead.
   if (me && ["SUPERVISOR", "ADMIN", "AUDITOR"].includes(me.user.role)) {

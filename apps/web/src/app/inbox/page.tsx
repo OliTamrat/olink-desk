@@ -38,9 +38,26 @@ const VIEWS = [
 ] as const;
 type ViewKey = (typeof VIEWS)[number]["key"];
 
+// Language names in their own script — what an agent recognises at a glance.
+const LANG_NAMES: Record<string, string> = {
+  en: "English",
+  am: "አማርኛ",
+  om: "Afaan Oromoo",
+  ti: "ትግርኛ",
+  so: "Soomaali",
+  sw: "Kiswahili",
+};
+
 const STATUSES = ["NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"] as const;
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
 type SortKey = "updated" | "created" | "number" | "status" | "priority";
+
+interface MacroRow {
+  id: string;
+  title: string;
+  category: string | null;
+  isActive: boolean;
+}
 
 interface HistoryRow {
   id: string;
@@ -135,6 +152,15 @@ export default function InboxPage() {
   const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const [meId, setMeId] = useState<string | null>(null);
 
+  // Macros. Loaded once for the session — the list is small and an agent
+  // opening the picker must not wait on a round trip mid-conversation.
+  const [macros, setMacros] = useState<MacroRow[]>([]);
+  const [macroOpen, setMacroOpen] = useState(false);
+  const [macroQ, setMacroQ] = useState("");
+  const [macroNote, setMacroNote] = useState<string | null>(null);
+  const [macroWarn, setMacroWarn] = useState<string | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q.trim()), 350);
     return () => clearTimeout(timer);
@@ -223,6 +249,70 @@ export default function InboxPage() {
     }
   }
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const resp = await fetch("/api/macros");
+        if (!resp.ok) return;
+        const data = (await resp.json()) as { macros?: MacroRow[] };
+        setMacros((data.macros ?? []).filter((m) => m.isActive));
+      } catch {
+        // A macro list that will not load must not break replying: the
+        // composer still works, the shortcut is simply absent.
+      }
+    })();
+  }, []);
+
+  // Insert a macro into the composer. It NEVER sends — the agent presses
+  // send. The rendered text comes back in the CUSTOMER's language, and if
+  // the macro had no body in it, the warning is shown here, before sending,
+  // rather than discovered in the customer's reply.
+  async function applyMacro(macro: MacroRow) {
+    if (!selectedId) return;
+    setMacroOpen(false);
+    setMacroQ("");
+    try {
+      const resp = await fetch(`/api/tickets/${selectedId}/macro`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ macroId: macro.id }),
+      });
+      const data = (await resp.json()) as {
+        text?: string;
+        language?: string;
+        fellBack?: boolean;
+        requestedLanguage?: string;
+        setStatus?: string | null;
+        error?: string;
+      };
+      if (!resp.ok || !data.text) {
+        setSendError(
+          tUi(lang, "ui_reply_failed", { error: data.error ?? `HTTP ${resp.status}` }),
+        );
+        return;
+      }
+      // A macro is a public reply by definition; applying one while the
+      // composer sits in note mode would silently turn the bank's words
+      // into an internal note nobody sends.
+      setInternal(false);
+      setReply(data.text);
+      setPendingStatus(data.setStatus ?? null);
+      setMacroNote(
+        tUi(lang, "ui_macro_inserted_in", { lang: LANG_NAMES[data.language ?? "en"] ?? "" }),
+      );
+      setMacroWarn(
+        data.fellBack
+          ? tUi(lang, "ui_macro_fallback_warning", {
+              want: LANG_NAMES[data.requestedLanguage ?? "en"] ?? "",
+              got: LANG_NAMES[data.language ?? "en"] ?? "",
+            })
+          : null,
+      );
+    } catch (err) {
+      setSendError(tUi(lang, "ui_reply_failed", { error: String(err) }));
+    }
+  }
+
   async function send() {
     if (!selectedId || !reply.trim()) return;
     setSending(true);
@@ -235,6 +325,15 @@ export default function InboxPage() {
       });
       if (resp.ok) {
         setReply("");
+        setMacroNote(null);
+        setMacroWarn(null);
+        // A macro's status change is applied only once the customer has
+        // actually received the reply — a ticket must never read RESOLVED
+        // because someone opened a draft and walked away.
+        if (pendingStatus && !internal) {
+          await patchTicket({ status: pendingStatus });
+        }
+        setPendingStatus(null);
         await Promise.all([loadDetail(selectedId), loadList()]);
       } else {
         const body = (await resp.json().catch(() => null)) as { error?: string } | null;
@@ -620,7 +719,7 @@ export default function InboxPage() {
                 gap: 8,
               }}
             >
-              <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                 {[false, true].map((mode) => (
                   <button
                     key={String(mode)}
@@ -652,7 +751,93 @@ export default function InboxPage() {
                     {tUi(lang, mode ? "ui_internal_note" : "ui_public_reply")}
                   </button>
                 ))}
+                {macros.length > 0 && (
+                  <div style={{ position: "relative", marginLeft: "auto" }}>
+                    <button
+                      onClick={() => setMacroOpen(!macroOpen)}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 6,
+                        border: `1px solid ${macroOpen ? colors.accent : colors.border}`,
+                        background: macroOpen ? colors.surfaceHover : "transparent",
+                        color: macroOpen ? colors.textPrimary : colors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      {tUi(lang, "ui_macro_apply")}
+                    </button>
+                    {macroOpen && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "calc(100% + 6px)",
+                          right: 0,
+                          width: 300,
+                          maxHeight: 300,
+                          overflowY: "auto",
+                          background: colors.surface,
+                          border: `1px solid ${colors.borderStrong}`,
+                          borderRadius: 8,
+                          boxShadow: "0 12px 32px rgba(0,0,0,.5)",
+                          padding: 8,
+                          zIndex: 50,
+                        }}
+                      >
+                        <input
+                          autoFocus
+                          value={macroQ}
+                          onChange={(e) => setMacroQ(e.target.value)}
+                          placeholder={tUi(lang, "ui_macro_search")}
+                          style={{ ...ui.input, fontSize: 13, padding: "7px 9px" }}
+                        />
+                        <div style={{ marginTop: 6, display: "grid", gap: 2 }}>
+                          {macros
+                            .filter((m) =>
+                              `${m.title} ${m.category ?? ""}`
+                                .toLowerCase()
+                                .includes(macroQ.trim().toLowerCase()),
+                            )
+                            .map((m) => (
+                              <button
+                                key={m.id}
+                                onClick={() => void applyMacro(m)}
+                                style={{
+                                  textAlign: "left",
+                                  padding: "8px 9px",
+                                  borderRadius: 6,
+                                  border: "none",
+                                  background: "transparent",
+                                  color: colors.textBody,
+                                  fontSize: 13,
+                                  cursor: "pointer",
+                                  fontFamily: "inherit",
+                                }}
+                              >
+                                <div style={{ color: colors.textPrimary }}>{m.title}</div>
+                                {m.category && (
+                                  <div style={{ fontSize: 11, color: colors.textMuted }}>
+                                    {m.category}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+              {/* The fallback warning is a warning, not a note: it says the
+                  customer writes in a language this macro does not have. It
+                  has to be readable BEFORE the agent presses send. */}
+              {macroWarn ? (
+                <div style={{ ...ui.warn, fontSize: 12 }}>{macroWarn}</div>
+              ) : macroNote ? (
+                <div style={{ fontSize: 12, color: colors.textMuted }}>{macroNote}</div>
+              ) : null}
               <div style={{ display: "flex", gap: 8 }}>
                 <textarea
                   value={reply}
