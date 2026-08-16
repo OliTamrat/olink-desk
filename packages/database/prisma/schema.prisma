@@ -52,6 +52,12 @@ model Organization {
   subscriptionPeriodEnd DateTime?
   subscriptionEnforced  Boolean               @default(false)
 
+  // When an admin dismissed the setup checklist. Nullable rather than a
+  // boolean so the record says WHEN, which is what makes it auditable; the
+  // checklist itself derives every step from real data, and this is the only
+  // piece of it that is a stated preference rather than an observation.
+  onboardingDismissedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
