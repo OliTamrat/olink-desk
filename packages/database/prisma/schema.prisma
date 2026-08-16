@@ -134,7 +134,12 @@ model Contact {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  phone      String
+  // Identity is "at least one of phone or email", not "phone". The rule was
+  // written when every channel was phone-first; an email customer has no
+  // phone, and their address is an equally durable identity — it is the only
+  // one they have. Each is unique WHEN PRESENT: Postgres allows many NULLs in
+  // a unique index, which is exactly the semantics wanted here.
+  phone      String?
   name       String?
   email      String?
   telegramId String?
@@ -151,6 +156,7 @@ model Contact {
   conversations Conversation[]
 
   @@unique([organizationId, phone])
+  @@unique([organizationId, email])
   @@index([organizationId, telegramId])
 }
 

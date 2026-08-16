@@ -6,7 +6,7 @@
 // for every ticket ever received, because a widget session id and a Telegram
 // chat id are channel identities, not people.
 import { prisma, UserRole } from "@olink-desk/database";
-import { cleanContact, displayPhone, findOrCreateContact, normalizePhone } from "@olink-desk/tickets";
+import { cleanContact, displayPhone, ContactConflictError, findOrCreateContact, normalizePhone } from "@olink-desk/tickets";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -96,11 +96,21 @@ export async function POST(request: NextRequest) {
   // same customer must land on one record. `created: false` is reported back
   // so the console can say "you already know this person" rather than
   // pretending it made something new.
-  const { contact, created } = await findOrCreateContact(
-    prisma,
-    principal.organization.id,
-    clean.value,
-  );
+  let contact, created;
+  try {
+    ({ contact, created } = await findOrCreateContact(
+      prisma,
+      principal.organization.id,
+      clean.value,
+    ));
+  } catch (err) {
+    // The phone and the email already belong to two different people. Merging
+    // them or picking one silently are both worse than saying so.
+    if (err instanceof ContactConflictError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    throw err;
+  }
 
   if (created) {
     // The event, never the personal data: no name, no number in the log.

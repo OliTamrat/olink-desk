@@ -1,6 +1,7 @@
 // The channel catalogue for one tenant, with live/available state folded in.
 import {
   catalogue,
+  emailConnected,
   metaConnected,
   smsConnected,
   telegramConnected,
@@ -21,12 +22,13 @@ export async function GET(
   const guard = await requireOrgAdmin(request, params.org);
   if (isGuardDenied(guard)) return guard;
   const { organization } = guard;
-  const [telegram, viber, meta, sms, ussd] = await Promise.all([
+  const [telegram, viber, meta, sms, ussd, mail] = await Promise.all([
     telegramConnected(prisma, organization.id),
     viberConnected(prisma, organization.id),
     metaConnected(prisma, organization.id),
     smsConnected(prisma, organization.id),
     ussdConnected(prisma, organization.id),
+    emailConnected(prisma, organization.id),
   ]);
   const channels = catalogue({
     webConnected: true,
@@ -37,6 +39,7 @@ export async function GET(
     instagramConnected: meta.instagram,
     smsConnected: sms,
     ussdConnected: ussd,
+    emailConnected: mail,
   });
   return NextResponse.json({ channels });
 }

@@ -11,7 +11,7 @@ import {
   type Prisma,
 } from "@olink-desk/database";
 import { slaState } from "@olink-desk/sla";
-import { cleanContact, findOrCreateContact, openTicket } from "@olink-desk/tickets";
+import { cleanContact, ContactConflictError, findOrCreateContact, openTicket } from "@olink-desk/tickets";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -249,13 +249,20 @@ export async function POST(request: NextRequest) {
   } else if (asString(payload.phone)) {
     const clean = cleanContact(payload, principal.organization.defaultLanguage);
     if (!clean.ok) return NextResponse.json({ error: clean.error }, { status: 400 });
-    const { contact } = await findOrCreateContact(
-      prisma,
-      principal.organization.id,
-      clean.value,
-    );
-    contactId = contact.id;
-    contactLanguage = contact.language;
+    try {
+      const { contact } = await findOrCreateContact(
+        prisma,
+        principal.organization.id,
+        clean.value,
+      );
+      contactId = contact.id;
+      contactLanguage = contact.language;
+    } catch (err) {
+      if (err instanceof ContactConflictError) {
+        return NextResponse.json({ error: err.message }, { status: 409 });
+      }
+      throw err;
+    }
   }
 
   // Language, in order of who knows best: what the agent picked on the call,

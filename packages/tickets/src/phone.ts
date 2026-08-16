@@ -93,7 +93,11 @@ function e164(digits: string): string | null {
  * so showing +251 9… everywhere makes the desk feel foreign for the sake of a
  * storage format nobody outside the database cares about.
  */
-export function displayPhone(e164Number: string): string {
+export function displayPhone(e164Number: string | null | undefined): string {
+  // Nullable since identity became "phone OR email": an email-only customer
+  // has no number, and returning "" lets a caller fall through to whatever it
+  // shows instead rather than printing "null".
+  if (!e164Number) return "";
   if (!e164Number.startsWith(`+${ET_COUNTRY}`)) return e164Number;
   const national = e164Number.slice(1 + ET_COUNTRY.length);
   if (national.length !== 9) return e164Number;

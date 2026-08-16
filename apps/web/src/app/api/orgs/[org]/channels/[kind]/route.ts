@@ -46,6 +46,15 @@ const STORABLE: Record<string, { kind: ChannelAccountKind; label: string; requir
     required: ["sendUrl", "senderId"],
     secretField: "webhookSecret",
   },
+  email: {
+    kind: ChannelAccountKind.EMAIL_INBOUND,
+    label: "Email (forwarded)",
+    // fromAddress is required alongside sendUrl: receiving mail we cannot
+    // answer is worse than not receiving it, because the customer is left
+    // waiting on a desk that took their message and went quiet.
+    required: ["sendUrl", "fromAddress"],
+    secretField: "webhookSecret",
+  },
   ussd: {
     kind: ChannelAccountKind.USSD_GATEWAY,
     label: "USSD gateway",

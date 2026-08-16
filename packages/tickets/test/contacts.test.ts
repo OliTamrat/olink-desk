@@ -3,10 +3,29 @@ import { describe, expect, it } from "vitest";
 import { cleanContact } from "../src/contacts";
 
 describe("cleanContact", () => {
-  it("requires a phone number, because that is the identity", () => {
+  it("requires SOMETHING to recognise them by next time", () => {
     const r = cleanContact({ name: "Selam Bekele" }, "am");
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/phone number is required/i);
+    if (!r.ok) expect(r.error).toMatch(/phone number or an email/i);
+  });
+
+  it("accepts an email-only customer, because that is all an email customer has", () => {
+    // This is the rule that changed when email became a channel. Demanding a
+    // phone number would have meant an email ticket could never belong to
+    // anybody.
+    const r = cleanContact({ name: "Hana", email: "hana@example.com" }, "en");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.phone).toBeNull();
+      expect(r.value.email).toBe("hana@example.com");
+    }
+  });
+
+  it("still refuses a phone number it cannot recognise, even alongside a good email", () => {
+    // The email would be enough on its own — but a number that was typed and
+    // is wrong must be corrected, not silently dropped.
+    const r = cleanContact({ phone: "12345", email: "hana@example.com" }, "en");
+    expect(r.ok).toBe(false);
   });
 
   it("normalises the phone before it is ever stored", () => {

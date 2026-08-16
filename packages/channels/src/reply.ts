@@ -15,7 +15,7 @@ import type { Channel, Organization, PrismaClient, Ticket } from "@olink-desk/da
 import { TicketStatus } from "@olink-desk/database";
 import { awaitingRating, parseRating } from "@olink-desk/csat";
 import { detectLanguage, t } from "@olink-desk/i18n";
-import { openTicket } from "@olink-desk/tickets";
+import { cleanContact, findOrCreateContact, openTicket } from "@olink-desk/tickets";
 
 export interface ChannelReplyInput {
   db: PrismaClient;
@@ -33,11 +33,29 @@ export interface ChannelReplyInput {
   /** Explicit language from the channel payload; pins the conversation. */
   languageHint?: string;
   /**
+   * A subject the channel actually carries. Email has one; a chat message
+   * does not, which is why the default is the customer's own first words.
+   */
+  subjectHint?: string;
+  /**
+   * A ticket number the customer's own message pointed at — the `[#123]` in
+   * an email subject. Used ONLY to reopen a ticket that has since been
+   * resolved: replying to an answered email must continue that matter, not
+   * quietly start a second one the agent has no reason to connect to it.
+   */
+  reopenTicketNumber?: number;
+  /**
+   * Who this is, when the channel knows. Email carries a real mailbox, so an
+   * email ticket can belong to somebody from the first message — unlike a
+   * widget session id, which identifies nobody.
+   */
+  contactHint?: { email?: string | null; phone?: string | null; name?: string | null };
+  /**
    * Deliver one outbound body on this channel. Returns true when the channel
    * API accepted it. Must not throw for ordinary delivery failure — a channel
    * outage must never 500 the webhook (the channel would retry the update).
    */
-  send: (body: string) => Promise<boolean>;
+  send: (body: string, ticket?: { number: number; subject: string | null }) => Promise<boolean>;
 }
 
 export interface ChannelReplyResult {
@@ -105,6 +123,35 @@ export async function channelReply(
       where: { id: conversation.id },
       data: { language: detected },
     });
+  }
+
+  // A channel that knows who the customer is says so, and the conversation
+  // remembers. Email is the first: a mailbox is a durable identity in a way a
+  // widget session id is not. Find-or-create, so somebody already on file
+  // from a phone call is recognised rather than duplicated.
+  if (input.contactHint && !conversation.contactId) {
+    const clean = cleanContact(
+      {
+        email: input.contactHint.email ?? null,
+        phone: input.contactHint.phone ?? null,
+        name: input.contactHint.name ?? null,
+        language: conversation.language,
+      },
+      organization.defaultLanguage,
+    );
+    if (clean.ok) {
+      try {
+        const { contact } = await findOrCreateContact(db, organization.id, clean.value);
+        conversation = await db.conversation.update({
+          where: { id: conversation.id },
+          data: { contactId: contact.id },
+        });
+      } catch {
+        // The two identities already belong to two different people. That is
+        // for staff to untangle — the customer's message still gets through,
+        // as an unidentified one, rather than being rejected at the webhook.
+      }
+    }
   }
 
   // ---- Is this a satisfaction score rather than a new message?
@@ -204,13 +251,35 @@ export async function channelReply(
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // The customer replied to a ticket that had been answered and closed. Their
+  // reply belongs on THAT matter — opening a fresh ticket would hand an agent
+  // a message with no visible history and the customer would have to explain
+  // themselves again. Scoped to this conversation, so a number lifted from
+  // somebody else's email reaches nothing.
+  if (ticket === null && input.reopenTicketNumber !== undefined) {
+    const resolved = await db.ticket.findFirst({
+      where: {
+        organizationId: organization.id,
+        conversationId: conversation.id,
+        number: input.reopenTicketNumber,
+      },
+    });
+    if (resolved) {
+      ticket = await db.ticket.update({
+        where: { id: resolved.id },
+        data: { status: TicketStatus.OPEN, resolvedAt: null, closedAt: null },
+      });
+    }
+  }
   const ticketCreated = ticket === null;
   if (ticket === null) {
     ticket = await openTicket(db, {
       // The customer's own first words are the ticket's identity in every
       // list — without this every row previews the auto-ack and they all
-      // look identical.
-      subject: text.slice(0, 120),
+      // look identical. A channel that carries a real subject (email) says
+      // so; a chat message has none.
+      subject: (input.subjectHint?.trim() || text).slice(0, 120),
       organizationId: organization.id,
       conversationId: conversation.id,
       contactId: conversation.contactId,
@@ -249,7 +318,11 @@ export async function channelReply(
     });
     let delivered = false;
     try {
-      delivered = await send(ack);
+      // The ticket goes to the adapter, not just the text. Email needs the
+      // number to put `[#n]` in the subject — without it the FIRST message a
+      // customer ever receives from us is the one thing they cannot reply to
+      // and have land correctly.
+      delivered = await send(ack, { number: ticket.number, subject: ticket.subject });
     } catch {
       // The transport contract is "log, never raise" — but hold the line here
       // too so a misbehaving adapter cannot 500 the webhook.

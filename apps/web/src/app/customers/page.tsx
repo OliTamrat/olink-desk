@@ -222,7 +222,7 @@ export default function CustomersPage() {
                   }}
                 >
                   <strong style={{ color: colors.textPrimary, fontSize: 15 }}>
-                    {c.name || c.phoneDisplay}
+                    {c.name || c.phoneDisplay || c.email}
                   </strong>
                   <span style={{ fontSize: 12, color: colors.textMuted }}>
                     {tUi(lang, "ui_customer_tickets", { n: c.ticketCount })}
@@ -231,8 +231,7 @@ export default function CustomersPage() {
                 <div style={{ fontSize: 13, color: colors.textSecondary, marginTop: 3 }}>
                   {/* The number is shown the way it is said, not the way it is
                       stored. */}
-                  {c.phoneDisplay}
-                  {c.email ? ` · ${c.email}` : ""}
+                  {[c.phoneDisplay, c.email].filter(Boolean).join(" · ")}
                 </div>
               </Link>
             ))}

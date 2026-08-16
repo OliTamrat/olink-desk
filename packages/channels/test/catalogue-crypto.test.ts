@@ -8,7 +8,7 @@ import {
 } from "../src/crypto";
 
 describe("catalogue", () => {
-  it("lists all eight channels", () => {
+  it("lists all nine channels", () => {
     expect(CATALOGUE.map((c) => c.key)).toEqual([
       "web",
       "telegram",
@@ -17,6 +17,7 @@ describe("catalogue", () => {
       "instagram",
       "viber",
       "sms",
+      "email",
       "ussd",
     ]);
   });

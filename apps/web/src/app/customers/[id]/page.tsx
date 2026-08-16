@@ -166,7 +166,7 @@ export default function CustomerPage() {
               }}
             >
               <div style={{ minWidth: 0 }}>
-                <h1 style={ui.h1}>{c.name || c.phoneDisplay}</h1>
+                <h1 style={ui.h1}>{c.name || c.phoneDisplay || c.email}</h1>
                 <p style={{ ...ui.sub, marginBottom: 0 }}>
                   {tUi(lang, "ui_customer_since", {
                     date: new Date(c.createdAt).toLocaleDateString(),
