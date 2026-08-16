@@ -8,6 +8,8 @@ import {
   Badge,
   colors,
   ConsoleShell,
+
+  layout,
   tUi,
   ui,
   useConsoleLanguage,
@@ -238,7 +240,7 @@ export default function SettingsPage() {
 
       {/* ------------------------------------------------- SLA & hours */}
       {tab === "sla" ? (
-        <div style={{ display: "grid", gap: 16, maxWidth: 760 }}>
+        <div style={{ ...layout.centred, display: "grid", gap: 16 }}>
           <section style={ui.card}>
             <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_tab_sla")}</h2>
             {!policies ? (
@@ -369,7 +371,7 @@ export default function SettingsPage() {
 
       {/* -------------------------------------------------------- Team */}
       {tab === "team" ? (
-        <div style={{ display: "grid", gap: 16, maxWidth: 760 }}>
+        <div style={{ ...layout.centred, display: "grid", gap: 16 }}>
           <section style={ui.card}>
             <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_invite_teammate")}</h2>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -467,7 +469,7 @@ export default function SettingsPage() {
 
       {/* ------------------------------------------------------ Queues */}
       {tab === "queues" ? (
-        <div style={{ display: "grid", gap: 16, maxWidth: 560 }}>
+        <div style={{ ...layout.centred, display: "grid", gap: 16, maxWidth: 560 }}>
           <section style={ui.card}>
             <div style={{ display: "flex", gap: 8 }}>
               <input

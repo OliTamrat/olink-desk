@@ -12,6 +12,8 @@ import {
   Badge,
   colors,
   ConsoleShell,
+
+  layout,
   tUi,
   ui,
   useConsoleLanguage,
@@ -163,7 +165,7 @@ export default function MacrosPage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="macros">
-      <div style={{ display: "grid", gap: 16, maxWidth: 1100 }}>
+      <div style={{ ...layout.wide, display: "grid", gap: 16 }}>
         <div
           style={{
             display: "flex",
@@ -345,13 +347,24 @@ export default function MacrosPage() {
         )}
 
         {loading ? (
-          <div style={{ ...ui.card, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
+          <div style={{ ...ui.card, ...layout.centred, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
         ) : macros.length === 0 ? (
-          <div style={{ ...ui.card, color: colors.textSecondary }}>
+          <div style={{ ...ui.card, ...layout.centred, color: colors.textSecondary }}>
             {tUi(lang, "ui_macro_none")}
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 10,
+              // A card of a title, a badge and a few chips does not need 1300px.
+              // Two or three across is the width being used by CONTENT rather
+              // than by stretching one card over it; it falls to one column on
+              // a narrow window without a media query.
+              gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+              alignItems: "start",
+            }}
+          >
             {macros.map((m) => {
               const langsWritten = LANGS.filter((l) => (m.bodies[l.code] ?? "").trim());
               return (

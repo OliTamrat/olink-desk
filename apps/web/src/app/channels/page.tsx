@@ -9,6 +9,8 @@ import {
   Badge,
   colors,
   ConsoleShell,
+
+  layout,
   tUi,
   ui,
   useConsoleLanguage,
@@ -120,7 +122,7 @@ export default function ChannelsPage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="channels">
-      <div style={{ maxWidth: 760 }}>
+      <div style={{ ...layout.centred }}>
         <header style={{ marginBottom: 20 }}>
           <h1 style={ui.h1}>{tUi(lang, "ui_channels_title")}</h1>
           {me ? (

@@ -11,6 +11,8 @@ import { useCallback, useEffect, useState } from "react";
 import {
   colors,
   ConsoleShell,
+
+  layout,
   tUi,
   ui,
   useConsoleLanguage,
@@ -101,7 +103,7 @@ export default function CustomersPage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="customers">
-      <div style={{ display: "grid", gap: 16, maxWidth: 1100 }}>
+      <div style={{ ...layout.wide, display: "grid", gap: 16 }}>
         <div
           style={{
             display: "flex",

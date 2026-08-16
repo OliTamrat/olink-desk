@@ -711,6 +711,7 @@ export function ConsoleShell({
   me,
   active,
   sidePanel,
+  fullBleed,
   children,
 }: {
   lang: Language;
@@ -723,6 +724,12 @@ export function ConsoleShell({
    * Screens with no context pass nothing and the layer is not rendered.
    */
   sidePanel?: ReactNode;
+  /**
+   * Let this screen use the entire display. For the wallboard, which is meant
+   * to be read across a room from a television — capping that at 1440 would
+   * waste exactly the space it exists to fill.
+   */
+  fullBleed?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -991,7 +998,12 @@ export function ConsoleShell({
         ) : null}
 
         <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
-          {children}
+          {/* The cap and the centring live HERE, once, so a page added later
+              gets them without remembering to. Every screen used to pin its
+              own max-width to the left, which is what left a void down the
+              right of a wide monitor. A page that genuinely wants the whole
+              display — the wallboard on a TV — opts out. */}
+          <div style={fullBleed ? { width: "100%" } : layout.wide}>{children}</div>
         </div>
       </div>
     </div>
@@ -1021,6 +1033,71 @@ export function useMe(): ShellUser | null {
 }
 
 // ------------------------------------------------------------ style atoms
+/**
+ * Layout, and the one rule behind it.
+ *
+ * A max-width cap belongs on a COLUMN OF TEXT, not on a PAGE. Every screen
+ * here used to cap itself at 560–1100px and pin that cap to the LEFT, which
+ * left a void down the right of a 1500px monitor — and pinned-left-with-a-void
+ * reads as a bug, where centred reads as a choice.
+ *
+ * So: the reading column stays capped, because long lines genuinely hurt. The
+ * width that is left over either earns its keep with a second column of
+ * something an agent actually needs, or the content is centred. Filling space
+ * with decoration is worse than leaving it empty — it costs the reader
+ * attention and gives nothing back.
+ */
+export const layout = {
+  /** Centred, and wide enough that a big monitor is used without sprawling. */
+  wide: { maxWidth: 1440, margin: "0 auto", width: "100%" } as CSSProperties,
+  /** A page that is genuinely one column of form or prose: centred, not left. */
+  centred: { maxWidth: 760, margin: "0 auto", width: "100%" } as CSSProperties,
+  /** Paragraph measure. Beyond roughly this, the eye loses the next line. */
+  prose: { maxWidth: 660 } as CSSProperties,
+};
+
+/**
+ * Main content plus a rail of supporting detail — the shape the ticket screen
+ * already uses, and the honest way to spend width on a page that HAS something
+ * worth putting beside the main column.
+ *
+ * Collapses to one column when the viewport cannot afford two, with the rail
+ * BELOW: on a phone the main content is what was asked for.
+ */
+export function Split({
+  main,
+  rail,
+  railWidth = 320,
+}: {
+  main: ReactNode;
+  rail: ReactNode;
+  railWidth?: number;
+}) {
+  const { roomy } = useViewport();
+  return (
+    <div
+      style={{
+        ...layout.wide,
+        display: "flex",
+        flexDirection: roomy ? "row" : "column",
+        alignItems: "flex-start",
+        gap: 16,
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0, width: "100%" }}>{main}</div>
+      <div
+        style={{
+          flex: roomy ? `0 0 ${railWidth}px` : "1 1 auto",
+          width: roomy ? railWidth : "100%",
+          minWidth: 0,
+        }}
+      >
+        {rail}
+      </div>
+    </div>
+  );
+}
+
 export const ui = {
   page: {
     minHeight: "100vh",

@@ -11,6 +11,8 @@ import {
   Badge,
   colors,
   ConsoleShell,
+
+  layout,
   tUi,
   ui,
   useConsoleLanguage,
@@ -124,7 +126,7 @@ export default function KnowledgePage() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="knowledge">
-      <div style={{ display: "grid", gap: 16, maxWidth: 1100 }}>
+      <div style={{ ...layout.wide, display: "grid", gap: 16 }}>
         <div
           style={{
             display: "flex",
@@ -154,7 +156,7 @@ export default function KnowledgePage() {
         {error ? <div style={ui.error}>{error}</div> : null}
 
         {editing ? (
-          <div style={{ ...ui.card, display: "grid", gap: 12 }}>
+          <div style={{ ...ui.card, ...layout.centred, display: "grid", gap: 12 }}>
             {/* Language tabs with a filled/empty dot, exactly like the macro
                 editor: an article is only as multilingual as its emptiest
                 tab, and nothing else on the page would say so. */}
@@ -241,13 +243,24 @@ export default function KnowledgePage() {
         ) : null}
 
         {loading ? (
-          <div style={{ ...ui.card, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
+          <div style={{ ...ui.card, ...layout.centred, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
         ) : articles.length === 0 ? (
-          <div style={{ ...ui.card, color: colors.textSecondary }}>
+          <div style={{ ...ui.card, ...layout.centred, color: colors.textSecondary }}>
             {tUi(lang, "ui_kb_none")}
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 10,
+              // A card of a title, a badge and a few chips does not need 1300px.
+              // Two or three across is the width being used by CONTENT rather
+              // than by stretching one card over it; it falls to one column on
+              // a narrow window without a media query.
+              gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+              alignItems: "start",
+            }}
+          >
             {articles.map((a) => {
               const written = LANGS.filter(
                 (l) => (a.titles[l.code] ?? "").trim() && (a.bodies[l.code] ?? "").trim(),

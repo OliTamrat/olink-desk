@@ -49,6 +49,16 @@ export async function GET(
   });
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Which channels this person has actually WRITTEN IN on — not which
+  // contact details are on file. They are different questions, and only this
+  // one answers "can the desk message them": a customer who exists solely
+  // because staff logged calls has a phone number and no way to be reached.
+  const conversations = await prisma.conversation.findMany({
+    where: { organizationId: principal.organization.id, contactId: contact.id },
+    select: { channel: true },
+    distinct: ["channel"],
+  });
+
   // Counted rather than derived from the 25 most recent tickets above: a
   // customer with 40 tickets would otherwise report a total of 25, which is
   // the kind of number that is wrong quietly and forever.
@@ -72,6 +82,7 @@ export async function GET(
         phoneDisplay: displayPhone(contact.phone),
         openCount,
         totalCount,
+        channels: conversations.map((c) => c.channel),
       },
     },
     { headers: { "Cache-Control": "no-store" } },
