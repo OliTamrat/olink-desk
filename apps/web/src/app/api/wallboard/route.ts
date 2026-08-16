@@ -3,6 +3,7 @@
 // Breach is DERIVED from the stored due dates at read time — no cron in the
 // truth path, so the wallboard can never show stale breach state.
 import { prisma, TicketStatus, UserRole } from "@olink-desk/database";
+import { median } from "@olink-desk/reports";
 import { slaState } from "@olink-desk/sla";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -16,14 +17,6 @@ const OPEN: TicketStatus[] = [
   TicketStatus.PENDING,
 ];
 
-function median(values: number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2
-    ? sorted[mid]
-    : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
-}
 
 export async function GET(request: NextRequest) {
   const principal = await requireUser(request, [

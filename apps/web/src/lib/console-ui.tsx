@@ -133,6 +133,12 @@ export const Icons = {
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   ),
+  reports: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <path d="M3 3v18h18" />
+      <path d="M7 15l4-5 3 3 5-7" />
+    </svg>
+  ),
   wallboard: (
     <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
       <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -606,7 +612,7 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "channels" | "macros" | "wallboard" | "settings";
+  active: "dashboard" | "inbox" | "channels" | "macros" | "reports" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the Zendesk shape — product rail, then Views).
@@ -624,7 +630,7 @@ export function ConsoleShell({
   }
 
   const nav: Array<{
-    key: "dashboard" | "inbox" | "channels" | "macros" | "wallboard" | "settings";
+    key: "dashboard" | "inbox" | "channels" | "macros" | "reports" | "wallboard" | "settings";
     href: string;
     label: string;
     icon: ReactNode;
@@ -634,8 +640,15 @@ export function ConsoleShell({
     { key: "channels", href: "/channels", label: tUi(lang, "ui_channels_title"), icon: Icons.channels },
     { key: "macros", href: "/macros", label: tUi(lang, "ui_nav_macros"), icon: Icons.macros },
   ];
-  // The wallboard is a supervision surface; agents work the inbox instead.
+  // Reports and the wallboard are both supervision surfaces; agents work the
+  // inbox instead.
   if (me && ["SUPERVISOR", "ADMIN", "AUDITOR"].includes(me.user.role)) {
+    nav.push({
+      key: "reports",
+      href: "/reports",
+      label: tUi(lang, "ui_nav_reports"),
+      icon: Icons.reports,
+    });
     nav.push({
       key: "wallboard",
       href: "/wallboard",
