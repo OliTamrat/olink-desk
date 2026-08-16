@@ -69,5 +69,16 @@ export {
   ussdConnected,
   type UssdConfig,
 } from "./ussd";
+export {
+  emailConnected,
+  handleEmailWebhook,
+  isAutoReply,
+  parseAddress,
+  parseInboundEmail,
+  replySubject,
+  stripQuotedReply,
+  ticketNumberInSubject,
+  type EmailConfig,
+} from "./email";
 export { sendAgentReply, sendCsatSurvey, type ReplyOutcome } from "./outbound";
 export { handleWebMessage, listWebMessages } from "./web";

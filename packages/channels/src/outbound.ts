@@ -13,6 +13,7 @@ import { ChannelAccountKind, TicketStatus } from "@olink-desk/database";
 import { t } from "@olink-desk/i18n";
 
 import { openChannelConfig } from "./crypto";
+import { sendEmail, type EmailConfig } from "./email";
 import { sendMessaging, sendWhatsApp, type MetaConfig } from "./meta";
 import { sendMessage as sendSms, SMS_KINDS, type SmsConfig } from "./sms";
 import { sendMessage as sendTelegram, type TelegramConfig } from "./telegram";
@@ -122,6 +123,10 @@ interface Deliverable {
   channel: string;
   conversation: { externalUserId: string } | null;
   organization: { name: string };
+  // Email needs both: the subject is what the customer sees in their inbox,
+  // and the number is what brings their reply back to this ticket.
+  subject?: string | null;
+  number?: number;
 }
 
 async function deliverOnChannel(
@@ -187,8 +192,19 @@ async function deliverOnChannel(
       });
       break;
     }
+    case "EMAIL": {
+      const c = await config<EmailConfig>(db, organizationId, [
+        ChannelAccountKind.EMAIL_INBOUND,
+      ]);
+      if (!c?.sendUrl || !c.fromAddress) {
+        return { ok: false, reason: "channel_not_connected" };
+      }
+      delivered = await sendEmail(c, to, ticket.subject ?? "", body, ticket.number);
+      break;
+    }
     default:
-      // USSD, PHONE, EMAIL, WALK_IN — nothing to deliver through.
+      // USSD, PHONE, WALK_IN — nothing to deliver through. A logged call has
+      // no channel identity at all; USSD sessions cannot be re-entered.
       return { ok: false, reason: "no_outbound_transport" };
   }
 

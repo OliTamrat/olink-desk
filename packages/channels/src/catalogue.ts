@@ -111,6 +111,19 @@ export const CATALOGUE: readonly CatalogueEntry[] = [
     ],
   },
   {
+    key: "email",
+    name: "Email",
+    status: AVAILABLE,
+    blurb:
+      "Forward your support address here and every message becomes a ticket, " +
+      "with replies threading back into the same conversation. Works with " +
+      "whatever mail system you already run — no Google Workspace required.",
+    needs: [
+      "A support address you can set forwarding on, and an inbound-parse service to forward it through (Postmark, Mailgun, SendGrid, or Cloudflare Email Routing).",
+      "A verified sending domain for the replies to come FROM, or customers see them land in spam.",
+    ],
+  },
+  {
     key: "ussd",
     name: "USSD",
     status: AVAILABLE,
