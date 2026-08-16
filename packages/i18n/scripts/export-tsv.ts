@@ -7,36 +7,21 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import {
-  allStrings,
-  allUiStrings,
-  NOTES,
-  SUPPORTED_LANGUAGES,
-  UI_NOTES,
-} from "../src/index";
+import { allStrings, allUiStrings, NOTES, UI_NOTES } from "../src/index";
+import { buildSheet } from "./sheet";
 
 const outDir = join(__dirname, "..", "review");
 mkdirSync(outDir, { recursive: true });
-
-const clean = (s: string) => s.replace(/\t/g, " ").replace(/\n/g, " / ");
 
 function writeSheet(
   fileName: string,
   strings: Record<string, Record<string, string>>,
   notes: Record<string, string>,
 ) {
-  const keys = Object.keys(strings.en);
-  const header = ["key", ...SUPPORTED_LANGUAGES, "note"].join("\t");
-  const rows = keys.map((key) =>
-    [
-      key,
-      ...SUPPORTED_LANGUAGES.map((lang) => clean(strings[lang][key] ?? "")),
-      clean(notes[key] ?? ""),
-    ].join("\t"),
-  );
+  const body = buildSheet(strings, notes);
   const outFile = join(outDir, fileName);
-  writeFileSync(outFile, [header, ...rows].join("\n") + "\n", "utf-8");
-  console.log(`Wrote ${rows.length} rows to ${outFile}`);
+  writeFileSync(outFile, body, "utf-8");
+  console.log(`Wrote ${Object.keys(strings.en).length} rows to ${outFile}`);
 }
 
 writeSheet("strings.tsv", allStrings(), NOTES);
