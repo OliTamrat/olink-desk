@@ -37,6 +37,13 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
   const [lang, setLang] = useConsoleLanguage();
   const [orgName, setOrgName] = useState<string | null>(null);
   const [messages, setMessages] = useState<WireMessage[]>([]);
+  // A deflection offer: articles that may answer what the customer just
+  // typed, shown BEFORE a ticket exists. `pending` holds their message so it
+  // can still be sent if the articles do not help — losing what somebody
+  // typed because we guessed wrong would be unforgivable.
+  const [offer, setOffer] = useState<Array<{ id: string; title: string; body: string }>>([]);
+  const [pending, setPending] = useState("");
+  const [openArticle, setOpenArticle] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,10 +89,10 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  async function send() {
-    const body = text.trim();
+  /** Deliver for real — used both by the first send and by "still need help". */
+  async function deliver(body: string) {
     const sessionId = sessionRef.current;
-    if (!body || !sessionId || sending) return;
+    if (!sessionId) return;
     setSending(true);
     setError(null);
     try {
@@ -101,6 +108,9 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
       });
       if (resp.ok) {
         setText("");
+        setOffer([]);
+        setPending("");
+        setOpenArticle(null);
         await poll();
       } else {
         setError(tUi(lang, "w_send_failed"));
@@ -110,6 +120,54 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
     } finally {
       setSending(false);
     }
+  }
+
+  async function send() {
+    const body = text.trim();
+    if (!body || sending) return;
+
+    // Before opening a ticket, look for an article that already answers this.
+    // Only on the FIRST message of a conversation: once a person is involved,
+    // interrupting the thread with search results is not help, it is a
+    // machine talking over the conversation.
+    if (messages.length === 0) {
+      try {
+        const resp = await fetch(`/api/kb/${org}/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: body, language: lang }),
+        });
+        if (resp.ok) {
+          const data = (await resp.json()) as { articles?: typeof offer };
+          if (data.articles && data.articles.length > 0) {
+            setOffer(data.articles);
+            setPending(body);
+            setText("");
+            return;
+          }
+        }
+      } catch {
+        // Search is an optimisation. If it fails the customer must still be
+        // able to reach a person, so this falls straight through to sending.
+      }
+    }
+    await deliver(body);
+  }
+
+  /** The customer says an article answered them: the ticket is never opened. */
+  async function markHelpful(id: string) {
+    try {
+      await fetch(`/api/kb/${org}/helpful`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      // The counter is not worth failing the customer's experience over.
+    }
+    setOffer([]);
+    setPending("");
+    setOpenArticle(null);
   }
 
   return (
@@ -231,6 +289,106 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
           }}
         >
           {error}
+        </div>
+      ) : null}
+
+      {/* The deflection offer. It sits ABOVE the composer and never replaces
+          it: "No, I still need help" is always one tap away, and the message
+          the customer already typed is held so it can still be sent. A
+          customer trapped in a search result is worse served than one who
+          waited for a person. */}
+      {offer.length > 0 ? (
+        <div
+          style={{
+            padding: "12px 14px",
+            borderTop: `1px solid ${colors.border}`,
+            background: colors.surface,
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8 }}>
+            {tUi(lang, "w_kb_intro")}
+          </div>
+          <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
+            {offer.map((a) => (
+              <div
+                key={a.id}
+                style={{
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 8,
+                  padding: 10,
+                  background: colors.surfaceRaised,
+                }}
+              >
+                <div style={{ fontSize: 14, color: colors.textPrimary, fontWeight: 600 }}>
+                  {a.title}
+                </div>
+                {openArticle === a.id ? (
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      fontSize: 13.5,
+                      lineHeight: 1.55,
+                      color: colors.textBody,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {a.body}
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => setOpenArticle(a.id)}
+                    style={{
+                      marginTop: 4,
+                      border: "none",
+                      background: "transparent",
+                      color: colors.accent,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      padding: 0,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {tUi(lang, "w_kb_read")}
+                  </button>
+                )}
+                {openArticle === a.id ? (
+                  <button
+                    onClick={() => void markHelpful(a.id)}
+                    style={{
+                      marginTop: 8,
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      border: "none",
+                      background: colors.accent,
+                      color: colors.onAccent,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {tUi(lang, "w_kb_helpful")}
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => void deliver(pending)}
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: `1px solid ${colors.borderStrong}`,
+              background: "transparent",
+              color: colors.textBody,
+              fontSize: 13.5,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {tUi(lang, "w_kb_still")}
+          </button>
         </div>
       ) : null}
 

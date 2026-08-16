@@ -77,6 +77,7 @@ model Organization {
   notifications    Notification[]
   tags             Tag[]
   ticketTags       TicketTag[]
+  kbArticles       KbArticle[]
 }
 
 enum UserRole {
@@ -119,6 +120,7 @@ model User {
   assignedTasks   Task[]          @relation("TaskAssignee")
   createdTasks    Task[]          @relation("TaskCreator")
   createdMacros   Macro[]         @relation("MacroCreator")
+  kbArticles      KbArticle[]     @relation("KbAuthor")
   notifications   Notification[]
 
   @@unique([organizationId, email])
@@ -514,6 +516,41 @@ model Macro {
 
   @@unique([organizationId, title])
   @@index([organizationId, isActive])
+}
+
+// ---------- Knowledge base ----------
+
+// An answer the desk has already written down, so a customer can get it
+// without waiting for a person.
+//
+// `bodies` is a language map like a Macro's (ADR 0007), for the same reason:
+// one article is edited as a single thing, and a customer must be answered in
+// their own language or not at all. Retrieval never crosses languages — an
+// English article shown to a Tigrinya customer is the failure this product
+// exists to avoid.
+model KbArticle {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Titles per language too: the title is what a customer is offered when
+  // retrieval is unsure, so it cannot be English-only.
+  titles Json
+  bodies Json
+
+  isPublished Boolean @default(false)
+  // How often this article was shown INSTEAD of opening a ticket. The one
+  // number that says whether writing it was worth the afternoon.
+  deflections Int @default(0)
+  views       Int @default(0)
+
+  createdById String?
+  createdBy   User?   @relation("KbAuthor", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, isPublished])
 }
 
 // ---------- Tags ----------

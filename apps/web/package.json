@@ -16,6 +16,7 @@
     "@olink-desk/i18n": "workspace:*",
     "@olink-desk/macros": "workspace:*",
     "@olink-desk/reports": "workspace:*",
+    "@olink-desk/retrieval": "workspace:*",
     "@olink-desk/sla": "workspace:*",
     "next": "^14.1.4",
     "react": "^18.2.0",
