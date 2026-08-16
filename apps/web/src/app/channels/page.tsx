@@ -45,6 +45,7 @@ export default function ChannelsPage() {
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const refresh = useCallback(async (slug: string) => {
     const [catResp, statusResp] = await Promise.all([
@@ -216,9 +217,79 @@ export default function ChannelsPage() {
               ) : null}
             </section>
 
+            {/* ------------------------------------- website widget */}
+            {(() => {
+              const web = channels.find((c) => c.key === "web");
+              if (!web || !me) return null;
+              const origin =
+                typeof window !== "undefined" ? window.location.origin : "";
+              const snippet = `<script src="${origin}/api/channels/web/${me.organization.slug}/embed" async></script>`;
+              return (
+                <section style={ui.card}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <h2 style={ui.h2}>{web.name}</h2>
+                    {badge("live")}
+                  </div>
+                  <p style={{ margin: "0 0 14px", color: colors.textSecondary, fontSize: 14 }}>
+                    {web.blurb}
+                  </p>
+                  <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: colors.textBody }}>
+                    {tUi(lang, "ui_embed_title")}
+                  </p>
+                  <pre
+                    style={{
+                      margin: 0,
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      background: colors.surfaceRaised,
+                      border: `1px solid ${colors.border}`,
+                      color: colors.textBody,
+                      fontSize: 12,
+                      overflowX: "auto",
+                      whiteSpace: "pre-wrap",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {snippet}
+                  </pre>
+                  <p style={{ margin: "6px 0 12px", color: colors.textMuted, fontSize: 12 }}>
+                    {tUi(lang, "ui_embed_hint")}
+                  </p>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => {
+                        void navigator.clipboard.writeText(snippet).then(() => {
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        });
+                      }}
+                      style={ui.button}
+                    >
+                      {copied ? tUi(lang, "ui_copied") : tUi(lang, "ui_copy")}
+                    </button>
+                    <a
+                      href={`/widget/${me.organization.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ ...ui.buttonGhost, textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                    >
+                      {tUi(lang, "ui_open_widget")}
+                    </a>
+                  </div>
+                </section>
+              );
+            })()}
+
             {/* --------------------------------------- rest of catalogue */}
             {channels
-              .filter((c) => c.key !== "telegram")
+              .filter((c) => c.key !== "telegram" && c.key !== "web")
               .map((c) => (
                 <section key={c.key} style={ui.card}>
                   <div

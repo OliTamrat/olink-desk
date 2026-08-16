@@ -121,6 +121,15 @@ export const UI_NOTES: Record<string, string> = {
   ui_st_closed: "Ticket status: finished.",
   ui_customer: "Label for the customer side of a conversation timeline.",
   ui_back: "Back button from a ticket's conversation to the ticket list (mobile).",
+  w_intro: "CUSTOMER-FACING (widget): the line shown before the visitor's first message.",
+  w_input_placeholder: "CUSTOMER-FACING (widget): placeholder in the message box.",
+  w_send_failed: "CUSTOMER-FACING (widget): error when a message could not be sent.",
+  w_powered: "CUSTOMER-FACING (widget): footer credit line. 'Olink Desk' is the product name — keep it.",
+  ui_embed_title: "Channels page: heading of the website-widget embed card.",
+  ui_embed_hint: "Channels page: how to install the snippet. '</body>' is an HTML tag — keep it exactly.",
+  ui_copy: "Button that copies the embed snippet.",
+  ui_copied: "Copy button after a successful copy.",
+  ui_open_widget: "Link that opens the org's widget page in a new tab.",
 };
 
 /**
