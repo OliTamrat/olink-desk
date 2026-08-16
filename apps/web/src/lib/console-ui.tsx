@@ -133,6 +133,12 @@ export const Icons = {
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   ),
+  knowledge: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  ),
   reports: (
     <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
       <path d="M3 3v18h18" />
@@ -612,7 +618,7 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "channels" | "macros" | "reports" | "wallboard" | "settings";
+  active: "dashboard" | "inbox" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the Zendesk shape — product rail, then Views).
@@ -630,7 +636,7 @@ export function ConsoleShell({
   }
 
   const nav: Array<{
-    key: "dashboard" | "inbox" | "channels" | "macros" | "reports" | "wallboard" | "settings";
+    key: "dashboard" | "inbox" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
     href: string;
     label: string;
     icon: ReactNode;
@@ -639,6 +645,7 @@ export function ConsoleShell({
     { key: "inbox", href: "/inbox", label: tUi(lang, "ui_nav_inbox"), icon: Icons.inbox },
     { key: "channels", href: "/channels", label: tUi(lang, "ui_channels_title"), icon: Icons.channels },
     { key: "macros", href: "/macros", label: tUi(lang, "ui_nav_macros"), icon: Icons.macros },
+    { key: "knowledge", href: "/knowledge", label: tUi(lang, "ui_nav_kb"), icon: Icons.knowledge },
   ];
   // Reports and the wallboard are both supervision surfaces; agents work the
   // inbox instead.
