@@ -10,13 +10,16 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const principal = await requireUser(request);
   if (isDenied(principal)) return principal;
+  // Assignment dropdowns want only people who can work; the Team screen
+  // wants everyone, including the deactivated.
+  const all = request.nextUrl.searchParams.get("all") === "true";
   const users = await prisma.user.findMany({
     where: {
       organizationId: principal.organization.id,
-      status: UserStatus.ACTIVE,
+      ...(all ? {} : { status: UserStatus.ACTIVE }),
     },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, role: true },
+    select: { id: true, name: true, role: true, status: true, email: all },
   });
-  return NextResponse.json({ users });
+  return NextResponse.json({ users }, { headers: { "Cache-Control": "no-store" } });
 }
