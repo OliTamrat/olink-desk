@@ -172,6 +172,12 @@ export const Icons = {
       <path d="M17.5 14.4c2 .6 3.2 2.3 3.2 4.6" />
     </svg>
   ),
+  panel: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M15 4v16" />
+    </svg>
+  ),
   plus: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <path d="M12 5v14M5 12h14" />
@@ -711,6 +717,7 @@ export function ConsoleShell({
   me,
   active,
   sidePanel,
+  context,
   fullBleed,
   children,
 }: {
@@ -725,6 +732,12 @@ export function ConsoleShell({
    */
   sidePanel?: ReactNode;
   /**
+   * This screen's supporting detail. Supplying it puts the toggle in the top
+   * bar; a screen with nothing contextual to say passes nothing and no
+   * control appears, rather than an empty panel nobody can use.
+   */
+  context?: ReactNode;
+  /**
    * Let this screen use the entire display. For the wallboard, which is meant
    * to be read across a room from a television — capping that at 1440 would
    * waste exactly the space it exists to fill.
@@ -734,6 +747,7 @@ export function ConsoleShell({
 }) {
   const router = useRouter();
   usePathname(); // keeps the shell client-routed
+  const [contextOpen, setContextOpen] = useContextPanel();
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -855,6 +869,9 @@ export function ConsoleShell({
       {brand}
       {me && !isMobile ? <GlobalSearch lang={lang} /> : <div style={{ flex: 1 }} />}
       {me && CAN_CREATE.includes(me.user.role) ? <QuickAdd lang={lang} /> : null}
+      {me && context ? (
+        <ContextToggle lang={lang} open={contextOpen} onToggle={() => setContextOpen(!contextOpen)} />
+      ) : null}
       {me ? <AlertBell lang={lang} /> : null}
       {me ? (
         <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
@@ -1003,7 +1020,19 @@ export function ConsoleShell({
               own max-width to the left, which is what left a void down the
               right of a wide monitor. A page that genuinely wants the whole
               display — the wallboard on a TV — opts out. */}
-          <div style={fullBleed ? { width: "100%" } : layout.wide}>{children}</div>
+          <div style={fullBleed ? { width: "100%" } : layout.wide}>
+            {context ? (
+              <WithContext
+                open={contextOpen}
+                onClose={() => setContextOpen(false)}
+                context={context}
+              >
+                {children}
+              </WithContext>
+            ) : (
+              children
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1057,43 +1086,138 @@ export const layout = {
 };
 
 /**
- * Main content plus a rail of supporting detail — the shape the ticket screen
- * already uses, and the honest way to spend width on a page that HAS something
- * worth putting beside the main column.
+ * The right-hand context panel — one behaviour, every page.
  *
- * Collapses to one column when the viewport cannot afford two, with the rail
- * BELOW: on a phone the main content is what was asked for.
+ * Three properties, and each exists because of a specific failure:
+ *
+ * 1. **DOCKED when there is room, SLIDE-OVER when there is not.** The ticket
+ *    screen used to drop its customer column outright below `roomy`, so on a
+ *    laptop the information did not move — it VANISHED, with no way to ask for
+ *    it. Overlaying is how a narrow window keeps the content reachable instead
+ *    of losing it.
+ * 2. **The agent can close it, and it stays closed.** Remembered in
+ *    localStorage: somebody who shut it meant it, and re-opening on every
+ *    navigation would be the product arguing with them.
+ * 3. **Nothing lives ONLY here.** The panel holds supporting detail. If the
+ *    single way to do something sat behind a toggle an agent has turned off,
+ *    the feature is gone for them — so a customer's phone number is on the
+ *    record itself and the panel's `tel:` link is a convenience on top.
  */
-export function Split({
-  main,
-  rail,
-  railWidth = 320,
+const CONTEXT_PANEL_KEY = "olink-desk.context-open";
+const CONTEXT_WIDTH = 300;
+
+export function useContextPanel(): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    const stored = window.localStorage.getItem(CONTEXT_PANEL_KEY);
+    if (stored !== null) setOpen(stored === "1");
+  }, []);
+  const set = useCallback((next: boolean) => {
+    setOpen(next);
+    window.localStorage.setItem(CONTEXT_PANEL_KEY, next ? "1" : "0");
+  }, []);
+  return [open, set];
+}
+
+export function ContextToggle({
+  lang,
+  open,
+  onToggle,
 }: {
-  main: ReactNode;
-  rail: ReactNode;
-  railWidth?: number;
+  lang: Language;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const { roomy } = useViewport();
   return (
-    <div
+    <button
+      onClick={onToggle}
+      aria-label={tUi(lang, open ? "ui_context_hide" : "ui_context_show")}
+      aria-expanded={open}
       style={{
-        ...layout.wide,
         display: "flex",
-        flexDirection: roomy ? "row" : "column",
-        alignItems: "flex-start",
-        gap: 16,
+        alignItems: "center",
+        gap: 6,
+        padding: "7px 11px",
+        borderRadius: 8,
+        border: `1px solid ${open ? colors.accent : colors.border}`,
+        background: "transparent",
+        color: open ? colors.textPrimary : colors.textSecondary,
+        fontSize: 13,
+        cursor: "pointer",
+        fontFamily: font,
+        flexShrink: 0,
+        whiteSpace: "nowrap",
       }}
     >
-      <div style={{ flex: 1, minWidth: 0, width: "100%" }}>{main}</div>
-      <div
-        style={{
-          flex: roomy ? `0 0 ${railWidth}px` : "1 1 auto",
-          width: roomy ? railWidth : "100%",
-          minWidth: 0,
-        }}
-      >
-        {rail}
-      </div>
+      {Icons.panel}
+      {tUi(lang, "ui_context_show")}
+    </button>
+  );
+}
+
+/**
+ * Main content with the context panel beside it (or over it).
+ *
+ * The toggle is rendered by the SHELL, not here, so it sits in the same place
+ * on every screen — a control that moves per page is a control an agent has to
+ * look for.
+ */
+export function WithContext({
+  open,
+  onClose,
+  context,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  context: ReactNode;
+  children: ReactNode;
+}) {
+  const { roomy } = useViewport();
+  const docked = open && roomy;
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 16, width: "100%" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+
+      {docked ? (
+        <aside
+          data-context-panel="docked"
+          style={{ flex: `0 0 ${CONTEXT_WIDTH}px`, width: CONTEXT_WIDTH, minWidth: 0 }}
+        >
+          {context}
+        </aside>
+      ) : null}
+
+      {/* Narrow, and asked for: it comes OVER the content rather than being
+          dropped. The backdrop is what makes it dismissible by tapping away,
+          which is the gesture people already expect from a sheet. */}
+      {open && !roomy ? (
+        <>
+          <div
+            onClick={onClose}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 9998 }}
+          />
+          <aside
+            data-context-panel="slideover"
+            style={{
+              position: "fixed",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: "min(340px, 88vw)",
+              zIndex: 9999,
+              background: colors.bg,
+              borderLeft: `1px solid ${colors.border}`,
+              padding: 16,
+              overflowY: "auto",
+              boxSizing: "border-box",
+            }}
+          >
+            {context}
+          </aside>
+        </>
+      ) : null}
     </div>
   );
 }

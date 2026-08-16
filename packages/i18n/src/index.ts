@@ -318,6 +318,8 @@ export const UI_NOTES: Record<string, string> = {
   ui_kb_unpublish: "Button hiding an article from customers again.",
   ui_kb_deflections: "How many customers this article answered without a ticket being opened. {n} is a number. This counts only customers who SAID it answered them, not views.",
   ui_kb_none: "Empty state of the knowledge base. It says what to do, not that something is missing.",
+  ui_context_show: "Button that opens the right-hand context panel. One word — it sits in a crowded top bar. It is the SAME control that closes the panel; the label changes to ui_context_hide when it is open.",
+  ui_context_hide: "The same button once the panel is open.",
   ui_customer_reach: "Heading of the rail on a customer's record. The question it answers is 'can the desk actually message this person', which is not the same as what contact details are on file.",
   ui_customer_channels_used: "Label above the list of channels this customer has actually written in on.",
   ui_customer_no_channels: "Shown for a customer who only exists because staff logged calls for them. The desk genuinely cannot send them anything, and saying so is the point.",
