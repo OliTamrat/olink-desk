@@ -3,6 +3,7 @@
 // Breach is DERIVED from the stored due dates at read time — no cron in the
 // truth path, so the wallboard can never show stale breach state.
 import { prisma, TicketStatus, UserRole } from "@olink-desk/database";
+import { slaState } from "@olink-desk/sla";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -72,20 +73,14 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  // A ticket's SLA state, derived live. "At risk" = past 80% of the window.
+  // A ticket's SLA state, derived live — from packages/sla, which is the one
+  // place that decides what "breached" means. This logic used to live inline
+  // here, which made this screen the ONLY thing in the product that knew a
+  // promise had been missed; the escalation cron now reads the same function.
+  const nowDate = new Date(now);
   const state = (t: (typeof openTickets)[number]) => {
-    const clock =
-      !t.firstRespondedAt && t.firstResponseDueAt
-        ? { due: t.firstResponseDueAt, kind: "first_response" as const }
-        : t.resolveDueAt
-          ? { due: t.resolveDueAt, kind: "resolve" as const }
-          : null;
-    if (!clock) return { breached: false, atRisk: false };
-    const dueMs = clock.due.getTime();
-    if (now >= dueMs) return { breached: true, atRisk: false };
-    const created = t.createdAt.getTime();
-    const progress = (now - created) / Math.max(1, dueMs - created);
-    return { breached: false, atRisk: progress >= 0.8 };
+    const health = slaState(t, nowDate).health;
+    return { breached: health === "breached", atRisk: health === "at_risk" };
   };
 
   const buckets = [

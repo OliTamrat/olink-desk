@@ -12,7 +12,13 @@ import {
 } from "@olink-desk/i18n";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 import { colors, font, radius } from "./theme";
 
@@ -146,6 +152,12 @@ export const Icons = {
       <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
     </svg>
   ),
+  bell: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  ),
   signOut: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -154,6 +166,259 @@ export const Icons = {
     </svg>
   ),
 } as const;
+
+// ------------------------------------------------------------- alerts
+//
+// The other half of the SLA engine. Breach was derived from the beginning,
+// but only inside the wallboard route — so the only thing that knew a promise
+// had been missed was a screen somebody had to be watching. This is where a
+// person finds out without watching.
+
+export interface AlertRow {
+  id: string;
+  kind: "SLA_BREACHED" | "SLA_AT_RISK" | "UNASSIGNED_WAITING";
+  read: boolean;
+  createdAt: string;
+  ticketId: string;
+  ticketNumber: number;
+  subject: string | null;
+}
+
+const ALERT_KEY: Record<AlertRow["kind"], string> = {
+  SLA_BREACHED: "ui_alert_sla_breached",
+  SLA_AT_RISK: "ui_alert_sla_at_risk",
+  UNASSIGNED_WAITING: "ui_alert_unassigned_waiting",
+};
+const ALERT_TONE: Record<AlertRow["kind"], "danger" | "warn" | "info"> = {
+  SLA_BREACHED: "danger",
+  SLA_AT_RISK: "warn",
+  UNASSIGNED_WAITING: "info",
+};
+
+export function AlertBell({
+  lang,
+  placement = "header",
+}: {
+  lang: Language;
+  /**
+   * Where the bell sits, which decides which way the panel opens.
+   *
+   * "sidebar" is the desktop shell: the bell lives in a 220px rail at the
+   * bottom-left, so a right-anchored 320px panel hangs off the left edge of
+   * the screen and is simply cut off. It opens rightwards instead.
+   * "header" is the mobile top bar, where the bell is at the right and the
+   * panel must open down-and-left to stay on screen.
+   *
+   * A scroll-overflow check cannot catch either mistake — content clipped at
+   * negative x adds no scrollWidth — which is exactly how the sidebar case
+   * shipped and was caught in a screenshot.
+   */
+  placement?: "sidebar" | "header";
+}) {
+  const [rows, setRows] = useState<AlertRow[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [open, setOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/notifications");
+      if (!resp.ok) return;
+      const data = (await resp.json()) as { notifications: AlertRow[]; unread: number };
+      setRows(data.notifications);
+      setUnread(data.unread);
+    } catch {
+      // An alert feed that will not load must never break the console around
+      // it: the bell simply shows nothing.
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    // 45s: fast enough that a breach reaches a watching supervisor while it
+    // still matters, slow enough not to be a poll storm on a shared desk.
+    const timer = setInterval(load, 45_000);
+    return () => clearInterval(timer);
+  }, [load]);
+
+  async function markAll() {
+    await fetch("/api/notifications", { method: "POST" });
+    // Optimistic: the panel is open and the person just pressed the button,
+    // so waiting a round trip to grey the rows out reads as a broken click.
+    setRows(rows.map((r) => ({ ...r, read: true })));
+    setUnread(0);
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={tUi(lang, "ui_alerts")}
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          padding: 8,
+          borderRadius: radius.sm,
+          border: `1px solid ${open ? colors.accent : colors.border}`,
+          background: "transparent",
+          color: unread > 0 ? colors.textPrimary : colors.textSecondary,
+          cursor: "pointer",
+        }}
+      >
+        {Icons.bell}
+        {unread > 0 ? (
+          <span
+            style={{
+              position: "absolute",
+              top: -5,
+              right: -5,
+              minWidth: 16,
+              height: 16,
+              padding: "0 4px",
+              borderRadius: 999,
+              background: colors.danger,
+              color: colors.bg,
+              fontSize: 10,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxSizing: "border-box",
+            }}
+          >
+            {unread > 99 ? "99+" : unread}
+          </span>
+        ) : null}
+      </button>
+
+      {open ? (
+        <div
+          style={{
+            // Two different anchors because the bell sits in two different
+            // places. In the sidebar it opens rightwards out of the rail. In
+            // the mobile header it is NOT the rightmost control — the
+            // language picker and sign-out are to its right — so anchoring
+            // the panel to the button still pushed it off the left edge.
+            // There it spans the viewport instead, which is what a phone
+            // wants anyway.
+            ...(placement === "sidebar"
+              ? {
+                  position: "absolute" as const,
+                  bottom: 0,
+                  left: "calc(100% + 10px)",
+                  width: 320,
+                  maxWidth: "calc(100vw - 24px)",
+                }
+              : {
+                  position: "fixed" as const,
+                  top: 62,
+                  left: 12,
+                  right: 12,
+                  width: "auto",
+                }),
+            maxHeight: 380,
+            overflowY: "auto",
+            background: colors.surface,
+            border: `1px solid ${colors.borderStrong}`,
+            borderRadius: 10,
+            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            padding: 10,
+            zIndex: 60,
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+              marginBottom: 8,
+            }}
+          >
+            <strong style={{ fontSize: 13, color: colors.textPrimary }}>
+              {tUi(lang, "ui_alerts")}
+            </strong>
+            {rows.some((r) => !r.read) ? (
+              <button
+                onClick={() => void markAll()}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: colors.accent,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  padding: 0,
+                }}
+              >
+                {tUi(lang, "ui_alerts_mark_read")}
+              </button>
+            ) : null}
+          </div>
+
+          {rows.length === 0 ? (
+            <p style={{ margin: 0, fontSize: 12.5, color: colors.textMuted }}>
+              {tUi(lang, "ui_alerts_none")}
+            </p>
+          ) : (
+            <div style={{ display: "grid", gap: 2 }}>
+              {rows.map((r) => {
+                const tone = ALERT_TONE[r.kind];
+                const fg =
+                  tone === "danger" ? colors.danger : tone === "warn" ? colors.warn : colors.accent;
+                return (
+                  <a
+                    key={r.id}
+                    href={`/inbox?ticket=${r.ticketId}`}
+                    style={{
+                      display: "flex",
+                      gap: 9,
+                      padding: "8px 7px",
+                      borderRadius: 7,
+                      textDecoration: "none",
+                      color: "inherit",
+                      opacity: r.read ? 0.55 : 1,
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        flexShrink: 0,
+                        width: 7,
+                        height: 7,
+                        borderRadius: "50%",
+                        background: fg,
+                        marginTop: 5,
+                      }}
+                    />
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: 12.5, color: fg }}>
+                        {tUi(lang, ALERT_KEY[r.kind])}
+                      </span>
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 13,
+                          color: colors.textBody,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        #{r.ticketNumber} {r.subject ?? ""}
+                      </span>
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 // -------------------------------------------------------------- the shell
 export interface ShellUser {
@@ -275,6 +540,7 @@ export function ConsoleShell({
               </div>
             ) : null}
           </div>
+          {me ? <AlertBell lang={lang} /> : null}
           <LanguagePicker lang={lang} onChange={onLang} />
           <button
             onClick={signOut}
@@ -413,6 +679,7 @@ export function ConsoleShell({
         </nav>
 
         <div style={{ marginTop: "auto", display: "grid", gap: 10, padding: "0 4px" }}>
+          {me ? <AlertBell lang={lang} placement="sidebar" /> : null}
           <LanguagePicker lang={lang} onChange={onLang} />
           <button
             onClick={signOut}
