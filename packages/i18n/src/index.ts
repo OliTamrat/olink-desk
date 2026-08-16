@@ -56,6 +56,16 @@ export const NOTES: Record<string, string> = {
     "must answer something (USSD ends every session with a screen). {number} is " +
     "the ticket number. Unlike ticket_opened it must NOT promise a reply 'here' " +
     "— a USSD session cannot be re-entered; the follow-up comes by phone or SMS.",
+  csat_ask:
+    "CUSTOMER-FACING: sent once when a ticket is resolved, asking for a "
+    + "satisfaction score. {number} is the ticket number. The reply format "
+    + "must stay a plain 1-5 — it is typed on a phone keypad, sometimes over "
+    + "SMS, and the parser accepts a bare number only. Keep the two anchors "
+    + "(worst and best) so the scale is unambiguous without a legend.",
+  csat_thanks:
+    "CUSTOMER-FACING: the acknowledgement after a score is received. It must "
+    + "NOT promise any further action — the ticket is closed and nobody is "
+    + "coming back to them about it.",
 };
 
 // Reviewer notes for the console table. The audience is staff (agents and
@@ -262,6 +272,11 @@ export const UI_NOTES: Record<string, string> = {
   ui_alert_sla_breached: "Alert reason: the ticket is past the time the workspace promised to reply by.",
   ui_alert_sla_at_risk: "Alert reason: the ticket is close to that deadline but has not missed it yet — there is still time to act.",
   ui_alert_unassigned_waiting: "Alert reason: nobody has taken the ticket. Not about lateness; about ownership.",
+  ui_satisfaction: "Ticket rail label for the customer's satisfaction score.",
+  ui_wb_csat: "Wallboard stat: the average satisfaction score for tickets resolved today.",
+  ui_csat_responses: "The denominator under the satisfaction average. {n} is a number — an average from one reply and from ninety are different facts, which is why the count is always shown.",
+  ui_csat_none: "Shown where a ticket has no score and none was asked for.",
+  ui_csat_awaiting: "Shown when the survey went out but the customer has not answered yet.",
   ui_macro_retire: "Button that hides a macro from agents without deleting what was already sent under it.",
   ui_macro_restore: "Button that returns a retired macro to the agents' list.",
   ui_macro_retired: "Badge on a macro that is hidden from agents.",

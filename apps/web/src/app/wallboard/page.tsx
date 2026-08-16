@@ -33,6 +33,8 @@ interface WallboardData {
   today: {
     firstResponseMedianMinutes: number | null;
     resolveMedianMinutes: number | null;
+    csatAverage: number | null;
+    csatResponses: number;
   };
 }
 
@@ -188,6 +190,19 @@ export default function WallboardPage() {
                     {data.today.firstResponseMedianMinutes !== null
                       ? duration(data.today.firstResponseMedianMinutes * 60_000)
                       : "—"}
+                  </div>
+                </div>
+                {/* Satisfaction always carries its denominator: "4.0" from
+                    one reply and from ninety are different facts. */}
+                <div>
+                  <div style={{ fontSize: 13, color: colors.textSecondary }}>
+                    {tUi(lang, "ui_wb_csat")}
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: colors.textPrimary }}>
+                    {data.today.csatAverage !== null ? `${data.today.csatAverage}/5` : "—"}
+                  </div>
+                  <div style={{ fontSize: 12, color: colors.textMuted }}>
+                    {tUi(lang, "ui_csat_responses", { n: data.today.csatResponses ?? 0 })}
                   </div>
                 </div>
                 <div>

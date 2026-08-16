@@ -82,6 +82,9 @@ importers:
 
   packages/channels:
     dependencies:
+      '@olink-desk/csat':
+        specifier: workspace:*
+        version: link:../csat
       '@olink-desk/database':
         specifier: workspace:*
         version: link:../database
@@ -91,6 +94,18 @@ importers:
       '@olink-desk/sla':
         specifier: workspace:*
         version: link:../sla
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)
+
+  packages/csat:
     devDependencies:
       '@types/node':
         specifier: ^20.11.30

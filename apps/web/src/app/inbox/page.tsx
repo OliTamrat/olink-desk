@@ -517,6 +517,20 @@ export default function InboxPage() {
             value={CHANNEL_LABELS[detail.channel] ?? detail.channel}
           />
           <Field label={tUi(lang, "ui_opened")} value={timeAgo(detail.createdAt)} />
+          {/* Satisfaction. Three distinct states, never collapsed into one:
+              a score, a survey still unanswered, and no survey at all. Showing
+              "Not rated" for a ticket nobody was asked about would read as a
+              customer who declined. */}
+          <Field
+            label={tUi(lang, "ui_satisfaction")}
+            value={
+              typeof detail.csatScore === "number"
+                ? `${"★".repeat(detail.csatScore)}${"☆".repeat(5 - detail.csatScore)}  ${detail.csatScore}/5`
+                : detail.csatSentAt
+                  ? tUi(lang, "ui_csat_awaiting")
+                  : tUi(lang, "ui_csat_none")
+            }
+          />
         </div>
       </div>
     );

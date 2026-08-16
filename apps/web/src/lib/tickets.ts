@@ -17,6 +17,8 @@ export interface TicketRow {
   createdAt: string;
   updatedAt: string;
   firstRespondedAt: string | null;
+  csatScore?: number | null;
+  csatSentAt?: string | null;
   contact: { name: string | null; phone: string | null } | null;
   assignee?: { name: string } | null;
   assigneeId?: string | null;
