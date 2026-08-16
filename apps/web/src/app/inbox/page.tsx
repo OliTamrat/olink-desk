@@ -180,6 +180,23 @@ function InboxWorkspace() {
   const [queue, setQueue] = useState(params.get("queue") ?? "");
   const [tag, setTag] = useState(params.get("tag") ?? "");
   const [tagDraft, setTagDraft] = useState("");
+  // Bulk macro: a preview must exist before anything is sent, so the review
+  // state and the send state are separate. `bulkPreview` being non-null IS
+  // the "we have looked at this" gate.
+  const [bulkMacroId, setBulkMacroId] = useState("");
+  const [bulkPreview, setBulkPreview] = useState<{
+    preview: Array<{
+      language: string;
+      count: number;
+      fellBack: number;
+      fallbackFrom: string[];
+      sample: string;
+    }>;
+    total: number;
+    undeliverable: Array<{ number: number; reason: string }>;
+  } | null>(null);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkResult, setBulkResult] = useState<string | null>(null);
 
   // Re-read the URL whenever it CHANGES, not only on mount.
   //
@@ -376,6 +393,50 @@ function InboxWorkspace() {
       );
     } catch (err) {
       setSendError(tUi(lang, "ui_reply_failed", { error: String(err) }));
+    }
+  }
+
+  async function previewBulkMacro(macroId: string) {
+    setBulkMacroId(macroId);
+    setBulkResult(null);
+    const resp = await fetch("/api/tickets/bulk/macro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [...picked], macroId }),
+    });
+    if (!resp.ok) return;
+    setBulkPreview(await resp.json());
+  }
+
+  async function commitBulkMacro() {
+    if (!bulkPreview || !bulkMacroId) return;
+    setBulkSending(true);
+    try {
+      const resp = await fetch("/api/tickets/bulk/macro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [...picked], macroId: bulkMacroId, commit: true }),
+      });
+      const data = (await resp.json()) as {
+        sent: number;
+        failed: Array<{ number: number }>;
+      };
+      // A partial send is reported as a partial send. "40 sent" when 37 were
+      // is the failure this wording exists to prevent.
+      setBulkResult(
+        data.failed.length > 0
+          ? tUi(lang, "ui_bulk_macro_partial", {
+              sent: data.sent,
+              failed: data.failed.length,
+            })
+          : tUi(lang, "ui_bulk_macro_sent", { n: data.sent }),
+      );
+      setBulkPreview(null);
+      setBulkMacroId("");
+      setPicked(new Set());
+      await loadList();
+    } finally {
+      setBulkSending(false);
     }
   }
 
@@ -1184,6 +1245,25 @@ function InboxWorkspace() {
           <strong style={{ fontSize: 13, color: colors.textPrimary }}>
             {tUi(lang, "ui_selected", { n: picked.size })}
           </strong>
+          {/* Apply a macro to everything selected. Choosing one only opens
+              the review — it never sends. */}
+          {macros.length > 0 ? (
+            <select
+              aria-label={tUi(lang, "ui_bulk_macro")}
+              value=""
+              onChange={(e) => {
+                if (e.target.value) void previewBulkMacro(e.target.value);
+              }}
+              style={{ ...ui.buttonGhost, padding: "6px 10px", fontSize: 12 }}
+            >
+              <option value="">{tUi(lang, "ui_bulk_macro")}</option>
+              {macros.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.title}
+                </option>
+              ))}
+            </select>
+          ) : null}
           {meId ? (
             <button
               onClick={() => void bulk({ assigneeId: meId })}
@@ -1225,6 +1305,107 @@ function InboxWorkspace() {
             {tUi(lang, "ui_clear")}
           </button>
         </div>
+      ) : null}
+
+      {/* The review. In bulk there is no composer, so this screen is the
+          ONLY place the words are read before they reach real people. It is
+          grouped by LANGUAGE because that is the axis an agent cannot
+          predict: one button sends several different texts, and the agent
+          reads at most one of them fluently. */}
+      {bulkPreview ? (
+        <div style={{ ...ui.card, marginBottom: 12, display: "grid", gap: 12 }}>
+          <strong style={{ color: colors.textPrimary, fontSize: 15 }}>
+            {tUi(lang, "ui_bulk_macro_review")}
+          </strong>
+
+          {bulkPreview.preview.length === 0 ? (
+            <div style={ui.warn}>{tUi(lang, "ui_bulk_macro_nothing")}</div>
+          ) : (
+            bulkPreview.preview.map((g) => (
+              <div
+                key={g.language}
+                style={{
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 8,
+                  padding: 12,
+                  background: colors.surfaceRaised,
+                }}
+              >
+                <div style={{ fontSize: 13, color: colors.textBody, marginBottom: 6 }}>
+                  {tUi(lang, "ui_bulk_macro_group", {
+                    n: g.count,
+                    lang: LANG_NAMES[g.language] ?? g.language,
+                  })}
+                </div>
+                {/* The warning names the language they WROTE in, because that
+                    is the one somebody would have to write for this to stop
+                    happening. Naming the language they are being given
+                    instead says nothing an agent can act on. */}
+                {g.fellBack > 0 ? (
+                  <div style={{ ...ui.warn, fontSize: 12, marginBottom: 8 }}>
+                    {tUi(lang, "ui_bulk_macro_fellback", {
+                      n: g.fellBack,
+                      from: g.fallbackFrom
+                        .map((code) => LANG_NAMES[code] ?? code)
+                        .join(", "),
+                      lang: LANG_NAMES[g.language] ?? g.language,
+                    })}
+                  </div>
+                ) : null}
+                {/* A real rendered sample, not the macro template: the
+                    placeholders are already filled, so this is what somebody
+                    actually receives. */}
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 13.5,
+                    lineHeight: 1.55,
+                    color: colors.textPrimary,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {g.sample}
+                </p>
+              </div>
+            ))
+          )}
+
+          {bulkPreview.undeliverable.length > 0 ? (
+            <div style={{ ...ui.warn, fontSize: 12 }}>
+              {tUi(lang, "ui_bulk_macro_undeliverable", {
+                n: bulkPreview.undeliverable.length,
+              })}
+            </div>
+          ) : null}
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={() => void commitBulkMacro()}
+              disabled={bulkSending || bulkPreview.total === 0}
+              style={{
+                ...ui.button,
+                opacity: bulkSending || bulkPreview.total === 0 ? 0.6 : 1,
+              }}
+            >
+              {bulkSending
+                ? tUi(lang, "ui_bulk_macro_sending")
+                : tUi(lang, "ui_bulk_macro_send", { n: bulkPreview.total })}
+            </button>
+            <button
+              style={ui.buttonGhost}
+              onClick={() => {
+                setBulkPreview(null);
+                setBulkMacroId("");
+              }}
+            >
+              {tUi(lang, "ui_macro_cancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {bulkResult ? (
+        <div style={{ ...ui.ok, marginBottom: 12 }}>{bulkResult}</div>
       ) : null}
 
       <div style={{ ...ui.card, padding: 0, overflowX: "auto" }}>
