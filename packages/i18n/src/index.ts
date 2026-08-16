@@ -178,6 +178,20 @@ export const UI_NOTES: Record<string, string> = {
   ui_language: "Context rail field: the conversation's language.",
   ui_phone: "Context rail field: the customer's phone number.",
   ui_clear: "Button that clears the active list filters.",
+  ui_subject: "Table column: what the ticket is about.",
+  ui_requester: "Table column: the customer who wrote in.",
+  ui_requested: "Table column: when the ticket arrived.",
+  ui_selected: "Bulk action bar: how many rows are ticked. {n} is a number.",
+  ui_public_reply: "Composer mode that sends to the customer on their channel.",
+  ui_internal_note: "Composer mode that records a note only staff can read.",
+  ui_note_placeholder: "Placeholder in the composer while in internal-note mode. The reassurance matters — an agent must never wonder whether the customer saw it.",
+  ui_note_badge: "Label on an internal note in the conversation timeline.",
+  ui_interaction_history: "Right rail heading: this customer's earlier tickets.",
+  ui_no_history: "Shown when the customer has no earlier tickets.",
+  ui_back_to_list: "Link from an open ticket back to the ticket table.",
+  ui_properties: "Left panel heading on a ticket: its editable fields.",
+  ui_take_it: "Button that assigns the ticket to the signed-in agent (Zendesk calls this 'take it').",
+  ui_note_sent: "Confirmation after an internal note is recorded.",
 };
 
 /**

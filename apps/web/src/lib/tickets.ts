@@ -28,7 +28,8 @@ export interface TicketRow {
 
 export interface TimelineMessage {
   id: string;
-  direction: "INBOUND" | "OUTBOUND";
+  // NOTE is staff-only: it reaches the agent timeline and never a channel.
+  direction: "INBOUND" | "OUTBOUND" | "NOTE";
   channel: string;
   body: string;
   createdAt: string;

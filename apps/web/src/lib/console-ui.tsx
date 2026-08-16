@@ -155,12 +155,19 @@ export function ConsoleShell({
   onLang,
   me,
   active,
+  sidePanel,
   children,
 }: {
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
   active: "dashboard" | "inbox" | "channels" | "wallboard";
+  /**
+   * The second sidebar layer: a screen's own contextual navigation, docked
+   * beside the app nav (the Zendesk shape — product rail, then Views).
+   * Screens with no context pass nothing and the layer is not rendered.
+   */
+  sidePanel?: ReactNode;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -267,6 +274,7 @@ export function ConsoleShell({
         </header>
 
         <div style={{ flex: 1, minWidth: 0, padding: "16px 14px 84px", boxSizing: "border-box" }}>
+          {sidePanel}
           {children}
         </div>
 
@@ -407,7 +415,26 @@ export function ConsoleShell({
         </div>
       </aside>
 
-      <div style={{ flex: 1, minWidth: 0, padding: "28px 32px", boxSizing: "border-box" }}>
+      {sidePanel ? (
+        <aside
+          style={{
+            width: 230,
+            flexShrink: 0,
+            borderRight: `1px solid ${colors.border}`,
+            background: colors.bg,
+            padding: "20px 12px",
+            boxSizing: "border-box",
+            height: "100vh",
+            position: "sticky",
+            top: 0,
+            overflowY: "auto",
+          }}
+        >
+          {sidePanel}
+        </aside>
+      ) : null}
+
+      <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
         {children}
       </div>
     </div>
