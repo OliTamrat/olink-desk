@@ -29,6 +29,9 @@ importers:
       '@olink-desk/macros':
         specifier: workspace:*
         version: link:../../packages/macros
+      '@olink-desk/reports':
+        specifier: workspace:*
+        version: link:../../packages/reports
       '@olink-desk/sla':
         specifier: workspace:*
         version: link:../../packages/sla
@@ -159,6 +162,18 @@ importers:
       '@olink-desk/i18n':
         specifier: workspace:*
         version: link:../i18n
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)
+
+  packages/reports:
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
