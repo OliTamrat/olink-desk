@@ -51,6 +51,12 @@ export interface TicketDetail extends Omit<TicketRow, "messages"> {
     email: string | null;
     language: string | null;
   } | null;
+  /**
+   * Null on a ticket with no channel identity behind it — a logged call, a
+   * walk-in. The desk genuinely cannot send a message to one of these, so the
+   * composer must say so rather than fail on submit.
+   */
+  conversation: { channel: string; language: string } | null;
 }
 
 export const CHANNEL_LABELS: Record<string, string> = {

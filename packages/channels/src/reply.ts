@@ -12,10 +12,10 @@
 // "chat opened" event, because those events are unreliable across channels:
 // Viber fires one only on a fresh chat, WhatsApp has none at all.
 import type { Channel, Organization, PrismaClient, Ticket } from "@olink-desk/database";
-import { Prisma, TicketStatus } from "@olink-desk/database";
+import { TicketStatus } from "@olink-desk/database";
 import { awaitingRating, parseRating } from "@olink-desk/csat";
 import { detectLanguage, t } from "@olink-desk/i18n";
-import { slaDatesFor } from "@olink-desk/sla";
+import { openTicket } from "@olink-desk/tickets";
 
 export interface ChannelReplyInput {
   db: PrismaClient;
@@ -206,7 +206,7 @@ export async function channelReply(
   });
   const ticketCreated = ticket === null;
   if (ticket === null) {
-    ticket = await createTicketWithNumber(db, {
+    ticket = await openTicket(db, {
       // The customer's own first words are the ticket's identity in every
       // list — without this every row previews the auto-ack and they all
       // look identical.
@@ -279,42 +279,3 @@ export async function channelReply(
   };
 }
 
-/**
- * Per-organization human-facing ticket numbers. Concurrency-safe via the
- * [organizationId, number] unique constraint: compute max+1, retry on the
- * unique violation rather than locking.
- */
-async function createTicketWithNumber(
-  db: PrismaClient,
-  data: {
-    organizationId: string;
-    conversationId: string;
-    contactId: string | null;
-    channel: Channel;
-    language: string;
-    subject: string;
-  },
-): Promise<Ticket> {
-  // SLA clocks start at creation, on the org's policy for the default
-  // priority (NORMAL — a channel message carries no priority of its own;
-  // re-prioritizing recomputes the clocks in the ticket PATCH).
-  const sla = await slaDatesFor(db, data.organizationId, "NORMAL", new Date());
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const latest = await db.ticket.findFirst({
-      where: { organizationId: data.organizationId },
-      orderBy: { number: "desc" },
-      select: { number: true },
-    });
-    try {
-      return await db.ticket.create({
-        data: { ...data, ...sla, number: (latest?.number ?? 0) + 1 },
-      });
-    } catch (err) {
-      const isNumberCollision =
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === "P2002";
-      if (!isNumberCollision) throw err;
-    }
-  }
-  throw new Error("Could not allocate a ticket number after 5 attempts");
-}

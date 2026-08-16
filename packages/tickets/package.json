@@ -1,5 +1,5 @@
 {
-  "name": "@olink-desk/channels",
+  "name": "@olink-desk/tickets",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -9,11 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@olink-desk/csat": "workspace:*",
     "@olink-desk/database": "workspace:*",
-    "@olink-desk/i18n": "workspace:*",
-    "@olink-desk/sla": "workspace:*",
-    "@olink-desk/tickets": "workspace:*"
+    "@olink-desk/sla": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
