@@ -11,6 +11,7 @@ import {
   tUi,
   ui,
   useConsoleLanguage,
+  useIsMobile,
   useMe,
 } from "../../lib/console-ui";
 import {
@@ -26,6 +27,7 @@ const FILTERS = ["ALL", "NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"] as const
 export default function InboxPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
+  const isMobile = useIsMobile();
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("ALL");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -119,15 +121,25 @@ export default function InboxPage() {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 16, alignItems: "stretch", minHeight: 480 }}>
-        {/* --------------------------------------------------- ticket list */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          alignItems: "stretch",
+          minHeight: isMobile ? 0 : 480,
+        }}
+      >
+        {/* ------------------------------------------------ ticket list
+            (on mobile: hidden while a ticket is open) */}
         <div
           style={{
             ...ui.card,
             padding: 8,
-            flex: "0 0 320px",
+            flex: isMobile ? "1 1 auto" : "0 0 320px",
             maxHeight: "72vh",
             overflowY: "auto",
+            display: isMobile && selectedId ? "none" : "block",
+            minWidth: 0,
           }}
         >
           {tickets && tickets.length === 0 ? (
@@ -187,15 +199,17 @@ export default function InboxPage() {
           )}
         </div>
 
-        {/* ----------------------------------------------- timeline + reply */}
+        {/* --------------------------------------------- timeline + reply
+            (on mobile: the only pane while a ticket is open) */}
         <div
           style={{
             ...ui.card,
             flex: 1,
             minWidth: 0,
-            display: "flex",
+            display: isMobile && !selectedId ? "none" : "flex",
             flexDirection: "column",
             maxHeight: "72vh",
+            padding: isMobile ? 14 : 22,
           }}
         >
           {!detail ? (
@@ -211,8 +225,17 @@ export default function InboxPage() {
                   gap: 10,
                   paddingBottom: 12,
                   borderBottom: `1px solid ${colors.border}`,
+                  flexWrap: "wrap",
                 }}
               >
+                {isMobile ? (
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    style={{ ...ui.buttonGhost, padding: "6px 10px" }}
+                  >
+                    ← {tUi(lang, "ui_back")}
+                  </button>
+                ) : null}
                 <h2 style={ui.h2}>
                   #{detail.number} · {CHANNEL_LABELS[detail.channel] ?? detail.channel}
                 </h2>

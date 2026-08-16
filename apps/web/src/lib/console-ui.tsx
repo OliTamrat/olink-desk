@@ -18,6 +18,24 @@ import { colors, font, radius } from "./theme";
 
 const LANG_KEY = "desk_console_lang";
 
+/**
+ * Media queries cannot reach inline styles, so responsiveness is a hook:
+ * below the breakpoint the shell swaps its sidebar for a top bar + bottom
+ * tab bar and screens collapse to one pane. Dispatchers here work from
+ * phones as much as desks — mobile is a first-class layout, not a fallback.
+ */
+export function useIsMobile(breakpoint = 820): boolean {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [breakpoint]);
+  return mobile;
+}
+
 export function useConsoleLanguage(): [Language, (l: Language) => void] {
   const [lang, setLang] = useState<Language>("en");
   useEffect(() => {
@@ -138,6 +156,125 @@ export function ConsoleShell({
     { key: "inbox", href: "/inbox", label: tUi(lang, "ui_nav_inbox"), icon: Icons.inbox },
     { key: "channels", href: "/channels", label: tUi(lang, "ui_channels_title"), icon: Icons.channels },
   ];
+
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100dvh",
+          background: colors.bg,
+          color: colors.textBody,
+          fontFamily: font,
+          overflowX: "hidden",
+        }}
+      >
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 14px",
+            borderBottom: `1px solid ${colors.border}`,
+            background: colors.surface,
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 7,
+              background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: colors.textPrimary, lineHeight: 1.2 }}>
+              Olink Desk
+            </div>
+            {me ? (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: colors.textMuted,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {me.organization.name}
+              </div>
+            ) : null}
+          </div>
+          <LanguagePicker lang={lang} onChange={onLang} />
+          <button
+            onClick={signOut}
+            aria-label={tUi(lang, "ui_sign_out")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: 8,
+              borderRadius: radius.sm,
+              border: `1px solid ${colors.border}`,
+              background: "transparent",
+              color: colors.textSecondary,
+              cursor: "pointer",
+            }}
+          >
+            {Icons.signOut}
+          </button>
+        </header>
+
+        <div style={{ flex: 1, minWidth: 0, padding: "16px 14px 84px", boxSizing: "border-box" }}>
+          {children}
+        </div>
+
+        <nav
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            display: "flex",
+            borderTop: `1px solid ${colors.border}`,
+            background: colors.surface,
+            paddingBottom: "env(safe-area-inset-bottom)",
+            zIndex: 10,
+          }}
+        >
+          {nav.map((item) => (
+            <Link
+              key={item.key}
+              href={item.href}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+                padding: "10px 4px 8px",
+                textDecoration: "none",
+                fontSize: 11,
+                fontWeight: item.key === active ? 700 : 500,
+                color: item.key === active ? colors.accent : colors.textSecondary,
+                borderTop: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    );
+  }
 
   return (
     <div

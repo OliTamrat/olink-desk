@@ -120,6 +120,7 @@ export const UI_NOTES: Record<string, string> = {
   ui_st_resolved: "Ticket status: solved, pending closure.",
   ui_st_closed: "Ticket status: finished.",
   ui_customer: "Label for the customer side of a conversation timeline.",
+  ui_back: "Back button from a ticket's conversation to the ticket list (mobile).",
 };
 
 /**
