@@ -58,7 +58,16 @@
   "ui_st_resolved": "Resolved",
   "ui_st_closed": "Closed",
   "ui_customer": "Customer",
-  "ui_back": "Back"
+  "ui_back": "Back",
+  "w_intro": "Send us a message — our team replies right here.",
+  "w_input_placeholder": "Type your message…",
+  "w_send_failed": "Could not send — check your connection and try again.",
+  "w_powered": "Powered by Olink Desk",
+  "ui_embed_title": "Add to your website",
+  "ui_embed_hint": "Paste this snippet before </body> on any page of your site.",
+  "ui_copy": "Copy",
+  "ui_copied": "Copied!",
+  "ui_open_widget": "Open the widget"
  },
  "am": {
   "ui_login_title": "ይግቡ",
@@ -119,7 +128,16 @@
   "ui_st_resolved": "ተፈቷል",
   "ui_st_closed": "ተዘግቷል",
   "ui_customer": "ደንበኛ",
-  "ui_back": "ተመለስ"
+  "ui_back": "ተመለስ",
+  "w_intro": "መልዕክትዎን ይላኩልን — ቡድናችን እዚሁ ይመልስልዎታል።",
+  "w_input_placeholder": "መልዕክትዎን ይጻፉ…",
+  "w_send_failed": "መላክ አልተቻለም — ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
+  "w_powered": "በOlink Desk የተጎላበተ",
+  "ui_embed_title": "ወደ ድህረ ገጽዎ ያክሉ",
+  "ui_embed_hint": "ይህን ኮድ በማንኛውም የድህረ ገጽዎ ገጽ ላይ ከ</body> በፊት ይለጥፉ።",
+  "ui_copy": "ቅዳ",
+  "ui_copied": "ተቀድቷል!",
+  "ui_open_widget": "ዊጀቱን ክፈት"
  },
  "om": {
   "ui_login_title": "Seenaa",
@@ -180,7 +198,16 @@
   "ui_st_resolved": "Furameera",
   "ui_st_closed": "Cufameera",
   "ui_customer": "Maamila",
-  "ui_back": "Duubatti deebi'i"
+  "ui_back": "Duubatti deebi'i",
+  "w_intro": "Ergaa keessan nuuf ergaa — gareen keenya asuma deebii isiniif kenna.",
+  "w_input_placeholder": "Ergaa keessan barreessaa…",
+  "w_send_failed": "Erguun hin danda'amne — walqunnamtii keessan mirkaneessaa irra deebi'aa yaalaa.",
+  "w_powered": "Olink Desk irratti hundaa'e",
+  "ui_embed_title": "Weebsaayitii keessan irratti dabalaa",
+  "ui_embed_hint": "Koodii kana fuula weebsaayitii keessanii kamiyyuu irratti </body> dura maxxansaa.",
+  "ui_copy": "Garagalchi",
+  "ui_copied": "Garagalfameera!",
+  "ui_open_widget": "Wijeetii bani"
  },
  "ti": {
   "ui_login_title": "እተዉ",
@@ -241,7 +268,16 @@
   "ui_st_resolved": "ተፈቲሑ",
   "ui_st_closed": "ተዓጽዩ",
   "ui_customer": "ዓሚል",
-  "ui_back": "ተመለስ"
+  "ui_back": "ተመለስ",
+  "w_intro": "መልእኽትኹም ስደዱልና — ጋንታና ኣብዚ ክምልሰልኩም እዩ።",
+  "w_input_placeholder": "መልእኽትኹም ጽሓፉ…",
+  "w_send_failed": "ምስዳድ ኣይተኻእለን — ርክብኩም ኣረጋግጹን ደጊምኩም ፈትኑን።",
+  "w_powered": "ብOlink Desk ዝተሰርሐ",
+  "ui_embed_title": "ናብ ወብሳይትኹም ወስኹ",
+  "ui_embed_hint": "ነዚ ኮድ ኣብ ዝኾነ ገጽ ወብሳይትኩም ቅድሚ </body> ለጥፉዎ።",
+  "ui_copy": "ቅዳሕ",
+  "ui_copied": "ተቐዲሑ!",
+  "ui_open_widget": "ዊጀት ክፈት"
  },
  "so": {
   "ui_login_title": "Gal",
@@ -302,7 +338,16 @@
   "ui_st_resolved": "La xalliyay",
   "ui_st_closed": "La xiray",
   "ui_customer": "Macmiil",
-  "ui_back": "Dib u noqo"
+  "ui_back": "Dib u noqo",
+  "w_intro": "Fariintaada noo soo dir — kooxdayadu halkan ayay kaaga jawaabi doontaa.",
+  "w_input_placeholder": "Qor fariintaada…",
+  "w_send_failed": "Lama diri karin — hubi xiriirkaaga oo mar kale isku day.",
+  "w_powered": "Waxaa wada Olink Desk",
+  "ui_embed_title": "Ku dar websaydkaaga",
+  "ui_embed_hint": "Koodhkan ku dheji bog kasta oo websaydkaaga ah </body> ka hor.",
+  "ui_copy": "Koobbi",
+  "ui_copied": "Waa la koobiyeeyay!",
+  "ui_open_widget": "Fur wijidka"
  },
  "sw": {
   "ui_login_title": "Ingia",
@@ -363,6 +408,15 @@
   "ui_st_resolved": "Imetatuliwa",
   "ui_st_closed": "Imefungwa",
   "ui_customer": "Mteja",
-  "ui_back": "Rudi"
+  "ui_back": "Rudi",
+  "w_intro": "Tutumie ujumbe wako — timu yetu itakujibu hapa hapa.",
+  "w_input_placeholder": "Andika ujumbe wako…",
+  "w_send_failed": "Imeshindwa kutuma — angalia muunganisho wako kisha ujaribu tena.",
+  "w_powered": "Inaendeshwa na Olink Desk",
+  "ui_embed_title": "Ongeza kwenye tovuti yako",
+  "ui_embed_hint": "Bandika msimbo huu kwenye ukurasa wowote wa tovuti yako kabla ya </body>.",
+  "ui_copy": "Nakili",
+  "ui_copied": "Imenakiliwa!",
+  "ui_open_widget": "Fungua wijeti"
  }
 }
