@@ -7,6 +7,7 @@ import {
   parseInboundEmail,
   replySubject,
   stripQuotedReply,
+  sendEmail,
   ticketNumberInSubject,
 } from "../src/email";
 
@@ -164,5 +165,48 @@ describe("parseInboundEmail", () => {
     const parsed = parseInboundEmail({ whatever: "nonsense" });
     expect(parsed.sender).toBeNull();
     expect(parsed.text).toBeNull();
+  });
+});
+
+describe("sendEmail", () => {
+  const base = {
+    webhookSecret: "s",
+    sendUrl: "https://api.example.com/send",
+    fromAddress: "Desk <support@acme.et>",
+  };
+  const capture = () => {
+    const seen: Array<{ url: string; init: RequestInit }> = [];
+    globalThis.fetch = ((url: string, init: RequestInit) => {
+      seen.push({ url, init });
+      return Promise.resolve(new Response("{}", { status: 200 }));
+    }) as typeof fetch;
+    return seen;
+  };
+
+  it("defaults to Authorization, which is what Resend and Mailgun want", async () => {
+    const seen = capture();
+    expect(await sendEmail({ ...base, authHeader: "Bearer re_x" }, "a@b.et", "Hi", "Body")).toBe(true);
+    const headers = seen[0].init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer re_x");
+  });
+
+  it("sends the credential under the header the provider actually reads", async () => {
+    // Postmark rejects Authorization outright. Before this the config looked
+    // perfectly valid and every send failed.
+    const seen = capture();
+    await sendEmail(
+      { ...base, authHeader: "tok", authHeaderName: "X-Postmark-Server-Token" },
+      "a@b.et",
+      "Hi",
+      "Body",
+    );
+    const headers = seen[0].init.headers as Record<string, string>;
+    expect(headers["X-Postmark-Server-Token"]).toBe("tok");
+    expect(headers.Authorization).toBeUndefined();
+  });
+
+  it("refuses to send with no route out rather than pretending", async () => {
+    expect(await sendEmail({ ...base, sendUrl: "" }, "a@b.et", "Hi", "B")).toBe(false);
+    expect(await sendEmail({ ...base, fromAddress: "" }, "a@b.et", "Hi", "B")).toBe(false);
   });
 });
