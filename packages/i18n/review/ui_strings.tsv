@@ -93,3 +93,25 @@ ui_wb_oldest	Oldest wait	ረጅሙ ጥበቃ	Eegumsa dheeraa	ዝነውሐ ምጽ
 ui_wb_agents	Agents	ሰራተኞች	Hojjettoota	ሰራሕተኛታት	Shaqaalaha	Wafanyakazi	Wallboard section: staff and their open assignment counts.
 ui_wb_median_fr	Median first reply today	የዛሬ አማካይ የመጀመሪያ ምላሽ	Deebii jalqabaa giddugaleessa har'aa	ማእከላይ ናይ መጀመርታ መልሲ ሎሚ	Jawaabta koowaad ee dhexe maanta	Wastani wa jibu la kwanza leo	Wallboard stat: median minutes to first reply, today.
 ui_wb_median_res	Median resolution today	የዛሬ አማካይ መፍትሄ	Furmaata giddugaleessa har'aa	ማእከላይ ፍታሕ ሎሚ	Xallinta dhexe maanta	Wastani wa utatuzi leo	Wallboard stat: median minutes to resolution, today.
+ui_views	Views	እይታዎች	Mul'annoowwan	ትርኢታት	Muuqaallo	Mionekano	Heading of the saved-views rail in the workspace.
+ui_view_mine	My work	የእኔ ሥራ	Hojii koo	ናተይ ስራሕ	Shaqadayda	Kazi yangu	Saved view: open tickets assigned to the signed-in agent.
+ui_view_unassigned	Unassigned	ያልተመደበ	Hin ramadamne	ዘይተመደበ	Aan la xilsaarin	Haijakabidhiwa	Saved view: open tickets nobody owns yet.
+ui_view_open	All open	ሁሉም ክፍት	Hunda banaa	ኩሉ ክፉት	Dhammaan furan	Zote zilizo wazi	Saved view: every open ticket in the workspace.
+ui_view_solved	Recently solved	በቅርቡ የተፈቱ	Dhiheenya furame	ኣብ ቀረባ እዋን ዝተፈትሐ	Dhawaan la xalliyay	Zilizotatuliwa hivi karibuni	Saved view: tickets recently resolved or closed.
+ui_view_all	Everything	ሁሉም	Hunda	ኩሉ	Wax walba	Kila kitu	Saved view: no filter at all, every ticket ever.
+ui_search_tickets	Search tickets	ቲኬቶችን ፈልግ	Tiikeetii barbaadi	ቲኬታት ድለ	Raadi tikidhada	Tafuta tiketi	Placeholder of the workspace search box.
+ui_channel	Channel	ቻናል	Chaanaalii	ቻናል	Kanaal	Njia	Filter label: which channel a ticket arrived on.
+ui_all_channels	All channels	ሁሉም ቻናሎች	Chaanaalota hunda	ኩሎም ቻናላት	Dhammaan kanaalada	Njia zote	Channel filter option meaning no channel filter.
+ui_anyone	Anyone	ማንኛውም ሰው	Nama kamiyyuu	ዝኾነ ሰብ	Qof kasta	Mtu yeyote	Assignee filter option meaning any agent (no filter).
+ui_count_tickets	{n} tickets	{n} ቲኬቶች	Tiikeetii {n}	{n} ቲኬታት	{n} tikidh	Tiketi {n}	Live count beside the Inbox heading. {n} is a number.
+ui_showing_first	Showing the first {n}	የመጀመሪያዎቹ {n} እየታዩ ነው	Kan jalqabaa {n} agarsiisaa jira	እቶም ቀዳሞት {n} ይረኣዩ ኣለዉ	Waxaa la tusayaa {n}-kii ugu horreeyay	Zinaonyeshwa {n} za kwanza	Shown when the result set is larger than one page. {n} is a number.
+ui_empty_mine	Nothing assigned to you. Work you take will appear here.	ለእርስዎ የተመደበ ነገር የለም። የሚይዙት ሥራ እዚህ ይታያል።	Wanti isiniif ramadame hin jiru. Hojiin isin fudhattan asitti mul'ata.	ንዓኹም ዝተመደበ የለን። እትወስድዎ ስራሕ ኣብዚ ክርአ እዩ።	Waxba lagugu ma xilsaarin. Shaqada aad qaadato halkan ayay ka muuqan doontaa.	Hakuna ulichokabidhiwa. Kazi utakayochukua itaonekana hapa.	Empty state of the My-work view — encouraging, not an error.
+ui_empty_unassigned	Nothing waiting — every open ticket has an owner.	የሚጠብቅ የለም — ሁሉም ክፍት ቲኬት ባለቤት አለው።	Wanti eegaa jiru hin jiru — tiikeetiin banaa hundi abbaa qaba.	ዝጽበ የለን — ኩሉ ክፉት ቲኬት ወናኒ ኣለዎ።	Waxba ma sugayaan — tikidh kasta oo furan wuxuu leeyahay qof.	Hakuna inayosubiri — kila tiketi iliyo wazi ina mwenyewe.	Empty state of the Unassigned view: good news, everything has an owner.
+ui_empty_solved	Nothing solved yet.	እስካሁን የተፈታ የለም።	Ammatti wanti furame hin jiru.	ክሳብ ሕጂ ዝተፈትሐ የለን።	Weli waxba lama xallin.	Bado hakuna iliyotatuliwa.	Empty state of the Recently-solved view.
+ui_empty_search	No tickets match that search.	ከዚህ ፍለጋ ጋር የሚዛመድ ቲኬት የለም።	Barbaacha kanaan tiikeetiin wal hin simu.	ምስዚ ድሌት ዝሰማማዕ ቲኬት የለን።	Tikidh la mid ah raadintaas ma jiro.	Hakuna tiketi inayolingana na utafutaji huo.	Empty state when a search matches nothing.
+ui_customer_details	Customer	ደንበኛ	Maamila	ዓሚል	Macmiil	Mteja	Heading of the customer section in the right context rail.
+ui_ticket_details	Ticket	ቲኬት	Tiikeetii	ቲኬት	Tikidh	Tiketi	Heading of the ticket section in the right context rail.
+ui_opened	Opened	የተከፈተበት	Yeroo banameef	እተኸፍተሉ	Waqtiga la furay	Ilifunguliwa	Context rail field: when the ticket was opened.
+ui_language	Language	ቋንቋ	Afaan	ቋንቋ	Luqad	Lugha	Context rail field: the conversation's language.
+ui_phone	Phone	ስልክ	Bilbila	ስልኪ	Taleefan	Simu	Context rail field: the customer's phone number.
+ui_clear	Clear	አጽዳ	Haqi	ኣጽሪ	Nadiifi	Futa	Button that clears the active list filters.

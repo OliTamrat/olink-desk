@@ -32,31 +32,36 @@ export async function ensureOrgPolicies(
   organizationId: string,
 ): Promise<Map<TicketPriority, SlaPolicy>> {
   const existing = await db.slaPolicy.findMany({ where: { organizationId } });
-  const byName = new Map(existing.map((p) => [p.name, p]));
+  const missing = PRIORITY_ORDER.filter(
+    (p) => !existing.some((row) => row.name === p),
+  );
+
+  if (missing.length > 0) {
+    // createMany + skipDuplicates is ON CONFLICT DO NOTHING: two tickets
+    // arriving together on a fresh org both succeed and neither throws.
+    // (An upsert is NOT enough here — Prisma's upsert still raises P2002
+    // under real concurrency, which is how this was found.)
+    await db.slaPolicy.createMany({
+      data: missing.map((priority) => ({
+        organizationId,
+        name: priority,
+        firstResponseMinutes: DEFAULT_TARGETS[priority].firstResponseMinutes,
+        resolveMinutes: DEFAULT_TARGETS[priority].resolveMinutes,
+        businessHours: defaultCalendar() as object,
+        isDefault: priority === "NORMAL",
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  const all = missing.length
+    ? await db.slaPolicy.findMany({ where: { organizationId } })
+    : existing;
+  const byName = new Map(all.map((p) => [p.name, p]));
   const out = new Map<TicketPriority, SlaPolicy>();
   for (const priority of PRIORITY_ORDER) {
-    let policy = byName.get(priority);
-    if (!policy) {
-      policy = await db.slaPolicy
-        .create({
-          data: {
-            organizationId,
-            name: priority,
-            firstResponseMinutes: DEFAULT_TARGETS[priority].firstResponseMinutes,
-            resolveMinutes: DEFAULT_TARGETS[priority].resolveMinutes,
-            businessHours: defaultCalendar() as object,
-            isDefault: priority === "NORMAL",
-          },
-        })
-        // Two tickets racing on a fresh org: loser re-reads the winner's row.
-        .catch(async () => {
-          const again = await db.slaPolicy.findFirst({
-            where: { organizationId, name: priority },
-          });
-          if (!again) throw new Error(`SLA policy seed failed for ${priority}`);
-          return again;
-        });
-    }
+    const policy = byName.get(priority);
+    if (!policy) throw new Error(`SLA policy seed failed for ${priority}`);
     out.set(priority, policy);
   }
   return out;

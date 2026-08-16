@@ -114,6 +114,10 @@ export async function channelReply(
   const ticketCreated = ticket === null;
   if (ticket === null) {
     ticket = await createTicketWithNumber(db, {
+      // The customer's own first words are the ticket's identity in every
+      // list — without this every row previews the auto-ack and they all
+      // look identical.
+      subject: text.slice(0, 120),
       organizationId: organization.id,
       conversationId: conversation.id,
       contactId: conversation.contactId,
@@ -195,6 +199,7 @@ async function createTicketWithNumber(
     contactId: string | null;
     channel: Channel;
     language: string;
+    subject: string;
   },
 ): Promise<Ticket> {
   // SLA clocks start at creation, on the org's policy for the default
