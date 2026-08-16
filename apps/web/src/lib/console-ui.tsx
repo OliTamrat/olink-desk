@@ -135,6 +135,12 @@ export const Icons = {
       <path d="M6 12l3-3 2 2 4-4" />
     </svg>
   ),
+  settings: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  ),
   signOut: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -161,7 +167,7 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "channels" | "wallboard";
+  active: "dashboard" | "inbox" | "channels" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the Zendesk shape — product rail, then Views).
@@ -179,7 +185,7 @@ export function ConsoleShell({
   }
 
   const nav: Array<{
-    key: "dashboard" | "inbox" | "channels" | "wallboard";
+    key: "dashboard" | "inbox" | "channels" | "wallboard" | "settings";
     href: string;
     label: string;
     icon: ReactNode;
@@ -195,6 +201,15 @@ export function ConsoleShell({
       href: "/wallboard",
       label: tUi(lang, "ui_nav_wallboard"),
       icon: Icons.wallboard,
+    });
+  }
+  // Settings changes what the whole team is measured against.
+  if (me && ["SUPERVISOR", "ADMIN"].includes(me.user.role)) {
+    nav.push({
+      key: "settings",
+      href: "/settings",
+      label: tUi(lang, "ui_nav_settings"),
+      icon: Icons.settings,
     });
   }
 
