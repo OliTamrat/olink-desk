@@ -36,6 +36,23 @@ export function useIsMobile(breakpoint = 820): boolean {
   return mobile;
 }
 
+/**
+ * Width buckets for the desktop-rich workspace (ADR 0006: the dashboard is
+ * a desktop product that is also responsive). `wide` earns the views rail,
+ * `roomy` earns the context rail; below that they collapse into controls
+ * that cost no horizontal space.
+ */
+export function useViewport(): { isMobile: boolean; roomy: boolean; wide: boolean } {
+  const [w, setW] = useState(1440);
+  useEffect(() => {
+    const update = () => setW(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return { isMobile: w <= 820, roomy: w >= 1120, wide: w >= 1400 };
+}
+
 export function useConsoleLanguage(): [Language, (l: Language) => void] {
   const [lang, setLang] = useState<Language>("en");
   useEffect(() => {
@@ -432,6 +449,9 @@ export const ui = {
     border: `1px solid ${colors.border}`,
     borderRadius: radius.lg,
     padding: 22,
+    // border-box or a declared flex width lies: padding and border would
+    // add to it and push fixed-width panes off the right edge.
+    boxSizing: "border-box",
   } as CSSProperties,
   h1: { margin: 0, fontSize: 22, color: colors.textPrimary } as CSSProperties,
   h2: { margin: 0, fontSize: 16, color: colors.textPrimary } as CSSProperties,

@@ -18,6 +18,11 @@ export interface TicketRow {
   updatedAt: string;
   firstRespondedAt: string | null;
   contact: { name: string | null; phone: string | null } | null;
+  assignee?: { name: string } | null;
+  assigneeId?: string | null;
+  queueId?: string | null;
+  firstResponseDueAt?: string | null;
+  resolveDueAt?: string | null;
   messages: TicketMessagePreview[];
 }
 
