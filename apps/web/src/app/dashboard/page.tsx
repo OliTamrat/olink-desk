@@ -16,10 +16,23 @@ import {
 } from "../../lib/console-ui";
 import { CHANNEL_LABELS, statusKey, timeAgo, type TicketRow } from "../../lib/tickets";
 
+interface SetupStep {
+  key: string;
+  done: boolean;
+  href: string;
+}
+interface SetupState {
+  steps: SetupStep[];
+  complete: boolean;
+  dismissed: boolean;
+  canDismiss: boolean;
+}
+
 export default function DashboardPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
+  const [setup, setSetup] = useState<SetupState | null>(null);
 
   useEffect(() => {
     if (!me) return;
@@ -32,6 +45,13 @@ export default function DashboardPage() {
       }
     };
     void load();
+    // The checklist reads real workspace state, so it is refreshed with the
+    // tiles rather than cached: connecting a channel in another tab should
+    // tick a step here without a reload.
+    void (async () => {
+      const resp = await fetch("/api/onboarding");
+      if (resp.ok && !cancelled) setSetup((await resp.json()) as SetupState);
+    })();
     const timer = setInterval(load, 30_000);
     return () => {
       cancelled = true;
@@ -83,6 +103,135 @@ export default function DashboardPage() {
           </p>
         ) : null}
       </header>
+
+      {/* The setup checklist. Every step is derived from real workspace data
+          by /api/onboarding — there is no "mark as done" anywhere, so it
+          cannot claim a desk is configured when it is not. It sits ABOVE the
+          tiles because on a new workspace the tiles are all zero and this is
+          the only thing on the page worth reading. */}
+      {setup && !setup.dismissed && !setup.complete ? (
+        <section style={{ ...ui.card, marginBottom: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              marginBottom: 14,
+            }}
+          >
+            <div>
+              <h2 style={ui.h2}>{tUi(lang, "ui_setup_title")}</h2>
+              <p style={{ ...ui.sub, fontSize: 13 }}>
+                {tUi(lang, "ui_setup_progress", {
+                  done: setup.steps.filter((x) => x.done).length,
+                  total: setup.steps.length,
+                })}
+              </p>
+            </div>
+            {setup.canDismiss ? (
+              <button
+                style={{ ...ui.buttonGhost, fontSize: 12, padding: "6px 12px" }}
+                onClick={async () => {
+                  await fetch("/api/onboarding", { method: "POST" });
+                  setSetup({ ...setup, dismissed: true });
+                }}
+              >
+                {tUi(lang, "ui_setup_dismiss")}
+              </button>
+            ) : null}
+          </div>
+
+          {/* A thin progress rail rather than a percentage: five steps is a
+              short enough list that a number adds nothing a glance does not. */}
+          <div
+            style={{
+              height: 3,
+              borderRadius: 999,
+              background: colors.border,
+              overflow: "hidden",
+              marginBottom: 16,
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${(setup.steps.filter((x) => x.done).length / setup.steps.length) * 100}%`,
+                background: colors.accent,
+              }}
+            />
+          </div>
+
+          <div style={{ display: "grid", gap: 4 }}>
+            {setup.steps.map((step) => (
+              <Link
+                key={step.key}
+                href={step.href}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  padding: "10px 8px",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    flexShrink: 0,
+                    width: 18,
+                    height: 18,
+                    marginTop: 1,
+                    borderRadius: "50%",
+                    border: `1.5px solid ${step.done ? colors.success : colors.borderStrong}`,
+                    background: step.done ? colors.success : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {step.done ? (
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                      stroke={colors.bg} strokeWidth="3.5" strokeLinecap="round"
+                      strokeLinejoin="round">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  ) : null}
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: step.done ? colors.textMuted : colors.textPrimary,
+                      textDecoration: step.done ? "line-through" : "none",
+                    }}
+                  >
+                    {tUi(lang, `ui_step_${step.key}`)}
+                  </span>
+                  {/* The reason stays visible on a done step too: it is the
+                      part that teaches, and hiding it turns the finished list
+                      into a row of ticks that explain nothing. */}
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: 12.5,
+                      color: colors.textMuted,
+                      marginTop: 2,
+                    }}
+                  >
+                    {tUi(lang, `ui_step_${step.key}_why`)}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
         {tile(tUi(lang, "ui_kpi_open"), tickets ? open.length : null, colors.accent)}
@@ -190,7 +339,12 @@ export default function DashboardPage() {
                       fontSize: 14,
                     }}
                   >
-                    {t.messages[0]?.body ?? t.subject ?? ""}
+                    {/* Subject first — it is the customer's own opening
+                        words. messages[0] is the NEWEST message, which on a
+                        fresh ticket is our own auto-acknowledgement, so
+                        preferring it previewed the desk talking to itself.
+                        Same bug the inbox list had; this surface was missed. */}
+                    {t.subject ?? t.messages[0]?.body ?? ""}
                   </span>
                   <Badge tone={t.status === "NEW" ? "info" : t.status === "PENDING" ? "warn" : t.status === "OPEN" ? "success" : "muted"}>
                     {tUi(lang, statusKey(t.status))}
