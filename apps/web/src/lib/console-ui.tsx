@@ -20,7 +20,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { colors, font, radius } from "./theme";
+import { colors, font, radius, THEME_KEY, type Appearance } from "./theme";
 
 const LANG_KEY = "desk_console_lang";
 
@@ -209,7 +209,164 @@ export const Icons = {
       <path d="M21 12H9" />
     </svg>
   ),
+  // Appearance. Three distinct silhouettes rather than three shades of one
+  // shape: which is selected has to be readable at 16px, in a language the
+  // reader may not have, on a phone.
+  sun: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  ),
+  moon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+    </svg>
+  ),
+  monitor: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <rect x="2" y="4" width="20" height="13" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
+  ),
 } as const;
+
+/**
+ * The appearance preference: light, dark, or whatever the device says.
+ *
+ * `system` is the default and is stored as the ABSENCE of a key, so a user
+ * who never opens this control keeps following their OS forever — including
+ * across a change of OS setting at dusk. Writing "system" as a value would
+ * work equally well; not writing anything means the boot script in
+ * `theme.ts` has nothing to parse and cannot get it wrong.
+ */
+export function useAppearance(): [Appearance, (a: Appearance) => void] {
+  const [pref, setPref] = useState<Appearance>("system");
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(THEME_KEY);
+      if (stored === "light" || stored === "dark") setPref(stored);
+    } catch {
+      // Private mode. The console renders in the OS theme, which is the
+      // right fallback and not worth a warning.
+    }
+  }, []);
+  const update = (a: Appearance) => {
+    setPref(a);
+    try {
+      if (a === "system") window.localStorage.removeItem(THEME_KEY);
+      else window.localStorage.setItem(THEME_KEY, a);
+    } catch {
+      /* the choice still applies to this tab */
+    }
+    // The attribute is the switch; the stylesheet does the rest. Removing it
+    // hands control back to `prefers-color-scheme`.
+    const root = document.documentElement;
+    if (a === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", a);
+  };
+  return [pref, update];
+}
+
+const APPEARANCES: Array<{ key: Appearance; icon: ReactNode; label: string }> = [
+  { key: "light", icon: Icons.sun, label: "ui_appearance_light" },
+  { key: "dark", icon: Icons.moon, label: "ui_appearance_dark" },
+  { key: "system", icon: Icons.monitor, label: "ui_appearance_system" },
+];
+
+export function AppearanceToggle({ lang }: { lang: Language }) {
+  const [pref, setPref] = useAppearance();
+  const [open, setOpen] = useState(false);
+  const current = APPEARANCES.find((a) => a.key === pref) ?? APPEARANCES[2];
+
+  return (
+    <div style={{ position: "relative" }} data-appearance-menu>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={tUi(lang, "ui_appearance")}
+        aria-expanded={open}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: 8,
+          borderRadius: radius.sm,
+          border: `1px solid ${open ? colors.accent : colors.border}`,
+          background: "transparent",
+          color: colors.textSecondary,
+          cursor: "pointer",
+        }}
+      >
+        {/* The icon shows what is IN EFFECT, so the control reports state as
+            well as offering a change. On `system` that is the monitor rather
+            than the resolved theme: a sun icon on a machine set to light
+            would be indistinguishable from an explicit light choice, and the
+            difference is the whole point of the third option. */}
+        {current.icon}
+      </button>
+      {open ? (
+        <>
+          <div
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 49 }}
+          />
+          <div
+            data-appearance-panel
+            style={{
+              position: "absolute",
+              top: "calc(100% + 6px)",
+              insetInlineEnd: 0,
+              zIndex: 50,
+              minWidth: 168,
+              background: colors.surface,
+              border: `1px solid ${colors.border}`,
+              borderRadius: radius.md,
+              padding: 5,
+              boxShadow: colors.shadow,
+            }}
+          >
+            {APPEARANCES.map((a) => (
+              <button
+                key={a.key}
+                data-appearance={a.key}
+                onClick={() => {
+                  setPref(a.key);
+                  setOpen(false);
+                }}
+                aria-current={a.key === pref}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                  textAlign: "start",
+                  padding: "9px 10px",
+                  borderRadius: radius.sm,
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: font,
+                  fontSize: 13,
+                  fontWeight: a.key === pref ? 600 : 500,
+                  color: a.key === pref ? colors.textPrimary : colors.textBody,
+                  background: a.key === pref ? colors.surfaceHover : "transparent",
+                }}
+              >
+                {a.icon}
+                <span style={{ flex: 1 }}>{tUi(lang, a.label)}</span>
+                {/* A tick, not only a highlight: the highlight is also what
+                    hover looks like on the next row down. */}
+                {a.key === pref ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" {...stroke}>
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 // ------------------------------------------------------------- alerts
 //
@@ -346,7 +503,7 @@ export function AlertBell({ lang }: { lang: Language }) {
             background: colors.surface,
             border: `1px solid ${colors.borderStrong}`,
             borderRadius: 10,
-            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            boxShadow: colors.shadowStrong,
             padding: 10,
             zIndex: 60,
             boxSizing: "border-box",
@@ -551,7 +708,7 @@ function QuickAdd({ lang }: { lang: Language }) {
           padding: "7px 12px 7px 9px",
           borderRadius: 8,
           border: "none",
-          background: colors.accent,
+          background: colors.accentSolid,
           color: colors.onAccent,
           fontSize: 13,
           fontWeight: 600,
@@ -581,7 +738,7 @@ function QuickAdd({ lang }: { lang: Language }) {
               border: `1px solid ${colors.border}`,
               borderRadius: 10,
               padding: 6,
-              boxShadow: "0 12px 32px rgba(0,0,0,.45)",
+              boxShadow: colors.shadow,
             }}
           >
             {items.map((item) => (
@@ -646,7 +803,11 @@ function AccountMenu({
             width: 26,
             height: 26,
             borderRadius: "50%",
-            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+            // Flat, not a gradient: the initials are drawn on it, and the
+            // light end of the old gradient could not carry white text at
+            // 4.5:1. The brand mark below keeps its gradient — nothing is
+            // written on that one.
+            background: colors.accentSolid,
             color: colors.onAccent,
             fontSize: 11,
             fontWeight: 700,
@@ -674,7 +835,7 @@ function AccountMenu({
             background: colors.surface,
             border: `1px solid ${colors.borderStrong}`,
             borderRadius: 10,
-            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            boxShadow: colors.shadowStrong,
             padding: 12,
             zIndex: 70,
             display: "grid",
@@ -831,7 +992,7 @@ export function ConsoleShell({
           width: 26,
           height: 26,
           borderRadius: 8,
-          background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+          background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentSolid})`,
           flexShrink: 0,
         }}
       />
@@ -891,6 +1052,7 @@ export function ConsoleShell({
         <ContextToggle lang={lang} open={contextOpen} onToggle={() => setContextOpen(!contextOpen)} />
       ) : null}
       {me ? <AlertBell lang={lang} /> : null}
+      <AppearanceToggle lang={lang} />
       {me ? (
         <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
       ) : (
@@ -1428,7 +1590,9 @@ export const ui = {
     padding: "10px 16px",
     borderRadius: radius.sm + 2,
     border: "none",
-    background: colors.accent,
+    // `accentSolid`, not `accent`: this is a FILL with a label on it, and in
+    // the dark theme the text tint is too light to carry white at 4.5:1.
+    background: colors.accentSolid,
     color: colors.onAccent,
     fontSize: 14,
     fontWeight: 600,
@@ -1447,7 +1611,7 @@ export const ui = {
   } as CSSProperties,
   error: {
     background: colors.dangerBg,
-    border: `1px solid ${colors.danger}44`,
+    border: `1px solid ${colors.dangerFaint}`,
     color: colors.danger,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",
@@ -1455,7 +1619,7 @@ export const ui = {
   } as CSSProperties,
   ok: {
     background: colors.successBg,
-    border: `1px solid ${colors.success}44`,
+    border: `1px solid ${colors.successFaint}`,
     color: colors.success,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",
@@ -1463,7 +1627,7 @@ export const ui = {
   } as CSSProperties,
   warn: {
     background: colors.warnBg,
-    border: `1px solid ${colors.warn}44`,
+    border: `1px solid ${colors.warnFaint}`,
     color: colors.warn,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",

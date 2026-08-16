@@ -563,7 +563,7 @@ export default function MacrosPage() {
                             fontSize: 11,
                             padding: "2px 7px",
                             borderRadius: 999,
-                            border: `1px solid ${filled ? `${colors.success}55` : colors.border}`,
+                            border: `1px solid ${filled ? colors.successFaint : colors.border}`,
                             color: filled ? colors.success : colors.textMuted,
                           }}
                         >

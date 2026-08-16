@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { colors, font } from "../lib/theme";
+import { colors, font, PALETTES, themeBootScript, themeCss } from "../lib/theme";
 
 export const metadata: Metadata = {
   title: "Olink Desk",
@@ -10,14 +10,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Paints the browser's own chrome dark — the iOS Safari toolbar and the
-  // Android address bar. Without it the app is dark and the phone's UI
-  // around it is white, which reads as the app not filling the screen.
-  themeColor: colors.bg,
-  // Tells the engine to render NATIVE surfaces dark: scrollbars, the
-  // overscroll area, form-control defaults. A light scrollbar gutter is a
-  // white stripe down the side of a black console.
-  colorScheme: "dark",
+  // Paints the browser's own chrome — the iOS Safari toolbar and the Android
+  // address bar. Without it the app is one colour and the phone's UI around
+  // it is another, which reads as the app not filling the screen.
+  //
+  // Two entries, because this is served as a static meta tag before any
+  // script runs and so cannot read the user's stored choice. The media query
+  // is the only signal available that early; an explicit choice that
+  // disagrees with the OS gets the wrong toolbar tint for one paint, which is
+  // the cheapest of the available wrong answers.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: PALETTES.light.bg },
+    { media: "(prefers-color-scheme: dark)", color: PALETTES.dark.bg },
+  ],
 };
 
 // The reset, written from the design tokens rather than as literal hex, so
@@ -26,21 +31,19 @@ export const viewport: Viewport = {
 //
 // This exists because there was no global stylesheet at all, which left the
 // browser's default `body { margin: 8px }` and white canvas in place — so
-// every screen rendered as a dark panel inside a white frame. The margin is
-// what draws the frame; the background is what stops it flashing white
+// every screen rendered as a panel inside a frame of the wrong colour. The
+// margin is what draws the frame; the background is what stops it flashing
 // during overscroll and behind any area a screen does not paint itself.
+//
+// `color-scheme` is no longer set here: it now rides with each theme block in
+// `themeCss`, because a hard-coded `dark` would have kept the scrollbars dark
+// for a user who chose light.
 //
 // Deliberately NOT included: a global `box-sizing: border-box`. It would be
 // the conventional next line of any reset, and it would silently change the
 // geometry of every fixed-width pane in the console. Components that need it
 // declare it (see `ui.card`).
 const reset = `
-  html {
-    /* Set as a CSS property, not only via the viewport meta: the meta hints
-       the engine but leaves the computed \`color-scheme\` at "normal", so
-       scrollbars stayed light. This is the declaration that darkens them. */
-    color-scheme: dark;
-  }
   html, body {
     margin: 0;
     padding: 0;
@@ -48,17 +51,22 @@ const reset = `
     background: ${colors.bg};
     font-family: ${font};
   }
-  /* The scroll chain must not expose the white canvas above or below the
-     app when a touch scroll runs past the end of a list. */
+  /* The scroll chain must not expose the raw canvas above or below the app
+     when a touch scroll runs past the end of a list. */
   html { overscroll-behavior: none; }
   body { -webkit-font-smoothing: antialiased; }
 `;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: reset }} />
+        <style dangerouslySetInnerHTML={{ __html: themeCss + reset }} />
+        {/* Before first paint, so a dark-theme user never sees a white flash.
+            `suppressHydrationWarning` on <html> above is required: this
+            script legitimately changes an attribute the server did not
+            render, and without it React logs a mismatch on every load. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>{children}</body>
     </html>

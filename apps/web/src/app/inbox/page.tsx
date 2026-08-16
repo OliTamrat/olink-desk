@@ -1189,7 +1189,7 @@ function InboxWorkspace() {
                     <div
                       key={m.id}
                       style={{
-                        border: `1px solid ${colors.warn}55`,
+                        border: `1px solid ${colors.warnFaint}`,
                         background: colors.warnBg,
                         borderRadius: 10,
                         padding: "10px 12px",
@@ -1219,7 +1219,7 @@ function InboxWorkspace() {
                         borderRadius: 12,
                         borderTopLeftRadius: inbound ? 4 : 12,
                         borderBottomRightRadius: inbound ? 12 : 4,
-                        background: inbound ? colors.surfaceRaised : colors.accentStrong,
+                        background: inbound ? colors.surfaceRaised : colors.accentSolid,
                         color: inbound ? colors.textBody : colors.onAccent,
                         fontSize: 14,
                         whiteSpace: "pre-wrap",
@@ -1321,7 +1321,7 @@ function InboxWorkspace() {
                           background: colors.surface,
                           border: `1px solid ${colors.borderStrong}`,
                           borderRadius: 8,
-                          boxShadow: "0 12px 32px rgba(0,0,0,.5)",
+                          boxShadow: colors.shadowStrong,
                           padding: 8,
                           zIndex: 50,
                         }}
@@ -1398,7 +1398,7 @@ function InboxWorkspace() {
                     ...ui.input,
                     resize: "vertical",
                     flex: 1,
-                    borderColor: internal ? `${colors.warn}88` : colors.borderStrong,
+                    borderColor: internal ? colors.warnBorder : colors.borderStrong,
                     background: internal ? colors.warnBg : colors.surfaceRaised,
                   }}
                   onKeyDown={(e) => {
@@ -1564,7 +1564,7 @@ function InboxWorkspace() {
             padding: "10px 14px",
             borderRadius: 10,
             background: colors.surfaceHover,
-            border: `1px solid ${colors.accent}55`,
+            border: `1px solid ${colors.accentFaint}`,
           }}
         >
           <strong style={{ fontSize: 13, color: colors.textPrimary }}>
