@@ -215,7 +215,13 @@
     "ui_wb_csat": "Satisfaction today",
     "ui_csat_responses": "from {n} replies",
     "ui_csat_none": "Not rated",
-    "ui_csat_awaiting": "Survey sent, no reply yet"
+    "ui_csat_awaiting": "Survey sent, no reply yet",
+    "ui_tags": "Tags",
+    "ui_tag_add": "Add a tag",
+    "ui_tag_none": "No tags yet",
+    "ui_tag_remove": "Remove tag",
+    "ui_tag_filtering": "Showing tickets tagged {tag}",
+    "ui_tag_failed": "Could not save that tag. {error}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -433,7 +439,13 @@
     "ui_wb_csat": "የዛሬ እርካታ",
     "ui_csat_responses": "ከ{n} ምላሾች",
     "ui_csat_none": "አልተገመገመም",
-    "ui_csat_awaiting": "ዳሰሳ ተልኳል፣ ገና ምላሽ የለም"
+    "ui_csat_awaiting": "ዳሰሳ ተልኳል፣ ገና ምላሽ የለም",
+    "ui_tags": "መለያዎች",
+    "ui_tag_add": "መለያ ጨምር",
+    "ui_tag_none": "እስካሁን መለያ የለም",
+    "ui_tag_remove": "መለያ አስወግድ",
+    "ui_tag_filtering": "በ{tag} የተመለከቱ ቲኬቶች እየታዩ ነው",
+    "ui_tag_failed": "ያንን መለያ ማስቀመጥ አልተቻለም። {error}"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -651,7 +663,13 @@
     "ui_wb_csat": "Quufa har'aa",
     "ui_csat_responses": "deebii {n} irraa",
     "ui_csat_none": "Hin madaalamne",
-    "ui_csat_awaiting": "Qorannoon ergameera, ammatti deebiin hin jiru"
+    "ui_csat_awaiting": "Qorannoon ergameera, ammatti deebiin hin jiru",
+    "ui_tags": "Mallattoolee",
+    "ui_tag_add": "Mallattoo dabali",
+    "ui_tag_none": "Amma mallattoon hin jiru",
+    "ui_tag_remove": "Mallattoo haqi",
+    "ui_tag_filtering": "Tikeetiiwwan {tag}n mallattaa'an agarsiifamaa jiru",
+    "ui_tag_failed": "Mallattoo sana olkaa'uu hin dandeenye. {error}"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -869,7 +887,13 @@
     "ui_wb_csat": "ናይ ሎሚ ዕግበት",
     "ui_csat_responses": "ካብ {n} መልስታት",
     "ui_csat_none": "ኣይተገምገመን",
-    "ui_csat_awaiting": "መጽናዕቲ ተላኢኹ፡ ገና መልሲ የለን"
+    "ui_csat_awaiting": "መጽናዕቲ ተላኢኹ፡ ገና መልሲ የለን",
+    "ui_tags": "መለለይታት",
+    "ui_tag_add": "መለለዪ ወስኽ",
+    "ui_tag_none": "ክሳብ ሕጂ መለለዪ የለን",
+    "ui_tag_remove": "መለለዪ ኣወግድ",
+    "ui_tag_filtering": "ብ{tag} እተመልከቱ ትኬታት ይረኣዩ ኣለዉ",
+    "ui_tag_failed": "ነቲ መለለዪ ክንዕቅቦ ኣይከኣልናን። {error}"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1087,7 +1111,13 @@
     "ui_wb_csat": "Qanacsanaanta maanta",
     "ui_csat_responses": "laga bilaabo {n} jawaab",
     "ui_csat_none": "Lama qiimeynin",
-    "ui_csat_awaiting": "Sahan la diray, weli jawaab ma jirto"
+    "ui_csat_awaiting": "Sahan la diray, weli jawaab ma jirto",
+    "ui_tags": "Astaamaha",
+    "ui_tag_add": "Ku dar astaan",
+    "ui_tag_none": "Weli astaan ma jirto",
+    "ui_tag_remove": "Ka saar astaanta",
+    "ui_tag_filtering": "Waxaa la tusayaa tikidhada lagu astaystay {tag}",
+    "ui_tag_failed": "Astaantaas lama kaydin karin. {error}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1305,6 +1335,12 @@
     "ui_wb_csat": "Kuridhika leo",
     "ui_csat_responses": "kutoka majibu {n}",
     "ui_csat_none": "Haijakadiriwa",
-    "ui_csat_awaiting": "Utafiti umetumwa, bado hakuna jibu"
+    "ui_csat_awaiting": "Utafiti umetumwa, bado hakuna jibu",
+    "ui_tags": "Lebo",
+    "ui_tag_add": "Ongeza lebo",
+    "ui_tag_none": "Bado hakuna lebo",
+    "ui_tag_remove": "Ondoa lebo",
+    "ui_tag_filtering": "Inaonyesha tikiti zenye lebo {tag}",
+    "ui_tag_failed": "Imeshindwa kuhifadhi lebo hiyo. {error}"
   }
 }

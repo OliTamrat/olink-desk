@@ -75,6 +75,8 @@ model Organization {
   conversations    Conversation[]
   macros           Macro[]
   notifications    Notification[]
+  tags             Tag[]
+  ticketTags       TicketTag[]
 }
 
 enum UserRole {
@@ -270,6 +272,7 @@ model Ticket {
   callLogs      CallLog[]
   tasks         Task[]
   notifications Notification[]
+  tags          TicketTag[]
 
   @@unique([organizationId, number])
   @@index([organizationId, conversationId])
@@ -511,6 +514,52 @@ model Macro {
 
   @@unique([organizationId, title])
   @@index([organizationId, isActive])
+}
+
+// ---------- Tags ----------
+
+// What a ticket is ABOUT, as opposed to where it came from (channel) or who
+// handles it (queue). Free-form enough that an agent can label a new kind of
+// problem the moment it appears, controlled enough that the labels are worth
+// counting later.
+//
+// `slug` is the normalised form and carries the uniqueness; `name` is what a
+// person typed. Without that split a desk ends up with "Refund", "refund"
+// and "refund " as three separate tags, and any report built on them is
+// quietly wrong — which is the whole reason tags exist here.
+model Tag {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  name String
+  slug String
+
+  createdAt DateTime @default(now())
+
+  tickets TicketTag[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, name])
+}
+
+// The join. Explicit rather than an implicit m-n relation so it carries its
+// own organizationId — every tenant-data model does, and the schema guard
+// test enforces it.
+model TicketTag {
+  id             String @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tagId    String
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([ticketId, tagId])
+  @@index([organizationId, tagId])
 }
 
 // ---------- Notifications ----------

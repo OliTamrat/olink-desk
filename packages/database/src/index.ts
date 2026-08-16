@@ -15,3 +15,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export * from "@prisma/client";
+export { MAX_TAG_LENGTH, tagDisplayName, tagError, tagSlug } from "./tags";
