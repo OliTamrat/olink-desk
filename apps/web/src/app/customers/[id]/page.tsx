@@ -20,7 +20,6 @@ import {
   colors,
   ConsoleShell,
   layout,
-  Split,
   tUi,
   ui,
   useConsoleLanguage,
@@ -139,7 +138,13 @@ export default function CustomerPage() {
   }
 
   return (
-    <ConsoleShell lang={lang} onLang={setLang} me={me} active="customers">
+    <ConsoleShell
+      lang={lang}
+      onLang={setLang}
+      me={me}
+      active="customers"
+      context={c ? <ReachRail c={c} lang={lang} /> : undefined}
+    >
       <div style={{ ...layout.wide, display: "grid", gap: 16 }}>
         <Link
           href="/customers"
@@ -195,15 +200,6 @@ export default function CustomerPage() {
               ) : null}
             </div>
 
-            {/* The rail runs beside ALL of the content, not just the
-                history. Beside the history alone, the stats and details cards
-                above it stretched the full width — two numbers floating in a
-                1300px box, which spends the space worse than leaving it
-                empty. */}
-            <Split
-              rail={<ReachRail c={c} lang={lang} />}
-              main={
-                <div style={{ display: "grid", gap: 16 }}>
             <div style={{ ...ui.card, display: "flex", gap: 28, flexWrap: "wrap" }}>
               <Stat label={tUi(lang, "ui_customer_open_tickets")} value={c.openCount} />
               <Stat label={tUi(lang, "ui_customer_total_tickets")} value={c.totalCount} />
@@ -351,9 +347,6 @@ export default function CustomerPage() {
                 ))
               )}
             </div>
-                </div>
-              }
-            />
           </>
         )}
       </div>

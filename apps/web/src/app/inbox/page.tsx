@@ -792,7 +792,7 @@ function InboxWorkspace() {
       <aside
         style={{
           ...ui.card,
-          flex: "0 0 260px",
+          width: "100%",
           alignSelf: "stretch",
           padding: 16,
           overflowY: "auto",
@@ -908,7 +908,18 @@ function InboxWorkspace() {
     );
 
     return (
-      <ConsoleShell lang={lang} onLang={setLang} me={me} active="inbox" sidePanel={viewsPanel}>
+      <ConsoleShell
+        lang={lang}
+        onLang={setLang}
+        me={me}
+        active="inbox"
+        sidePanel={viewsPanel}
+        // The customer column used to be DROPPED below `roomy`, so on a
+        // laptop it did not move — it vanished, with no way to ask for it
+        // back. As the shell's context panel it docks when there is room
+        // and slides over when there is not.
+        context={customer}
+      >
         <button
           onClick={() => setSelectedId(null)}
           style={{ ...ui.buttonGhost, padding: "6px 10px", fontSize: 12, marginBottom: 12 }}
@@ -1210,7 +1221,6 @@ function InboxWorkspace() {
             </div>
           </div>
 
-          {roomy && !isMobile ? customer : null}
         </div>
       </ConsoleShell>
     );

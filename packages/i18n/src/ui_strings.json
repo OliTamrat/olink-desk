@@ -314,7 +314,9 @@
     "ui_customer_call": "Call them",
     "ui_customer_email_them": "Email them",
     "ui_new_ticket_context": "What they contacted you about before",
-    "ui_new_ticket_no_context": "Pick a customer and anything they have contacted you about before appears here."
+    "ui_new_ticket_no_context": "Pick a customer and anything they have contacted you about before appears here.",
+    "ui_context_show": "Details",
+    "ui_context_hide": "Hide details"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -631,7 +633,9 @@
     "ui_customer_call": "ይደውሉላቸው",
     "ui_customer_email_them": "ኢሜይል ይላኩላቸው",
     "ui_new_ticket_context": "ከዚህ በፊት ስላነጋገሩዎት ጉዳይ",
-    "ui_new_ticket_no_context": "ደንበኛ ይምረጡ፤ ከዚህ በፊት ያነጋገሩዎት ማንኛውም ጉዳይ እዚህ ይታያል።"
+    "ui_new_ticket_no_context": "ደንበኛ ይምረጡ፤ ከዚህ በፊት ያነጋገሩዎት ማንኛውም ጉዳይ እዚህ ይታያል።",
+    "ui_context_show": "ዝርዝሮች",
+    "ui_context_hide": "ዝርዝሮችን ደብቅ"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -948,7 +952,9 @@
     "ui_customer_call": "Bilbili",
     "ui_customer_email_them": "Iimeelii ergi",
     "ui_new_ticket_context": "Waa'ee maalii duraan si qunnaman",
-    "ui_new_ticket_no_context": "Maamila filadhu; wanti duraan si qunnaman kamiyyuu asitti mul'ata."
+    "ui_new_ticket_no_context": "Maamila filadhu; wanti duraan si qunnaman kamiyyuu asitti mul'ata.",
+    "ui_context_show": "Bal'ina",
+    "ui_context_hide": "Bal'ina dhoksi"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1265,7 +1271,9 @@
     "ui_customer_call": "ደውለሎም",
     "ui_customer_email_them": "ኢመይል ስደደሎም",
     "ui_new_ticket_context": "ቅድሚ ሕጂ ብዛዕባ እንታይ ከም ዝረኸቡኻ",
-    "ui_new_ticket_no_context": "ዓሚል ምረጽ፤ ቅድሚ ሕጂ ዝረኸቡኻ ዝኾነ ነገር ኣብዚ ይረአ።"
+    "ui_new_ticket_no_context": "ዓሚል ምረጽ፤ ቅድሚ ሕጂ ዝረኸቡኻ ዝኾነ ነገር ኣብዚ ይረአ።",
+    "ui_context_show": "ዝርዝራት",
+    "ui_context_hide": "ዝርዝራት ሕባእ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1582,7 +1590,9 @@
     "ui_customer_call": "Wac",
     "ui_customer_email_them": "Iimayl u dir",
     "ui_new_ticket_context": "Waxay hore kaaga soo xiriireen",
-    "ui_new_ticket_no_context": "Dooro macmiil, wax kasta oo ay hore kaaga soo xiriireen halkan ayay ka muuqan doonaan."
+    "ui_new_ticket_no_context": "Dooro macmiil, wax kasta oo ay hore kaaga soo xiriireen halkan ayay ka muuqan doonaan.",
+    "ui_context_show": "Faahfaahin",
+    "ui_context_hide": "Qari faahfaahinta"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1899,6 +1909,8 @@
     "ui_customer_call": "Wapigie simu",
     "ui_customer_email_them": "Watumie barua pepe",
     "ui_new_ticket_context": "Walichowasiliana nawe kuhusu awali",
-    "ui_new_ticket_no_context": "Chagua mteja, na chochote walichowasiliana nawe kuhusu awali kitaonekana hapa."
+    "ui_new_ticket_no_context": "Chagua mteja, na chochote walichowasiliana nawe kuhusu awali kitaonekana hapa.",
+    "ui_context_show": "Maelezo",
+    "ui_context_hide": "Ficha maelezo"
   }
 }

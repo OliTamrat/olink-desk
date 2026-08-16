@@ -17,7 +17,6 @@ import {
   Badge,
   colors,
   ConsoleShell,
-  Split,
   tUi,
   ui,
   useConsoleLanguage,
@@ -146,46 +145,13 @@ export default function NewTicketPage() {
   }
 
   return (
-    <ConsoleShell lang={lang} onLang={setLang} me={me} active="inbox">
-      <Split
-        railWidth={300}
-        rail={
-          <div style={{ ...ui.card, display: "grid", gap: 10 }}>
-            <strong style={{ fontSize: 14, color: colors.textPrimary }}>
-              {tUi(lang, "ui_new_ticket_context")}
-            </strong>
-            {history.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: colors.textSecondary }}>
-                {tUi(lang, "ui_new_ticket_no_context")}
-              </p>
-            ) : (
-              history.map((t) => (
-                <div
-                  key={t.id}
-                  style={{
-                    display: "grid",
-                    gap: 4,
-                    paddingTop: 8,
-                    borderTop: `1px solid ${colors.border}`,
-                  }}
-                >
-                  <div style={{ fontSize: 13, color: colors.textPrimary }}>
-                    {t.subject ?? "—"}
-                  </div>
-                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                    <Badge tone={t.status === "RESOLVED" || t.status === "CLOSED" ? "muted" : "info"}>
-                      {tUi(lang, statusKey(t.status))}
-                    </Badge>
-                    <span style={{ fontSize: 11.5, color: colors.textMuted }}>
-                      #{t.number} · {CHANNEL_LABELS[t.channel] ?? t.channel}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        }
-        main={
+    <ConsoleShell
+      lang={lang}
+      onLang={setLang}
+      me={me}
+      active="inbox"
+      context={<PriorContacts history={history} lang={lang} />}
+    >
       <div style={{ display: "grid", gap: 16 }}>
         <div>
           <h1 style={ui.h1}>{tUi(lang, "ui_new_ticket_title")}</h1>
@@ -377,8 +343,53 @@ export default function NewTicketPage() {
           </div>
         </div>
       </div>
-        }
-      />
     </ConsoleShell>
+  );
+}
+
+/** What this customer contacted you about before — supporting detail while an
+ *  agent types up a call, never the only place any of it appears. */
+function PriorContacts({
+  history,
+  lang,
+}: {
+  history: Array<{ id: string; number: number; subject: string | null; status: string; channel: string }>;
+  lang: Parameters<typeof tUi>[0];
+}) {
+  return (
+<div style={{ ...ui.card, display: "grid", gap: 10 }}>
+      <strong style={{ fontSize: 14, color: colors.textPrimary }}>
+        {tUi(lang, "ui_new_ticket_context")}
+      </strong>
+      {history.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: colors.textSecondary }}>
+          {tUi(lang, "ui_new_ticket_no_context")}
+        </p>
+      ) : (
+        history.map((t) => (
+          <div
+            key={t.id}
+            style={{
+              display: "grid",
+              gap: 4,
+              paddingTop: 8,
+              borderTop: `1px solid ${colors.border}`,
+            }}
+          >
+            <div style={{ fontSize: 13, color: colors.textPrimary }}>
+              {t.subject ?? "—"}
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              <Badge tone={t.status === "RESOLVED" || t.status === "CLOSED" ? "muted" : "info"}>
+                {tUi(lang, statusKey(t.status))}
+              </Badge>
+              <span style={{ fontSize: 11.5, color: colors.textMuted }}>
+                #{t.number} · {CHANNEL_LABELS[t.channel] ?? t.channel}
+              </span>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
