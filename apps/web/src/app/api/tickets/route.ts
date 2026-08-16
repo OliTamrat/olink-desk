@@ -3,6 +3,7 @@
 // navigation unit — "my work", "unassigned", "all open", "recently solved" —
 // and they compose with the filters rather than replacing them.
 import { Channel, prisma, TicketStatus, type Prisma } from "@olink-desk/database";
+import { slaState } from "@olink-desk/sla";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -79,6 +80,17 @@ export async function GET(request: NextRequest) {
   if (assignee === "none") where.assigneeId = null;
   else if (assignee) where.assigneeId = assignee;
 
+  // Drill-down filters. Every number on the dashboard and the wallboard links
+  // to the list that produced it, so each of those numbers needs a filter
+  // here that means exactly the same thing — otherwise the count and the list
+  // disagree and the drill-down becomes a way to distrust the tile.
+  const queue = params.get("queue");
+  if (queue === "none") where.queueId = null;
+  else if (queue) where.queueId = queue;
+
+  // "Awaiting first reply" — the dashboard tile of the same name.
+  if (params.get("awaiting") === "1") where.firstRespondedAt = null;
+
   // Search covers what an agent actually remembers: the ticket number, the
   // subject, the customer, and the words in the conversation.
   const q = (params.get("q") ?? "").trim();
@@ -132,6 +144,28 @@ export async function GET(request: NextRequest) {
       },
     }),
   ]);
+
+  // SLA health is DERIVED (ADR 0006), so it cannot be a WHERE clause without
+  // duplicating the definition in SQL — and a second definition is how the
+  // wallboard's count and this list would drift apart. Filtering in code
+  // against the same slaState() the wallboard and the escalation cron use
+  // keeps exactly one answer to "what does breached mean".
+  const slaParam = params.get("sla");
+  if (slaParam === "at_risk" || slaParam === "breached") {
+    const now = new Date();
+    const matching = tickets.filter((t) => slaState(t, now).health === slaParam);
+    return NextResponse.json(
+      {
+        tickets: matching,
+        count: matching.length,
+        // The page was filtered after the fact, so a full page means there
+        // may be more beyond it. Saying so is more honest than reporting a
+        // total this route cannot actually compute.
+        truncated: tickets.length >= PAGE_SIZE,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
   return NextResponse.json(
     { tickets, count, truncated: count > tickets.length },

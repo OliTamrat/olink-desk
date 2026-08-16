@@ -152,6 +152,12 @@ export const Icons = {
       <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
     </svg>
   ),
+  search: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  ),
   bell: (
     <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -195,26 +201,14 @@ const ALERT_TONE: Record<AlertRow["kind"], "danger" | "warn" | "info"> = {
   UNASSIGNED_WAITING: "info",
 };
 
-export function AlertBell({
-  lang,
-  placement = "header",
-}: {
-  lang: Language;
-  /**
-   * Where the bell sits, which decides which way the panel opens.
-   *
-   * "sidebar" is the desktop shell: the bell lives in a 220px rail at the
-   * bottom-left, so a right-anchored 320px panel hangs off the left edge of
-   * the screen and is simply cut off. It opens rightwards instead.
-   * "header" is the mobile top bar, where the bell is at the right and the
-   * panel must open down-and-left to stay on screen.
-   *
-   * A scroll-overflow check cannot catch either mistake — content clipped at
-   * negative x adds no scrollWidth — which is exactly how the sidebar case
-   * shipped and was caught in a screenshot.
-   */
-  placement?: "sidebar" | "header";
-}) {
+export function AlertBell({ lang }: { lang: Language }) {
+  // The bell lives in the top bar on both layouts now, so where the panel
+  // opens is a question about the VIEWPORT, not the call site. On a wide
+  // screen it drops from the button; on a phone it spans the width, because
+  // the bell is not the rightmost control there and a button-anchored panel
+  // ran off the left edge (caught by measuring its box, not by an overflow
+  // check — clipped content at negative x adds no scrollWidth).
+  const narrow = useIsMobile();
   const [rows, setRows] = useState<AlertRow[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -294,27 +288,20 @@ export function AlertBell({
       {open ? (
         <div
           style={{
-            // Two different anchors because the bell sits in two different
-            // places. In the sidebar it opens rightwards out of the rail. In
-            // the mobile header it is NOT the rightmost control — the
-            // language picker and sign-out are to its right — so anchoring
-            // the panel to the button still pushed it off the left edge.
-            // There it spans the viewport instead, which is what a phone
-            // wants anyway.
-            ...(placement === "sidebar"
+            ...(narrow
               ? {
-                  position: "absolute" as const,
-                  bottom: 0,
-                  left: "calc(100% + 10px)",
-                  width: 320,
-                  maxWidth: "calc(100vw - 24px)",
-                }
-              : {
                   position: "fixed" as const,
                   top: 62,
                   left: 12,
                   right: 12,
                   width: "auto",
+                }
+              : {
+                  position: "absolute" as const,
+                  top: "calc(100% + 10px)",
+                  right: 0,
+                  width: 340,
+                  maxWidth: "calc(100vw - 24px)",
                 }),
             maxHeight: 380,
             overflowY: "auto",
@@ -426,6 +413,188 @@ export interface ShellUser {
   user: { name: string; role: string };
 }
 
+// ------------------------------------------------------------ the top bar
+//
+// Zendesk's shape, and the reason for it: the things an agent reaches for
+// from ANY screen — search, alerts, who am I, sign out — belong on a bar that
+// is always in the same place, not tucked into the bottom of a rail. The
+// alert bell in particular was reported as hard to see down there, which is
+// the whole point of an alert.
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  // Strip non-letters first: a display name like "Oli (support)" must not
+  // yield "O(" — the same fix the fleet's map markers needed.
+  const letters = parts
+    .map((p) => p.replace(/[^\p{L}]/gu, ""))
+    .filter(Boolean)
+    .map((p) => p[0]);
+  return (letters[0] ?? "?") + (letters.length > 1 ? letters[letters.length - 1] : "");
+}
+
+/** Global search. Enter navigates to the inbox with the query applied, which
+ *  is the same URL a drill-down produces — one filtered-list contract for the
+ *  whole console. */
+function GlobalSearch({ lang }: { lang: Language }) {
+  const router = useRouter();
+  const [q, setQ] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const term = q.trim();
+        if (term) router.push(`/inbox?view=all&q=${encodeURIComponent(term)}`);
+      }}
+      style={{ flex: 1, maxWidth: 480, minWidth: 0 }}
+    >
+      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: 10,
+            display: "flex",
+            color: colors.textMuted,
+            pointerEvents: "none",
+          }}
+        >
+          {Icons.search}
+        </span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={tUi(lang, "ui_search_tickets")}
+          aria-label={tUi(lang, "ui_search_tickets")}
+          style={{
+            width: "100%",
+            // 16px minimum: iOS Safari auto-zooms a focused input below that,
+            // which widens the layout viewport and breaks the whole page.
+            fontSize: 16,
+            padding: "8px 12px 8px 32px",
+            borderRadius: 8,
+            border: `1px solid ${colors.border}`,
+            background: colors.surfaceRaised,
+            color: colors.textPrimary,
+            boxSizing: "border-box",
+            fontFamily: font,
+          }}
+        />
+      </div>
+    </form>
+  );
+}
+
+/** The account menu: who you are, the language, and the way out. Grouped
+ *  because all three are about the person rather than the work, and a bar
+ *  with five loose controls on it stops reading as a bar. */
+function AccountMenu({
+  lang,
+  onLang,
+  me,
+  onSignOut,
+}: {
+  lang: Language;
+  onLang: (l: Language) => void;
+  me: ShellUser;
+  onSignOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={me.user.name}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "5px 8px 5px 5px",
+          borderRadius: 999,
+          border: `1px solid ${open ? colors.accent : colors.border}`,
+          background: "transparent",
+          cursor: "pointer",
+          fontFamily: font,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: "50%",
+            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+            color: colors.onAccent,
+            fontSize: 11,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {initialsOf(me.user.name)}
+        </span>
+        <span style={{ fontSize: 13, color: colors.textBody, whiteSpace: "nowrap" }}>
+          {me.user.name}
+        </span>
+      </button>
+
+      {open ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            width: 240,
+            maxWidth: "calc(100vw - 24px)",
+            background: colors.surface,
+            border: `1px solid ${colors.borderStrong}`,
+            borderRadius: 10,
+            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            padding: 12,
+            zIndex: 70,
+            display: "grid",
+            gap: 10,
+            boxSizing: "border-box",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>
+              {me.user.name}
+            </div>
+            <div style={{ fontSize: 12, color: colors.textMuted }}>
+              {me.organization.name} · {me.user.role}
+            </div>
+          </div>
+          <LanguagePicker lang={lang} onChange={onLang} />
+          <button
+            onClick={onSignOut}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 10px",
+              borderRadius: radius.sm,
+              border: `1px solid ${colors.border}`,
+              background: "transparent",
+              color: colors.textSecondary,
+              fontSize: 13,
+              cursor: "pointer",
+              fontFamily: font,
+            }}
+          >
+            {Icons.signOut}
+            {tUi(lang, "ui_sign_out")}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- the shell
+
 export function ConsoleShell({
   lang,
   onLang,
@@ -486,6 +655,88 @@ export function ConsoleShell({
 
   const isMobile = useIsMobile();
 
+  const brand = (
+    <Link
+      href="/dashboard"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
+        textDecoration: "none",
+        flexShrink: 0,
+        minWidth: 0,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 8,
+          background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ minWidth: 0 }}>
+        <span
+          style={{
+            display: "block",
+            fontWeight: 700,
+            fontSize: 15,
+            color: colors.textPrimary,
+            lineHeight: 1.15,
+          }}
+        >
+          Olink Desk
+        </span>
+        {me ? (
+          <span
+            style={{
+              display: "block",
+              fontSize: 11,
+              color: colors.textMuted,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {me.organization.name}
+          </span>
+        ) : null}
+      </span>
+    </Link>
+  );
+
+  // One top bar for both layouts. Everything an agent reaches for from any
+  // screen lives here and stays in the same place — the alert bell most of
+  // all, which is the point of an alert.
+  const topBar = (
+    <header
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        height: 56,
+        padding: isMobile ? "0 12px" : "0 18px",
+        borderBottom: `1px solid ${colors.border}`,
+        background: colors.surface,
+        position: "sticky",
+        top: 0,
+        zIndex: 40,
+        boxSizing: "border-box",
+      }}
+    >
+      {brand}
+      {me && !isMobile ? <GlobalSearch lang={lang} /> : <div style={{ flex: 1 }} />}
+      {me ? <AlertBell lang={lang} /> : null}
+      {me ? (
+        <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
+      ) : (
+        <LanguagePicker lang={lang} onChange={onLang} />
+      )}
+    </header>
+  );
+
   if (isMobile) {
     return (
       <div
@@ -499,72 +750,13 @@ export function ConsoleShell({
           overflowX: "hidden",
         }}
       >
-        <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 14px",
-            borderBottom: `1px solid ${colors.border}`,
-            background: colors.surface,
-            position: "sticky",
-            top: 0,
-            zIndex: 10,
-          }}
+        {topBar}
+        <div
+          style={{ flex: 1, minWidth: 0, padding: "16px 14px 84px", boxSizing: "border-box" }}
         >
-          <span
-            aria-hidden
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 7,
-              background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: colors.textPrimary, lineHeight: 1.2 }}>
-              Olink Desk
-            </div>
-            {me ? (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: colors.textMuted,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {me.organization.name}
-              </div>
-            ) : null}
-          </div>
-          {me ? <AlertBell lang={lang} /> : null}
-          <LanguagePicker lang={lang} onChange={onLang} />
-          <button
-            onClick={signOut}
-            aria-label={tUi(lang, "ui_sign_out")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: 8,
-              borderRadius: radius.sm,
-              border: `1px solid ${colors.border}`,
-              background: "transparent",
-              color: colors.textSecondary,
-              cursor: "pointer",
-            }}
-          >
-            {Icons.signOut}
-          </button>
-        </header>
-
-        <div style={{ flex: 1, minWidth: 0, padding: "16px 14px 84px", boxSizing: "border-box" }}>
           {sidePanel}
           {children}
         </div>
-
         <nav
           style={{
             position: "fixed",
@@ -574,8 +766,7 @@ export function ConsoleShell({
             display: "flex",
             borderTop: `1px solid ${colors.border}`,
             background: colors.surface,
-            paddingBottom: "env(safe-area-inset-bottom)",
-            zIndex: 10,
+            zIndex: 30,
           }}
         >
           {nav.map((item) => (
@@ -588,9 +779,9 @@ export function ConsoleShell({
                 flexDirection: "column",
                 alignItems: "center",
                 gap: 3,
-                padding: "10px 4px 8px",
+                padding: "9px 2px 11px",
                 textDecoration: "none",
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: item.key === active ? 700 : 500,
                 color: item.key === active ? colors.accent : colors.textSecondary,
                 borderTop: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
@@ -609,121 +800,79 @@ export function ConsoleShell({
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         minHeight: "100vh",
         background: colors.bg,
         color: colors.textBody,
         fontFamily: font,
       }}
     >
-      <aside
-        style={{
-          width: 220,
-          flexShrink: 0,
-          borderRight: `1px solid ${colors.border}`,
-          background: colors.surface,
-          display: "flex",
-          flexDirection: "column",
-          padding: "20px 12px",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          boxSizing: "border-box",
-        }}
-      >
-        <div style={{ padding: "0 10px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              aria-hidden
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 8,
-                background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
-                display: "inline-block",
-              }}
-            />
-            <span style={{ fontWeight: 700, fontSize: 16, color: colors.textPrimary }}>
-              Olink Desk
-            </span>
-          </div>
-          {me ? (
-            <div style={{ marginTop: 8, fontSize: 12, color: colors.textMuted }}>
-              {me.organization.name}
-            </div>
-          ) : null}
-        </div>
-
-        <nav style={{ display: "grid", gap: 4 }}>
-          {nav.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "9px 10px",
-                borderRadius: radius.sm,
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: item.key === active ? 600 : 500,
-                color: item.key === active ? colors.textPrimary : colors.textSecondary,
-                background: item.key === active ? colors.surfaceHover : "transparent",
-                borderLeft: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
-              }}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div style={{ marginTop: "auto", display: "grid", gap: 10, padding: "0 4px" }}>
-          {me ? <AlertBell lang={lang} placement="sidebar" /> : null}
-          <LanguagePicker lang={lang} onChange={onLang} />
-          <button
-            onClick={signOut}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 10px",
-              borderRadius: radius.sm,
-              border: `1px solid ${colors.border}`,
-              background: "transparent",
-              color: colors.textSecondary,
-              fontSize: 13,
-              cursor: "pointer",
-              fontFamily: font,
-            }}
-          >
-            {Icons.signOut}
-            {tUi(lang, "ui_sign_out")}
-          </button>
-        </div>
-      </aside>
-
-      {sidePanel ? (
+      {topBar}
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <aside
           style={{
-            width: 230,
+            width: 210,
             flexShrink: 0,
             borderRight: `1px solid ${colors.border}`,
-            background: colors.bg,
-            padding: "20px 12px",
-            boxSizing: "border-box",
-            height: "100vh",
+            background: colors.surface,
+            padding: "16px 12px",
             position: "sticky",
-            top: 0,
+            // Below the 56px bar, so the rail scrolls with its own content
+            // rather than fighting the bar for the top of the viewport.
+            top: 56,
+            height: "calc(100vh - 56px)",
+            boxSizing: "border-box",
             overflowY: "auto",
           }}
         >
-          {sidePanel}
+          <nav style={{ display: "grid", gap: 4 }}>
+            {nav.map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "9px 10px",
+                  borderRadius: radius.sm,
+                  textDecoration: "none",
+                  fontSize: 14,
+                  fontWeight: item.key === active ? 600 : 500,
+                  color: item.key === active ? colors.textPrimary : colors.textSecondary,
+                  background: item.key === active ? colors.surfaceHover : "transparent",
+                  borderLeft: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
+                }}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </aside>
-      ) : null}
 
-      <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
-        {children}
+        {sidePanel ? (
+          <aside
+            style={{
+              width: 230,
+              flexShrink: 0,
+              borderRight: `1px solid ${colors.border}`,
+              background: colors.bg,
+              padding: "20px 12px",
+              boxSizing: "border-box",
+              height: "calc(100vh - 56px)",
+              position: "sticky",
+              top: 56,
+              overflowY: "auto",
+            }}
+          >
+            {sidePanel}
+          </aside>
+        ) : null}
+
+        <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
+          {children}
+        </div>
       </div>
     </div>
   );

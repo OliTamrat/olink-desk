@@ -3,6 +3,7 @@
 // live colors, no interaction needed. Breach state is derived server-side
 // from the stored SLA due dates on every poll (10s), so what the room sees
 // is never stale.
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -60,8 +61,37 @@ export default function WallboardPage() {
     return () => clearInterval(timer);
   }, [me, load]);
 
-  const big = (label: string, value: number | string | null, color: string) => (
-    <div style={{ ...ui.card, flex: 1, minWidth: 150, textAlign: "center" }}>
+  // Every headline number drills into exactly the tickets behind it. On a
+  // wallboard this matters more than anywhere else: the screen exists to make
+  // somebody act, and "12 breached" that cannot be opened is just anxiety.
+  // A queue row's filter. `none` is the unrouted bucket, and it must be a
+  // real filter rather than "no queue param" — otherwise the unrouted row
+  // opens every ticket in the workspace.
+  const qHref = (queueId: string | null) =>
+    `/inbox?view=open&queue=${queueId ?? "none"}`;
+  const cellLink = {
+    color: "inherit",
+    textDecoration: "none",
+    display: "block",
+  } as const;
+
+  const big = (
+    label: string,
+    value: number | string | null,
+    color: string,
+    href: string,
+  ) => (
+    <Link
+      href={href}
+      style={{
+        ...ui.card,
+        flex: 1,
+        minWidth: 150,
+        textAlign: "center",
+        textDecoration: "none",
+        display: "block",
+      }}
+    >
       <div style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 10 }}>
         {label}
       </div>
@@ -76,7 +106,7 @@ export default function WallboardPage() {
       >
         {value ?? "—"}
       </div>
-    </div>
+    </Link>
   );
 
   return (
@@ -92,17 +122,19 @@ export default function WallboardPage() {
       ) : (
         <div style={{ display: "grid", gap: 16 }}>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {big(tUi(lang, "ui_wb_open"), data.totals.open, colors.accent)}
-            {big(tUi(lang, "ui_wb_new_today"), data.totals.newToday, colors.textPrimary)}
+            {big(tUi(lang, "ui_wb_open"), data.totals.open, colors.accent, "/inbox?view=open")}
+            {big(tUi(lang, "ui_wb_new_today"), data.totals.newToday, colors.textPrimary, "/inbox?view=all&status=NEW")}
             {big(
               tUi(lang, "ui_wb_at_risk"),
               data.totals.atRisk,
               data.totals.atRisk > 0 ? colors.warn : colors.success,
+              "/inbox?view=open&sla=at_risk",
             )}
             {big(
               tUi(lang, "ui_wb_breached"),
               data.totals.breached,
               data.totals.breached > 0 ? colors.danger : colors.success,
+              "/inbox?view=open&sla=breached",
             )}
           </div>
 
@@ -141,28 +173,42 @@ export default function WallboardPage() {
                   .filter((q) => q.queueId !== null || q.open > 0)
                   .map((q) => (
                     <tr key={q.queueId ?? "none"}>
-                      <td style={{ padding: "10px 12px", color: colors.textPrimary, fontWeight: 600 }}>
-                        {q.name ?? tUi(lang, "ui_no_queue")}
+                      {/* Each cell drills to its OWN slice. Linking the whole
+                          row to one filter would make four different numbers
+                          open the same list, which teaches an agent that the
+                          numbers are decoration. */}
+                      <td style={{ padding: "10px 12px", fontWeight: 600 }}>
+                        <Link href={qHref(q.queueId)} style={cellLink}>
+                          {q.name ?? tUi(lang, "ui_no_queue")}
+                        </Link>
                       </td>
                       <td style={{ padding: "10px 12px", fontVariantNumeric: "tabular-nums" }}>
-                        {q.open}
+                        <Link href={qHref(q.queueId)} style={cellLink}>
+                          {q.open}
+                        </Link>
                       </td>
                       <td style={{ padding: "10px 12px", fontVariantNumeric: "tabular-nums" }}>
-                        {q.unassigned}
+                        <Link href={`${qHref(q.queueId)}&assignee=none`} style={cellLink}>
+                          {q.unassigned}
+                        </Link>
                       </td>
                       <td style={{ padding: "10px 12px" }}>
-                        {q.atRisk > 0 ? (
-                          <Badge tone="warn">{q.atRisk}</Badge>
-                        ) : (
-                          <span style={{ color: colors.textMuted }}>0</span>
-                        )}
+                        <Link href={`${qHref(q.queueId)}&sla=at_risk`} style={cellLink}>
+                          {q.atRisk > 0 ? (
+                            <Badge tone="warn">{q.atRisk}</Badge>
+                          ) : (
+                            <span style={{ color: colors.textMuted }}>0</span>
+                          )}
+                        </Link>
                       </td>
                       <td style={{ padding: "10px 12px" }}>
-                        {q.breached > 0 ? (
-                          <Badge tone="warn">{q.breached}</Badge>
-                        ) : (
-                          <span style={{ color: colors.textMuted }}>0</span>
-                        )}
+                        <Link href={`${qHref(q.queueId)}&sla=breached`} style={cellLink}>
+                          {q.breached > 0 ? (
+                            <Badge tone="warn">{q.breached}</Badge>
+                          ) : (
+                            <span style={{ color: colors.textMuted }}>0</span>
+                          )}
+                        </Link>
                       </td>
                       <td style={{ padding: "10px 12px", color: colors.textSecondary }}>
                         {q.oldestWaitMinutes !== null
@@ -223,9 +269,18 @@ export default function WallboardPage() {
               <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_wb_agents")}</h2>
               <div style={{ display: "grid", gap: 8 }}>
                 {data.agents.map((a) => (
-                  <div
+                  // Drills to that person's open work — the question a
+                  // supervisor is asking when they read this list.
+                  <Link
                     key={a.id}
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                    href={`/inbox?view=open&assignee=${a.id}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      textDecoration: "none",
+                      color: "inherit",
+                    }}
                   >
                     <span
                       aria-hidden
@@ -251,7 +306,7 @@ export default function WallboardPage() {
                     <Badge tone={a.openAssigned > 0 ? "info" : "muted"}>
                       {a.openAssigned}
                     </Badge>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </section>
