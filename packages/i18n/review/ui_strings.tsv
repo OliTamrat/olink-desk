@@ -57,3 +57,4 @@ ui_st_pending	Waiting on customer	ደንበኛን በመጠበቅ ላይ	Maamila
 ui_st_resolved	Resolved	ተፈቷል	Furameera	ተፈቲሑ	La xalliyay	Imetatuliwa	Ticket status: solved, pending closure.
 ui_st_closed	Closed	ተዘግቷል	Cufameera	ተዓጽዩ	La xiray	Imefungwa	Ticket status: finished.
 ui_customer	Customer	ደንበኛ	Maamila	ዓሚል	Macmiil	Mteja	Label for the customer side of a conversation timeline.
+ui_back	Back	ተመለስ	Duubatti deebi'i	ተመለስ	Dib u noqo	Rudi	Back button from a ticket's conversation to the ticket list (mobile).

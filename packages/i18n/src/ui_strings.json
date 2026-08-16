@@ -57,7 +57,8 @@
   "ui_st_pending": "Waiting on customer",
   "ui_st_resolved": "Resolved",
   "ui_st_closed": "Closed",
-  "ui_customer": "Customer"
+  "ui_customer": "Customer",
+  "ui_back": "Back"
  },
  "am": {
   "ui_login_title": "ይግቡ",
@@ -117,7 +118,8 @@
   "ui_st_pending": "ደንበኛን በመጠበቅ ላይ",
   "ui_st_resolved": "ተፈቷል",
   "ui_st_closed": "ተዘግቷል",
-  "ui_customer": "ደንበኛ"
+  "ui_customer": "ደንበኛ",
+  "ui_back": "ተመለስ"
  },
  "om": {
   "ui_login_title": "Seenaa",
@@ -177,7 +179,8 @@
   "ui_st_pending": "Maamila eegaa",
   "ui_st_resolved": "Furameera",
   "ui_st_closed": "Cufameera",
-  "ui_customer": "Maamila"
+  "ui_customer": "Maamila",
+  "ui_back": "Duubatti deebi'i"
  },
  "ti": {
   "ui_login_title": "እተዉ",
@@ -237,7 +240,8 @@
   "ui_st_pending": "ዓሚል ይጽበ ኣሎ",
   "ui_st_resolved": "ተፈቲሑ",
   "ui_st_closed": "ተዓጽዩ",
-  "ui_customer": "ዓሚል"
+  "ui_customer": "ዓሚል",
+  "ui_back": "ተመለስ"
  },
  "so": {
   "ui_login_title": "Gal",
@@ -297,7 +301,8 @@
   "ui_st_pending": "Sugaya macmiilka",
   "ui_st_resolved": "La xalliyay",
   "ui_st_closed": "La xiray",
-  "ui_customer": "Macmiil"
+  "ui_customer": "Macmiil",
+  "ui_back": "Dib u noqo"
  },
  "sw": {
   "ui_login_title": "Ingia",
@@ -357,6 +362,7 @@
   "ui_st_pending": "Inamsubiri mteja",
   "ui_st_resolved": "Imetatuliwa",
   "ui_st_closed": "Imefungwa",
-  "ui_customer": "Mteja"
+  "ui_customer": "Mteja",
+  "ui_back": "Rudi"
  }
 }
