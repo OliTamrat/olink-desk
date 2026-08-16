@@ -1,6 +1,7 @@
 // One ticket with its full timeline, tenant-scoped through the session.
 import { sendCsatSurvey } from "@olink-desk/channels";
 import { prisma } from "@olink-desk/database";
+import { displayPhone } from "@olink-desk/tickets";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../../lib/session";
@@ -65,7 +66,17 @@ export async function GET(
 
   // Flattened to match the list's shape, so the rail reads one field name
   // regardless of which route filled it.
-  const shaped = { ...ticket, tags: ticket.tags.map((j) => j.tag) };
+  //
+  // The phone goes through displayPhone here for the same reason the directory
+  // does: one number rendered two ways in one product reads as two numbers.
+  // The rail showed +251912999888 while the customer list showed 0912 999 888.
+  const shaped = {
+    ...ticket,
+    tags: ticket.tags.map((j) => j.tag),
+    contact: ticket.contact
+      ? { ...ticket.contact, phone: displayPhone(ticket.contact.phone) }
+      : null,
+  };
   return NextResponse.json({ ticket: shaped, history });
 }
 
@@ -153,6 +164,37 @@ export async function PATCH(
       data.firstResponseDueAt = sla.firstResponseDueAt;
       data.resolveDueAt = sla.resolveDueAt;
       changed.push("priority");
+    }
+  }
+
+  // Naming the person behind an anonymous ticket. Almost every ticket arrives
+  // with no identity at all — a widget session id or a Telegram chat id is not
+  // a person — so this is how a conversation becomes a customer with a history
+  // rather than a stranger every time.
+  if ("contactId" in payload) {
+    const contactId = payload.contactId;
+    if (contactId === null) {
+      data.contactId = null;
+      changed.push("customer");
+    } else if (typeof contactId === "string") {
+      const contact = await prisma.contact.findFirst({
+        where: { id: contactId, organizationId: principal.organization.id },
+        select: { id: true },
+      });
+      if (!contact) {
+        return NextResponse.json({ error: "Unknown customer" }, { status: 400 });
+      }
+      data.contactId = contactId;
+      changed.push("customer");
+      // The conversation carries the identity forward: the NEXT message from
+      // this Telegram chat or widget session then arrives already knowing who
+      // it is, instead of being re-identified by hand every time.
+      if (ticket.conversationId) {
+        await prisma.conversation.updateMany({
+          where: { id: ticket.conversationId, organizationId: principal.organization.id },
+          data: { contactId },
+        });
+      }
     }
   }
 

@@ -2,8 +2,16 @@
 // from the SESSION (never the request). Views are the industry-standard
 // navigation unit — "my work", "unassigned", "all open", "recently solved" —
 // and they compose with the filters rather than replacing them.
-import { Channel, prisma, TicketStatus, type Prisma } from "@olink-desk/database";
+import {
+  Channel,
+  prisma,
+  TicketPriority,
+  TicketStatus,
+  UserRole,
+  type Prisma,
+} from "@olink-desk/database";
 import { slaState } from "@olink-desk/sla";
+import { cleanContact, findOrCreateContact, openTicket } from "@olink-desk/tickets";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -182,4 +190,150 @@ export async function GET(request: NextRequest) {
     { tickets: rows, count, truncated: count > tickets.length },
     { headers: { "Cache-Control": "no-store" } },
   );
+}
+
+// ---------------------------------------------------------------- creation
+//
+// A ticket that did not arrive on a channel: a phone call somebody took, a
+// customer at the counter, a message relayed in person. Until now these could
+// not be recorded at all, which meant the desk's own numbers described only
+// the work that happened to arrive electronically.
+//
+// The load-bearing honesty here is that such a ticket has **no conversation**.
+// There is no channel identity to reply on, so the console must say "call them
+// back" rather than offer a composer that fails — the same `undeliverable`
+// case bulk macros learned to name.
+const MANUAL_CHANNELS: Channel[] = [Channel.PHONE, Channel.WALK_IN, Channel.EMAIL];
+const CREATORS: UserRole[] = [UserRole.AGENT, UserRole.SUPERVISOR, UserRole.ADMIN];
+const PRIORITIES = new Set<string>(Object.values(TicketPriority));
+const LANGUAGES = ["en", "am", "om", "ti", "so", "sw"];
+const MAX_SUBJECT = 200;
+const MAX_DESCRIPTION = 8000;
+
+export async function POST(request: NextRequest) {
+  const principal = await requireUser(request, CREATORS);
+  if (isDenied(principal)) return principal;
+
+  let payload: Record<string, unknown>;
+  try {
+    payload = (await request.json()) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const asString = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const subject = asString(payload.subject).slice(0, MAX_SUBJECT);
+  const description = asString(payload.description).slice(0, MAX_DESCRIPTION);
+  if (!subject) {
+    return NextResponse.json({ error: "A subject is required" }, { status: 400 });
+  }
+
+  const channel = MANUAL_CHANNELS.includes(payload.channel as Channel)
+    ? (payload.channel as Channel)
+    : Channel.PHONE;
+
+  // The customer: an existing id, or details to find-or-create from. Creating
+  // the person and the ticket in one step is the whole point — an agent on a
+  // call cannot be asked to go and fill in a directory first.
+  let contactId: string | null = null;
+  let contactLanguage: string | null = null;
+  const contactRef = asString(payload.contactId);
+  if (contactRef) {
+    const existing = await prisma.contact.findFirst({
+      where: { id: contactRef, organizationId: principal.organization.id },
+      select: { id: true, language: true },
+    });
+    if (!existing) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    contactId = existing.id;
+    contactLanguage = existing.language;
+  } else if (asString(payload.phone)) {
+    const clean = cleanContact(payload, principal.organization.defaultLanguage);
+    if (!clean.ok) return NextResponse.json({ error: clean.error }, { status: 400 });
+    const { contact } = await findOrCreateContact(
+      prisma,
+      principal.organization.id,
+      clean.value,
+    );
+    contactId = contact.id;
+    contactLanguage = contact.language;
+  }
+
+  // Language, in order of who knows best: what the agent picked on the call,
+  // then what we already recorded for this customer, then the workspace
+  // default. Never a guess from the subject line — an agent who just spoke to
+  // the person is a better source than a detector.
+  const picked = asString(payload.language);
+  const language = LANGUAGES.includes(picked)
+    ? picked
+    : (contactLanguage ?? principal.organization.defaultLanguage);
+
+  const priority = PRIORITIES.has(asString(payload.priority))
+    ? (payload.priority as TicketPriority)
+    : TicketPriority.NORMAL;
+
+  // A queue or assignee named by the request must belong to this workspace.
+  const queueRef = asString(payload.queueId);
+  const queueId = queueRef
+    ? (
+        await prisma.queue.findFirst({
+          where: { id: queueRef, organizationId: principal.organization.id },
+          select: { id: true },
+        })
+      )?.id ?? null
+    : null;
+  const assigneeRef = asString(payload.assigneeId);
+  const assigneeId = assigneeRef
+    ? (
+        await prisma.user.findFirst({
+          where: { id: assigneeRef, organizationId: principal.organization.id },
+          select: { id: true },
+        })
+      )?.id ?? null
+    : null;
+
+  const ticket = await openTicket(prisma, {
+    organizationId: principal.organization.id,
+    // Deliberately null. See the note above this handler.
+    conversationId: null,
+    contactId,
+    channel,
+    language,
+    subject,
+    priority,
+    queueId,
+    assigneeId,
+  });
+
+  // What the customer said, in the agent's words, as the first timeline entry.
+  // INBOUND because it came FROM the customer — recording an agent's summary
+  // of a call as an outbound message would make the timeline claim we said it.
+  if (description) {
+    await prisma.ticketMessage.create({
+      data: {
+        organizationId: principal.organization.id,
+        ticketId: ticket.id,
+        direction: "INBOUND",
+        channel,
+        body: description,
+        contactId,
+        authorUserId: principal.user.id,
+      },
+    });
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      organizationId: principal.organization.id,
+      actorUserId: principal.user.id,
+      action: "ticket.created_manually",
+      entityType: "ticket",
+      entityId: String(ticket.id),
+      // The event, never the words: no subject, no description.
+      metadata: { channel, priority, hasContact: contactId !== null },
+    },
+  });
+
+  return NextResponse.json({
+    ticket: { id: ticket.id, number: ticket.number },
+  });
 }

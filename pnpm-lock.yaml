@@ -38,6 +38,9 @@ importers:
       '@olink-desk/sla':
         specifier: workspace:*
         version: link:../../packages/sla
+      '@olink-desk/tickets':
+        specifier: workspace:*
+        version: link:../../packages/tickets
       next:
         specifier: ^14.1.4
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -100,6 +103,9 @@ importers:
       '@olink-desk/sla':
         specifier: workspace:*
         version: link:../sla
+      '@olink-desk/tickets':
+        specifier: workspace:*
+        version: link:../tickets
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -205,6 +211,25 @@ importers:
       '@olink-desk/database':
         specifier: workspace:*
         version: link:../database
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)
+
+  packages/tickets:
+    dependencies:
+      '@olink-desk/database':
+        specifier: workspace:*
+        version: link:../database
+      '@olink-desk/sla':
+        specifier: workspace:*
+        version: link:../sla
     devDependencies:
       '@types/node':
         specifier: ^20.11.30

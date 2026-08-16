@@ -195,6 +195,13 @@ function InboxWorkspace() {
     total: number;
     undeliverable: Array<{ number: number; reason: string }>;
   } | null>(null);
+  // Naming an anonymous requester. Kept beside the ticket rather than in the
+  // customer directory: the moment an agent learns who somebody is, is while
+  // reading what they wrote.
+  const [identifying, setIdentifying] = useState(false);
+  const [identifyPhone, setIdentifyPhone] = useState("");
+  const [identifyName, setIdentifyName] = useState("");
+  const [identifyError, setIdentifyError] = useState("");
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkResult, setBulkResult] = useState<string | null>(null);
 
@@ -394,6 +401,32 @@ function InboxWorkspace() {
     } catch (err) {
       setSendError(tUi(lang, "ui_reply_failed", { error: String(err) }));
     }
+  }
+
+  async function identifyCustomer() {
+    setIdentifyError("");
+    // Find-or-create first: if this number is already on file the ticket must
+    // join THAT record, not spawn a second one for the same person.
+    const made = await fetch("/api/contacts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: identifyPhone, name: identifyName }),
+    });
+    const data = (await made.json()) as { error?: string; contact?: { id: string } };
+    if (!made.ok || !data.contact) {
+      setIdentifyError(data.error ?? String(made.status));
+      return;
+    }
+    await fetch(`/api/tickets/${selectedId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactId: data.contact.id }),
+    });
+    setIdentifying(false);
+    setIdentifyPhone("");
+    setIdentifyName("");
+    if (selectedId) await loadDetail(selectedId);
+    await loadList();
   }
 
   async function previewBulkMacro(macroId: string) {
@@ -777,6 +810,51 @@ function InboxWorkspace() {
             <Field label={tUi(lang, "ui_email")} value={detail.contact.email} />
           ) : null}
           <Field label={tUi(lang, "ui_language")} value={(detail.language ?? "").toUpperCase()} />
+          {/* Almost every ticket arrives anonymous — a widget session id and a
+              Telegram chat id are channel identities, not people — so this is
+              where a stranger becomes a customer with a history. It also
+              teaches the CONVERSATION who they are, so the next message from
+              them already knows. */}
+          {!detail.contact ? (
+            <div style={{ marginTop: 4 }}>
+              <button
+                style={{ ...ui.buttonGhost, width: "100%", fontSize: 12 }}
+                onClick={() => setIdentifying(true)}
+              >
+                {tUi(lang, "ui_identify_customer")}
+              </button>
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: colors.textMuted, lineHeight: 1.5 }}>
+                {tUi(lang, "ui_identify_hint")}
+              </p>
+            </div>
+          ) : null}
+          {identifying && !detail.contact ? (
+            <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+              <input
+                style={{ ...ui.input, fontSize: 13 }}
+                value={identifyPhone}
+                onChange={(e) => setIdentifyPhone(e.target.value)}
+                placeholder="0911 234 567"
+                aria-label={tUi(lang, "ui_customer_phone")}
+              />
+              <input
+                style={{ ...ui.input, fontSize: 13 }}
+                value={identifyName}
+                onChange={(e) => setIdentifyName(e.target.value)}
+                placeholder={tUi(lang, "ui_customer_name")}
+                aria-label={tUi(lang, "ui_customer_name")}
+              />
+              <button
+                style={{ ...ui.button, fontSize: 12 }}
+                onClick={() => void identifyCustomer()}
+              >
+                {tUi(lang, "ui_save")}
+              </button>
+              {identifyError ? (
+                <div style={{ ...ui.error, fontSize: 12 }}>{identifyError}</div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <RailHeading>{tUi(lang, "ui_interaction_history")}</RailHeading>
         {history.length === 0 ? (
@@ -1072,6 +1150,16 @@ function InboxWorkspace() {
               ) : macroNote ? (
                 <div style={{ fontSize: 12, color: colors.textMuted }}>{macroNote}</div>
               ) : null}
+              {/* No conversation means no transport. Saying so here — rather
+                  than letting the agent type a reply and discover on send that
+                  it went nowhere — is the same honesty the bulk preview owes
+                  its undeliverable list. An internal note is still fine: it is
+                  for colleagues, not the customer. */}
+              {!detail.conversation && !internal ? (
+                <div style={{ ...ui.warn, fontSize: 12 }}>
+                  {tUi(lang, "ui_ticket_no_reply_warning")}
+                </div>
+              ) : null}
               <div style={{ display: "flex", gap: 8 }}>
                 <textarea
                   value={reply}
@@ -1091,13 +1179,19 @@ function InboxWorkspace() {
                 />
                 <button
                   onClick={send}
-                  disabled={sending || !reply.trim()}
+                  // A ticket with no conversation has no transport at all, so
+                  // the button is disabled rather than left live under a
+                  // warning — a warning plus a working-looking button is still
+                  // a composer that fails on send. An INTERNAL note is fine:
+                  // it is for colleagues, and never leaves the desk.
+                  disabled={sending || !reply.trim() || (!detail.conversation && !internal)}
                   style={{
                     ...ui.button,
                     alignSelf: "flex-end",
                     background: internal ? colors.warn : colors.accent,
                     color: internal ? colors.bg : colors.onAccent,
-                    opacity: sending || !reply.trim() ? 0.6 : 1,
+                    opacity:
+                      sending || !reply.trim() || (!detail.conversation && !internal) ? 0.6 : 1,
                   }}
                 >
                   {sending ? tUi(lang, "ui_sending") : tUi(lang, "ui_send")}

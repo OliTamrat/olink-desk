@@ -164,6 +164,19 @@ export const Icons = {
       <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
     </svg>
   ),
+  customers: (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+      <path d="M16 11.2a3 3 0 0 0 0-6" />
+      <path d="M17.5 14.4c2 .6 3.2 2.3 3.2 4.6" />
+    </svg>
+  ),
+  plus: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  ),
   search: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <circle cx="11" cy="11" r="7" />
@@ -497,6 +510,91 @@ function GlobalSearch({ lang }: { lang: Language }) {
   );
 }
 
+// Who may create work. An auditor reads; a ticket they logged would be a
+// record of a call they are not on the rota to take.
+const CAN_CREATE = ["AGENT", "SUPERVISOR", "ADMIN"];
+
+/**
+ * Quick-create — the "+ Add" of every desk product, and worth having for a
+ * specific reason rather than familiarity: the moment an agent needs to log a
+ * call is the moment they are ON the call, and navigating to a page first is
+ * how a call goes unrecorded.
+ */
+function QuickAdd({ lang }: { lang: Language }) {
+  const [open, setOpen] = useState(false);
+  const items = [
+    { href: "/inbox/new", label: tUi(lang, "ui_add_ticket") },
+    { href: "/customers?new=1", label: tUi(lang, "ui_add_customer") },
+  ];
+  return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={tUi(lang, "ui_quick_add")}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "7px 12px 7px 9px",
+          borderRadius: 8,
+          border: "none",
+          background: colors.accent,
+          color: colors.onAccent,
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: "pointer",
+          fontFamily: font,
+        }}
+      >
+        {Icons.plus}
+        {tUi(lang, "ui_quick_add")}
+      </button>
+      {open ? (
+        <>
+          {/* A click anywhere else closes it. Without this the menu stays open
+              behind whatever the agent does next. */}
+          <div
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 9998 }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "calc(100% + 8px)",
+              right: 0,
+              zIndex: 9999,
+              minWidth: 200,
+              background: colors.surfaceRaised,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10,
+              padding: 6,
+              boxShadow: "0 12px 32px rgba(0,0,0,.45)",
+            }}
+          >
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "9px 10px",
+                  borderRadius: 7,
+                  color: colors.textBody,
+                  fontSize: 13,
+                  textDecoration: "none",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 /** The account menu: who you are, the language, and the way out. Grouped
  *  because all three are about the person rather than the work, and a bar
  *  with five loose controls on it stops reading as a bar. */
@@ -618,7 +716,7 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
+  active: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the Zendesk shape — product rail, then Views).
@@ -636,13 +734,14 @@ export function ConsoleShell({
   }
 
   const nav: Array<{
-    key: "dashboard" | "inbox" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
+    key: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
     href: string;
     label: string;
     icon: ReactNode;
   }> = [
     { key: "dashboard", href: "/dashboard", label: tUi(lang, "ui_nav_dashboard"), icon: Icons.dashboard },
     { key: "inbox", href: "/inbox", label: tUi(lang, "ui_nav_inbox"), icon: Icons.inbox },
+    { key: "customers", href: "/customers", label: tUi(lang, "ui_customers"), icon: Icons.customers },
     { key: "channels", href: "/channels", label: tUi(lang, "ui_channels_title"), icon: Icons.channels },
     { key: "macros", href: "/macros", label: tUi(lang, "ui_nav_macros"), icon: Icons.macros },
     { key: "knowledge", href: "/knowledge", label: tUi(lang, "ui_nav_kb"), icon: Icons.knowledge },
@@ -748,6 +847,7 @@ export function ConsoleShell({
     >
       {brand}
       {me && !isMobile ? <GlobalSearch lang={lang} /> : <div style={{ flex: 1 }} />}
+      {me && CAN_CREATE.includes(me.user.role) ? <QuickAdd lang={lang} /> : null}
       {me ? <AlertBell lang={lang} /> : null}
       {me ? (
         <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
