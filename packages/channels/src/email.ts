@@ -44,8 +44,16 @@ export interface EmailConfig {
   webhookSecret: string;
   /** Where to POST an outbound message. Resend, Postmark, anything. */
   sendUrl: string;
-  /** Sent verbatim as the Authorization header. */
+  /** The credential, sent verbatim as the value of `authHeaderName`. */
   authHeader?: string;
+  /**
+   * Which header carries it. Defaults to `Authorization`, which covers Resend
+   * and Mailgun; Postmark wants `X-Postmark-Server-Token` and would otherwise
+   * reject every send while the config looked perfectly valid. The docstring
+   * above used to say "Resend, Postmark, anything" while the header was
+   * hard-coded — one of those three was not true.
+   */
+  authHeaderName?: string;
   /** The address replies come FROM, e.g. "Olink Desk <support@acme.et>". */
   fromAddress: string;
 }
@@ -300,7 +308,9 @@ export async function sendEmail(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(config.authHeader ? { Authorization: config.authHeader } : {}),
+        ...(config.authHeader
+          ? { [config.authHeaderName || "Authorization"]: config.authHeader }
+          : {}),
       },
       body: JSON.stringify({
         from: config.fromAddress,
