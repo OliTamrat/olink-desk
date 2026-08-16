@@ -321,7 +321,10 @@
     "ui_macro_preview": "What the customer receives",
     "ui_macro_preview_empty": "Type a body and the customer's own copy appears here, with the placeholders filled in.",
     "ui_macro_preview_sample": "Shown with example values. A real send uses the actual customer, ticket number and agent.",
-    "ui_macro_unknown_placeholder": "{n} placeholder is not one we recognise, so it is removed from the message: {list}"
+    "ui_macro_unknown_placeholder": "{n} placeholder is not one we recognise, so it is removed from the message: {list}",
+    "ui_tabs_close": "Close",
+    "ui_tabs_unsaved": "Unsent reply",
+    "ui_tabs_close_confirm": "This ticket has a reply you have not sent. Close it anyway?"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -645,7 +648,10 @@
     "ui_macro_preview": "ደንበኛው የሚቀበለው",
     "ui_macro_preview_empty": "ጽሑፍ ይተይቡ፤ የደንበኛው ቅጂ ቦታ ያዢዎቹ ተሞልተው እዚህ ይታያል።",
     "ui_macro_preview_sample": "በምሳሌ እሴቶች ታይቷል። ትክክለኛ መላክ ትክክለኛውን ደንበኛ፣ የቲኬት ቁጥር እና ወኪል ይጠቀማል።",
-    "ui_macro_unknown_placeholder": "{n} ቦታ ያዢ የማናውቀው ነው፤ ስለዚህ ከመልእክቱ ይወገዳል፦ {list}"
+    "ui_macro_unknown_placeholder": "{n} ቦታ ያዢ የማናውቀው ነው፤ ስለዚህ ከመልእክቱ ይወገዳል፦ {list}",
+    "ui_tabs_close": "ዝጋ",
+    "ui_tabs_unsaved": "ያልተላከ መልስ",
+    "ui_tabs_close_confirm": "ይህ ቲኬት ያልላኩት መልስ አለው። ለማንኛውም ይዘጋ?"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -969,7 +975,10 @@
     "ui_macro_preview": "Wanti maamilli fudhatu",
     "ui_macro_preview_empty": "Barruu barreessi; garagalchi maamilichaa iddoo qabdoonni guutamanii asitti mul'ata.",
     "ui_macro_preview_sample": "Gatiiwwan fakkeenyaatiin agarsiifame. Ergaan dhugaa maamila, lakkoofsa tikeetii fi bakka bu'aa dhugaa fayyadama.",
-    "ui_macro_unknown_placeholder": "Iddoo qabduun {n} kan nuti beeknu miti; kanaaf ergaa keessaa haqama: {list}"
+    "ui_macro_unknown_placeholder": "Iddoo qabduun {n} kan nuti beeknu miti; kanaaf ergaa keessaa haqama: {list}",
+    "ui_tabs_close": "Cufi",
+    "ui_tabs_unsaved": "Deebii hin ergamne",
+    "ui_tabs_close_confirm": "Tikeetiin kun deebii ati hin ergine qaba. Haa ta'uutii cufamuu?"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1293,7 +1302,10 @@
     "ui_macro_preview": "እቲ ዓሚል ዝቕበሎ",
     "ui_macro_preview_empty": "ጽሑፍ ጽሓፍ፤ ቅዳሕ እቲ ዓሚል እቶም ቦታ ሓዞቲ ተመሊኦም ኣብዚ ይረአ።",
     "ui_macro_preview_sample": "ብኣብነታዊ ዋጋታት ተራእዩ። ናይ ብሓቂ ምስዳድ ነቲ ናይ ብሓቂ ዓሚል፡ ቁጽሪ ትኬትን ወኪልን እዩ ዝጥቀም።",
-    "ui_macro_unknown_placeholder": "{n} ቦታ ሓዚ ንሕና እንፈልጦ ኣይኮነን፡ ስለዚ ካብቲ መልእኽቲ ይውገድ፦ {list}"
+    "ui_macro_unknown_placeholder": "{n} ቦታ ሓዚ ንሕና እንፈልጦ ኣይኮነን፡ ስለዚ ካብቲ መልእኽቲ ይውገድ፦ {list}",
+    "ui_tabs_close": "ዕጾ",
+    "ui_tabs_unsaved": "ዘይተላእከ መልሲ",
+    "ui_tabs_close_confirm": "እዚ ትኬት ዘይሰደድካዮ መልሲ ኣለዎ። ብዝኾነ ይዕጾ?"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1617,7 +1629,10 @@
     "ui_macro_preview": "Waxa macmiilku helayo",
     "ui_macro_preview_empty": "Qor qoraal, nuqulka macmiilka oo meelbeddelayaashu buuxsanyihiin ayaa halkan ka soo muuqan doona.",
     "ui_macro_preview_sample": "Waxaa lagu tusay qiyam tusaale ah. Dirid dhab ah waxay isticmaashaa macmiilka, lambarka tikidhka iyo wakiilka dhabta ah.",
-    "ui_macro_unknown_placeholder": "{n} meelbeddel ma aha mid aan garanayno, sidaas darteed fariinta waa laga saarayaa: {list}"
+    "ui_macro_unknown_placeholder": "{n} meelbeddel ma aha mid aan garanayno, sidaas darteed fariinta waa laga saarayaa: {list}",
+    "ui_tabs_close": "Xir",
+    "ui_tabs_unsaved": "Jawaab aan la dirin",
+    "ui_tabs_close_confirm": "Tikidhkan wuxuu leeyahay jawaab aadan dirin. Weli ma xirayaa?"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1941,6 +1956,9 @@
     "ui_macro_preview": "Anachopokea mteja",
     "ui_macro_preview_empty": "Andika maandishi, na nakala ya mteja itaonekana hapa, na vishikilizi vimejazwa.",
     "ui_macro_preview_sample": "Imeonyeshwa kwa thamani za mfano. Kutuma halisi hutumia mteja, namba ya tiketi na wakala halisi.",
-    "ui_macro_unknown_placeholder": "Kishikilizi {n} si tunachokitambua, hivyo kinaondolewa kwenye ujumbe: {list}"
+    "ui_macro_unknown_placeholder": "Kishikilizi {n} si tunachokitambua, hivyo kinaondolewa kwenye ujumbe: {list}",
+    "ui_tabs_close": "Funga",
+    "ui_tabs_unsaved": "Jibu ambalo halijatumwa",
+    "ui_tabs_close_confirm": "Tiketi hii ina jibu ambalo hujatuma. Ifunge hata hivyo?"
   }
 }

@@ -9,6 +9,9 @@ const nextConfig = {
     "@olink-desk/channels",
     "@olink-desk/database",
     "@olink-desk/i18n",
+    // For `tickets/src/open-tabs` only — the tab arithmetic the console runs
+    // in the browser. The package barrel stays server-side.
+    "@olink-desk/tickets",
   ],
   // Fleet convention: Windows dev machines OOM without this.
   experimental: { workerThreads: false, cpus: 1 },

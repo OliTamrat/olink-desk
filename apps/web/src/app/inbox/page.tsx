@@ -10,8 +10,20 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import {
+  clearDraft,
+  closeTab,
+  nextAfterClose,
+  openTab,
+  readDrafts,
+  readOpenTickets,
+  saveDraft,
+  writeOpenTickets,
+  type Draft,
+  type OpenTab,
+} from "../../lib/open-tickets";
 import {
   Badge,
   colors,
@@ -205,6 +217,29 @@ function InboxWorkspace() {
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkResult, setBulkResult] = useState<string | null>(null);
 
+  // ------------------------------------------------------- open ticket tabs
+  // What is on the desk, and what has been typed into each. Both live in
+  // localStorage, so they survive a reload — an agent who refreshes mid-reply
+  // keeps the reply.
+  const [tabs, setTabs] = useState<OpenTab[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setTabs(readOpenTickets());
+    setDrafts(readDrafts());
+    setHydrated(true);
+  }, []);
+  // Never persist before hydration, or the first render's empty list
+  // overwrites the tabs the agent left open.
+  useEffect(() => {
+    if (hydrated) writeOpenTickets(tabs);
+  }, [tabs, hydrated]);
+
+  const hasDraft = useCallback(
+    (id: string) => Boolean(drafts[id]?.body.trim()),
+    [drafts],
+  );
+
   // Re-read the URL whenever it CHANGES, not only on mount.
   //
   // Next reuses a mounted page across a client-side navigation to the same
@@ -315,6 +350,69 @@ function InboxWorkspace() {
       setHistory([]);
     }
   }, [selectedId, loadDetail]);
+
+  // A ticket joins the strip once it has actually LOADED — a tab labelled
+  // with a number nobody has seen yet would be a tab for a ticket that might
+  // not exist.
+  useEffect(() => {
+    if (!hydrated || !detail || detail.id !== selectedId) return;
+    const held = readDrafts();
+    setTabs((prev) =>
+      openTab(
+        prev,
+        {
+          id: detail.id,
+          number: detail.number,
+          subject: detail.subject,
+          channel: detail.channel,
+        },
+        (id) => Boolean(held[id]?.body.trim()),
+        Date.now(),
+      ),
+    );
+  }, [detail, selectedId, hydrated]);
+
+  // Restoring a draft and saving one are two effects that must not fight.
+  // When `selectedId` changes both are due to run in the same commit, and the
+  // save would see the OUTGOING ticket's text with the INCOMING ticket's id —
+  // writing one agent's sentence onto another customer's ticket. The flag
+  // makes the restore silence exactly the one save that follows it.
+  const restoring = useRef(false);
+  useEffect(() => {
+    if (!hydrated) return;
+    restoring.current = true;
+    const held = selectedId ? readDrafts()[selectedId] : undefined;
+    setReply(held?.body ?? "");
+    setInternal(held?.internal ?? false);
+  }, [selectedId, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (restoring.current) {
+      restoring.current = false;
+      return;
+    }
+    if (!selectedId) return;
+    saveDraft(selectedId, { body: reply, internal });
+    setDrafts(readDrafts());
+  }, [reply, internal, selectedId, hydrated]);
+
+  function selectTab(id: string) {
+    setSelectedId(id);
+  }
+
+  function closeTicketTab(id: string) {
+    // Only ask when there is something to lose. A confirm on every close
+    // teaches people to dismiss confirms.
+    if (hasDraft(id) && !window.confirm(tUi(lang, "ui_tabs_close_confirm"))) return;
+    clearDraft(id);
+    setDrafts(readDrafts());
+    // `nextAfterClose` reads the list as it stands, so it is asked BEFORE the
+    // tab is removed.
+    const successor = id === selectedId ? nextAfterClose(tabs, id) : null;
+    setTabs(closeTab(tabs, id));
+    if (id === selectedId) setSelectedId(successor);
+  }
 
   async function patchTicket(change: Record<string, unknown>) {
     if (!selectedId) return;
@@ -606,6 +704,114 @@ function InboxWorkspace() {
       ))}
     </nav>
   );
+
+  // ------------------------------------------------------------ tab strip
+  // Desktop only. On a phone the bottom bar is already the navigation and a
+  // second scrolling row of destinations above the content would be a third
+  // (ADR 0020) — the back button is the phone's answer.
+  const tabStrip =
+    isMobile || tabs.length === 0 ? null : (
+      <div
+        data-ticket-tabs
+        style={{
+          display: "flex",
+          gap: 4,
+          alignItems: "stretch",
+          overflowX: "auto",
+          marginBottom: 12,
+          paddingBottom: 2,
+          borderBottom: `1px solid ${colors.border}`,
+        }}
+      >
+        {tabs.map((t) => {
+          const active = t.id === selectedId;
+          const dirty = hasDraft(t.id);
+          return (
+            <div
+              key={t.id}
+              data-ticket-tab={t.number}
+              title={`#${t.number} · ${CHANNEL_LABELS[t.channel] ?? t.channel}${
+                t.subject ? ` · ${t.subject}` : ""
+              }`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                maxWidth: 220,
+                padding: "6px 6px 6px 10px",
+                borderRadius: "8px 8px 0 0",
+                background: active ? colors.surfaceRaised : "transparent",
+                borderTop: `2px solid ${active ? colors.accent : "transparent"}`,
+                borderInline: `1px solid ${active ? colors.border : "transparent"}`,
+              }}
+            >
+              <button
+                onClick={() => selectTab(t.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  minWidth: 0,
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  fontSize: 12.5,
+                  fontWeight: active ? 600 : 500,
+                  color: active ? colors.textPrimary : colors.textSecondary,
+                }}
+              >
+                {/* An unsent reply is marked on the TAB, because the tab is
+                    what the agent is about to click away from. */}
+                {dirty ? (
+                  <span
+                    aria-label={tUi(lang, "ui_tabs_unsaved")}
+                    title={tUi(lang, "ui_tabs_unsaved")}
+                    style={{
+                      flex: "0 0 auto",
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: colors.warn,
+                    }}
+                  />
+                ) : null}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>#{t.number}</span>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    color: colors.textMuted,
+                    fontWeight: 400,
+                  }}
+                >
+                  {t.subject ?? ""}
+                </span>
+              </button>
+              <button
+                onClick={() => closeTicketTab(t.id)}
+                aria-label={`${tUi(lang, "ui_tabs_close")} #${t.number}`}
+                style={{
+                  flex: "0 0 auto",
+                  border: "none",
+                  background: "none",
+                  padding: "0 4px",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  fontSize: 14,
+                  lineHeight: 1,
+                  color: colors.textMuted,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
 
   // --------------------------------------------------------- ticket view
   if (selectedId && detail) {
@@ -920,6 +1126,7 @@ function InboxWorkspace() {
         // and slides over when there is not.
         context={customer}
       >
+        {tabStrip}
         <button
           onClick={() => setSelectedId(null)}
           style={{ ...ui.buttonGhost, padding: "6px 10px", fontSize: 12, marginBottom: 12 }}
@@ -1240,6 +1447,10 @@ function InboxWorkspace() {
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="inbox" sidePanel={viewsPanel}>
+      {/* The strip stays on the LIST too. Going back to the list is the most
+          common way to leave a half-written reply, so that is exactly where
+          the way back to it has to be visible. */}
+      {tabStrip}
       <header
         style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 12 }}
       >
