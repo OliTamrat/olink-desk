@@ -9,3 +9,10 @@ export {
   type CleanContact,
   type ContactInput,
 } from "./contacts";
+export {
+  closeTab,
+  MAX_OPEN_TABS,
+  nextAfterClose,
+  openTab,
+  type OpenTab,
+} from "./open-tabs";
