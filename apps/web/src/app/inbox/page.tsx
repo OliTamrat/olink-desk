@@ -7,6 +7,7 @@
 // List and ticket are separate screens rather than side-by-side panes: an
 // open ticket gets the whole width, which is what makes a three-column
 // detail readable instead of three cramped strips.
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -177,6 +178,39 @@ function InboxWorkspace() {
   // their own — a link is the only way in — so they are surfaced as a
   // removable chip and cleared with the rest.
   const [queue, setQueue] = useState(params.get("queue") ?? "");
+  const [tag, setTag] = useState(params.get("tag") ?? "");
+  const [tagDraft, setTagDraft] = useState("");
+
+  // Re-read the URL whenever it CHANGES, not only on mount.
+  //
+  // Next reuses a mounted page across a client-side navigation to the same
+  // route, so reading the params once as initial state meant an in-app
+  // drill-down did nothing at all: clicking a tag while a ticket was open
+  // left the ticket open and the filter unapplied. Since nothing here pushes
+  // state back INTO the url, this stays one-way and the filter controls never
+  // fight the address bar — the reason the initial-only version was chosen.
+  const search = params.toString();
+  useEffect(() => {
+    const next = new URLSearchParams(search);
+    const pick = (k: string) => next.get(k) ?? "";
+    setView((prev) => {
+      const v = next.get("view");
+      return v && VIEWS.some((x) => x.key === v) ? (v as ViewKey) : prev;
+    });
+    setStatus(pick("status"));
+    setChannel(pick("channel"));
+    setAssignee(pick("assignee"));
+    setQueue(pick("queue"));
+    setSla(pick("sla"));
+    setTag(pick("tag"));
+    setAwaiting(next.get("awaiting") === "1");
+    setQ(pick("q"));
+    setDebouncedQ(pick("q"));
+    // A drill-down to a LIST must close whatever ticket was open, or the
+    // agent lands on the ticket they were already reading and concludes the
+    // link is broken. A drill-down to a ticket names one instead.
+    setSelectedId(next.get("ticket"));
+  }, [search]);
   const [sla, setSla] = useState(params.get("sla") ?? "");
   const [awaiting, setAwaiting] = useState(params.get("awaiting") === "1");
 
@@ -201,10 +235,11 @@ function InboxWorkspace() {
     if (assignee) p.set("assignee", assignee);
     if (debouncedQ) p.set("q", debouncedQ);
     if (queue) p.set("queue", queue);
+    if (tag) p.set("tag", tag);
     if (sla) p.set("sla", sla);
     if (awaiting) p.set("awaiting", "1");
     return p.toString();
-  }, [view, sort, dir, status, channel, assignee, debouncedQ, queue, sla, awaiting]);
+  }, [view, sort, dir, status, channel, assignee, debouncedQ, queue, sla, awaiting, tag]);
 
   const loadList = useCallback(async () => {
     const [listResp, countsResp] = await Promise.all([
@@ -344,6 +379,31 @@ function InboxWorkspace() {
     }
   }
 
+  async function addTag() {
+    const name = tagDraft.trim();
+    if (!selectedId || !name) return;
+    const resp = await fetch(`/api/tickets/${selectedId}/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!resp.ok) {
+      const body = (await resp.json().catch(() => null)) as { error?: string } | null;
+      setSendError(tUi(lang, "ui_tag_failed", { error: body?.error ?? `HTTP ${resp.status}` }));
+      return;
+    }
+    setTagDraft("");
+    await Promise.all([loadDetail(selectedId), loadList()]);
+  }
+
+  async function removeTag(tagId: string) {
+    if (!selectedId) return;
+    await fetch(`/api/tickets/${selectedId}/tags?tagId=${encodeURIComponent(tagId)}`, {
+      method: "DELETE",
+    });
+    await Promise.all([loadDetail(selectedId), loadList()]);
+  }
+
   async function send() {
     if (!selectedId || !reply.trim()) return;
     setSending(true);
@@ -395,7 +455,7 @@ function InboxWorkspace() {
     return tUi(lang, "ui_no_tickets");
   };
 
-  const filtersActive = Boolean(status || channel || assignee || debouncedQ) || queue !== "" || sla !== "" || awaiting;
+  const filtersActive = Boolean(status || channel || assignee || debouncedQ) || queue !== "" || sla !== "" || awaiting || tag !== "";
   const rows = tickets ?? [];
   const allPicked = rows.length > 0 && rows.every((t) => picked.has(t.id));
 
@@ -552,6 +612,74 @@ function InboxWorkspace() {
               a score, a survey still unanswered, and no survey at all. Showing
               "Not rated" for a ticket nobody was asked about would read as a
               customer who declined. */}
+          {/* Tags. Each one is a LINK to the tickets that share it — the
+              founder's drill-down rule applied to the one field whose whole
+              purpose is grouping. A tag you cannot click is a label; a tag
+              you can click is a report. */}
+          <div style={{ marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 6 }}>
+              {tUi(lang, "ui_tags")}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+              {(detail.tags ?? []).length === 0 ? (
+                <span style={{ fontSize: 12.5, color: colors.textMuted }}>
+                  {tUi(lang, "ui_tag_none")}
+                </span>
+              ) : (
+                (detail.tags ?? []).map((tg) => (
+                  <span
+                    key={tg.id}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "3px 4px 3px 8px",
+                      borderRadius: 999,
+                      border: `1px solid ${colors.border}`,
+                      background: colors.surfaceRaised,
+                      fontSize: 12,
+                    }}
+                  >
+                    <Link
+                      href={`/inbox?view=all&tag=${encodeURIComponent(tg.slug)}`}
+                      style={{ color: colors.textBody, textDecoration: "none" }}
+                    >
+                      {tg.name}
+                    </Link>
+                    <button
+                      aria-label={tUi(lang, "ui_tag_remove")}
+                      onClick={() => void removeTag(tg.id)}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        color: colors.textMuted,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        lineHeight: 1,
+                        padding: "0 3px",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+            <input
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void addTag();
+                }
+              }}
+              placeholder={tUi(lang, "ui_tag_add")}
+              style={{ ...ui.input, fontSize: 13, padding: "6px 9px" }}
+            />
+          </div>
+
           <Field
             label={tUi(lang, "ui_satisfaction")}
             value={
@@ -1027,6 +1155,7 @@ function InboxWorkspace() {
               // The drill-only filters clear with the rest. A "Clear" that
               // leaves an invisible filter applied is worse than no button.
               setQueue("");
+              setTag("");
               setSla("");
               setAwaiting(false);
             }}

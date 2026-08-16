@@ -91,6 +91,12 @@ export async function GET(request: NextRequest) {
   // "Awaiting first reply" — the dashboard tile of the same name.
   if (params.get("awaiting") === "1") where.firstRespondedAt = null;
 
+  // Tag drill-down. Matched on the SLUG rather than the id, so a link is
+  // readable and survives a tag being renamed — the slug is what identity
+  // means for a tag (see packages/database/src/tags.ts).
+  const tag = params.get("tag");
+  if (tag) where.tags = { some: { tag: { slug: tag } } };
+
   // Search covers what an agent actually remembers: the ticket number, the
   // subject, the customer, and the words in the conversation.
   const q = (params.get("q") ?? "").trim();
@@ -134,6 +140,7 @@ export async function GET(request: NextRequest) {
         queueId: true,
         csatScore: true,
         csatSentAt: true,
+        tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
         contact: { select: { name: true, phone: true } },
         assignee: { select: { name: true } },
         messages: {
@@ -150,10 +157,14 @@ export async function GET(request: NextRequest) {
   // wallboard's count and this list would drift apart. Filtering in code
   // against the same slaState() the wallboard and the escalation cron use
   // keeps exactly one answer to "what does breached mean".
+  // Flattened once here rather than in three screens: the join row is an
+  // implementation detail of the schema, not something a list should carry.
+  const rows = tickets.map((t) => ({ ...t, tags: t.tags.map((j) => j.tag) }));
+
   const slaParam = params.get("sla");
   if (slaParam === "at_risk" || slaParam === "breached") {
     const now = new Date();
-    const matching = tickets.filter((t) => slaState(t, now).health === slaParam);
+    const matching = rows.filter((t) => slaState(t, now).health === slaParam);
     return NextResponse.json(
       {
         tickets: matching,
@@ -168,7 +179,7 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json(
-    { tickets, count, truncated: count > tickets.length },
+    { tickets: rows, count, truncated: count > tickets.length },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

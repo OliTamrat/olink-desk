@@ -17,6 +17,11 @@ export async function GET(
   const ticket = await prisma.ticket.findFirst({
     where: { id: params.id, organizationId: principal.organization.id },
     include: {
+      // Tags are on the LIST select too; the detail is a separate route and
+      // was missed the first time, so the rail rendered "No tags yet" for a
+      // tagged ticket. Two routes feeding one screen is exactly where a
+      // field goes missing.
+      tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
       contact: { select: { name: true, phone: true, email: true, language: true } },
       conversation: { select: { channel: true, language: true } },
       messages: {
@@ -58,7 +63,10 @@ export async function GET(
       })
     : [];
 
-  return NextResponse.json({ ticket, history });
+  // Flattened to match the list's shape, so the rail reads one field name
+  // regardless of which route filled it.
+  const shaped = { ...ticket, tags: ticket.tags.map((j) => j.tag) };
+  return NextResponse.json({ ticket: shaped, history });
 }
 
 // Ticket lifecycle: status, priority, assignee, queue — the controls every
