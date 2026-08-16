@@ -4,18 +4,31 @@
 # node:20-slim (glibc) rather than alpine: Prisma's query engine ships
 # debian binaries by default and musl adds nothing here but risk.
 
+# Every workspace manifest, collected automatically. This stage exists
+# because the manifests used to be COPYied one line per package: adding
+# `packages/sla` without touching this file produced an image that could
+# not resolve the workspace, and three deploys failed on it while CI —
+# which installs from the real repo root — stayed green. A new package
+# must never be able to break the image by omission again.
+FROM node:20-slim AS manifests
+WORKDIR /src
+COPY . .
+RUN mkdir -p /out && \
+    find . -name package.json -not -path "*/node_modules/*" \
+      -exec install -D {} /out/{} \; && \
+    install -D pnpm-lock.yaml /out/pnpm-lock.yaml && \
+    install -D pnpm-workspace.yaml /out/pnpm-workspace.yaml && \
+    install -D turbo.json /out/turbo.json
+
 FROM node:20-slim AS build
 WORKDIR /app
 RUN corepack enable
 # Prisma engines need openssl present at generate AND run time.
 RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
-COPY apps/web/package.json apps/web/package.json
-COPY packages/auth/package.json packages/auth/package.json
-COPY packages/channels/package.json packages/channels/package.json
-COPY packages/database/package.json packages/database/package.json
-COPY packages/i18n/package.json packages/i18n/package.json
+# Manifests only, so the install layer still caches on dependency changes
+# rather than on every source edit.
+COPY --from=manifests /out ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
