@@ -129,3 +129,38 @@ ui_back_to_list	Back to list	ወደ ዝርዝሩ ተመለስ	Gara tarreetti dee
 ui_properties	Properties	ባህሪያት	Amaloota	ባህርያት	Sifooyin	Sifa	Left panel heading on a ticket: its editable fields.
 ui_take_it	Take it	እኔ እወስዳለሁ	Ani nan fudhadha	ኣነ ክወስዶ	Aan qaato	Nichukue	Button that assigns the ticket to the signed-in agent (Zendesk calls this 'take it').
 ui_note_sent	Note added	ማስታወሻ ታክሏል	Yaadannoon dabalameera	መዘክር ተወሲኹ	Qoraalka waa lagu daray	Dokezo limeongezwa	Confirmation after an internal note is recorded.
+ui_nav_settings	Settings	ቅንብሮች	Qindaa'ina	ቅንብራት	Dejinta	Mipangilio	Sidebar item: workspace configuration (admins/supervisors).
+ui_tab_sla	SLA & hours	SLA እና ሰዓታት	SLA fi sa'aatii	SLA ከምኡውን ሰዓታት	SLA & saacadaha	SLA na saa	Settings tab: SLA targets and the working-hours calendar.
+ui_tab_team	Team	ቡድን	Garee	ጋንታ	Kooxda	Timu	Settings tab: the people who work this desk.
+ui_tab_queues	Queues	ወረፋዎች	Toorawwan	መስርዓት	Safafka	Foleni	Settings tab: named work buckets tickets are routed into.
+ui_first_response	First response	የመጀመሪያ ምላሽ	Deebii jalqabaa	ናይ መጀመርታ መልሲ	Jawaabta koowaad	Jibu la kwanza	SLA field: how long until the customer must hear from a person.
+ui_resolution	Resolution	መፍትሄ	Furmaata	ፍታሕ	Xallinta	Utatuzi	SLA field: how long until the ticket must be finished.
+ui_minutes	minutes	ደቂቃዎች	daqiiqaa	ደቓይቕ	daqiiqo	dakika	Unit after a number of minutes in the SLA form.
+ui_business_hours	Business hours	የሥራ ሰዓታት	Sa'aatii hojii	ናይ ስራሕ ሰዓታት	Saacadaha shaqada	Saa za kazi	Settings heading: when the SLA clock runs.
+ui_workdays	Working days	የሥራ ቀናት	Guyyoota hojii	መዓልታት ስራሕ	Maalmaha shaqada	Siku za kazi	Settings field: which days of the week the desk works.
+ui_day_start	Opens	የሚከፈትበት	Yeroo banamu	ዝኽፈተሉ	Waa la furaa	Hufunguliwa	Settings field: the time the working day starts.
+ui_day_end	Closes	የሚዘጋበት	Yeroo cufamu	ዝዕጸወሉ	Waa la xiraa	Hufungwa	Settings field: the time the working day ends.
+ui_always_open	Open 24/7 (the clock never pauses)	24/7 ክፍት (ሰዓቱ አያቆምም)	24/7 banaa (sa'aatiin hin dhaabbatu)	24/7 ክፉት (እቲ ሰዓት ኣይቕመጥን)	Furan 24/7 (saacaddu ma joogsato)	Wazi 24/7 (saa haisimami)	Checkbox: run SLA clocks around the clock, ignoring working hours.
+ui_save	Save	አስቀምጥ	Olkaa'i	ኣቐምጥ	Kaydi	Hifadhi	Save button in settings forms.
+ui_saving	Saving…	በማስቀመጥ ላይ…	Olkaa'aa jira…	የቐምጥ ኣሎ…	Waa la kaydinayaa…	Inahifadhi…	Save button while the request is in flight.
+ui_saved	Saved	ተቀምጧል	Olkaa'ameera	ተቐሚጡ	Waa la kaydiyay	Imehifadhiwa	Confirmation after settings are stored.
+ui_save_failed	Could not save: {error}	ማስቀመጥ አልተቻለም: {error}	Olkaa'uun hin danda'amne: {error}	ምቕማጥ ኣይተኻእለን: {error}	Lama kaydin karin: {error}	Imeshindwa kuhifadhi: {error}	Error when settings could not be stored. {error} is the reason.
+ui_invite_teammate	Add a teammate	የቡድን አባል ጨምር	Miseensa garee dabali	ኣባል ጋንታ ወስኽ	Ku dar xubin kooxda	Ongeza mwanatimu	Heading of the add-a-teammate form.
+ui_role	Role	ሚና	Gahee	ተራ	Doorka	Jukumu	Form label: which role the teammate gets.
+ui_role_agent	Agent	ወኪል	Hojjetaa	ወኪል	Wakiil	Wakala	Role: works tickets.
+ui_role_supervisor	Supervisor	ተቆጣጣሪ	To'ataa	ተቖጻጻሪ	Kormeere	Msimamizi	Role: works tickets and sees the wallboard.
+ui_role_admin	Admin	አስተዳዳሪ	Bulchaa	ኣመሓዳሪ	Maamule	Msimamizi mkuu	Role: full control including settings and billing.
+ui_role_auditor	Auditor (read-only)	ኦዲተር (ንባብ ብቻ)	Odiitara (dubbisuu qofa)	ኦዲተር (ንባብ ጥራይ)	Hanti-dhawr (akhris kaliya)	Mkaguzi (kusoma tu)	Role: can read everything and change nothing.
+ui_invite	Add	ጨምር	Dabali	ወስኽ	Ku dar	Ongeza	Button that creates the teammate's account.
+ui_temp_password	Give {name} this one-time password — it is not shown again: {password}	ለ{name} ይህን የአንድ ጊዜ የይለፍ ቃል ይስጡ — ዳግም አይታይም፦ {password}	{name}f jecha darbii yeroo tokkoo kana kennaa — lammata hin mul'atu: {password}	ንኣቶ/ወይዘሮ {name} እዚ ናይ ሓደ ግዜ መሕለፊ ቃል ሃብዎም — ደጊሙ ኣይረአን፦ {password}	{name} sii erayga sirta ah ee hal mar — mar dambe lama tusi doono: {password}	Mpe {name} nenosiri hili la mara moja — halitaonyeshwa tena: {password}	Shown once after adding a teammate. {name} is their name, {password} the one-time password. The warning that it is not shown again is the important part.
+ui_deactivate	Deactivate	አቦዝን	Dhaabi	ኣቋርጽ	Jooji	Zima	Button that disables a teammate's sign-in.
+ui_reactivate	Reactivate	አግብር	Deebisi	ዳግም ኣንቅሕ	Dib u shid	Washa tena	Button that restores a disabled teammate.
+ui_disabled	Deactivated	ተቦዝኗል	Dhaabameera	ተቋሪጹ	La joojiyay	Imezimwa	Badge on a deactivated teammate.
+ui_delete	Delete	ሰርዝ	Haqi	ሰርዝ	Tirtir	Futa	Button that removes a queue.
+ui_mon	Mon	ሰኞ	Wix	ሰኑ	Isn	Jtt	Weekday abbreviation: Monday.
+ui_tue	Tue	ማክሰ	Kib	ሰሉ	Tal	Jnn	Weekday abbreviation: Tuesday.
+ui_wed	Wed	ረቡዕ	Rob	ረቡ	Arb	Jtn	Weekday abbreviation: Wednesday.
+ui_thu	Thu	ሐሙስ	Kam	ሓሙ	Kha	Alh	Weekday abbreviation: Thursday.
+ui_fri	Fri	ዓርብ	Jim	ዓር	Jim	Iju	Weekday abbreviation: Friday.
+ui_sat	Sat	ቅዳሜ	San	ቀዳ	Sab	Jmo	Weekday abbreviation: Saturday.
+ui_sun	Sun	እሁድ	Dil	ሰን	Axa	Jpi	Weekday abbreviation: Sunday.

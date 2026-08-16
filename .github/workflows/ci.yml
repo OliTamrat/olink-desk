@@ -74,3 +74,23 @@ jobs:
           export CHANNEL_CONFIG_KEY="$(openssl rand -base64 32)"
           export JWT_SECRET="$(openssl rand -hex 32)"
           pnpm test
+
+  # The image is what actually ships, and it can break while everything
+  # above is green: `pnpm install` here runs from the real repo root, while
+  # the image installs from whatever the Dockerfile copied in. Adding
+  # `packages/sla` without touching the Dockerfile broke three deploys in a
+  # row with CI green throughout — this job is why that cannot recur.
+  # Build only: pushing stays the deploy workflow's job.
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
