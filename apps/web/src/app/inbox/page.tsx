@@ -7,6 +7,8 @@
 // List and ticket are separate screens rather than side-by-side panes: an
 // open ticket gets the whole width, which is what makes a three-column
 // detail readable instead of three cramped strips.
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
@@ -123,25 +125,44 @@ function slaState(t: {
 const statusTone = (s: string) =>
   s === "NEW" ? "info" : s === "PENDING" ? "warn" : s === "OPEN" ? "success" : "muted";
 
-export default function InboxPage() {
+function InboxWorkspace() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
   const { isMobile, roomy } = useViewport();
 
-  const [view, setView] = useState<ViewKey>("open");
+  // Drill-down: every number on the dashboard and the wallboard links here
+  // with its filters in the URL. Reading them as the INITIAL state (rather
+  // than syncing both ways) keeps the link shareable and the back button
+  // honest, without the filter controls fighting the address bar on every
+  // keystroke.
+  const params = useSearchParams();
+  const initial = <T extends string>(key: string, allowed: readonly T[], fallback: T): T => {
+    const v = params.get(key);
+    return v && (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
+  };
+
+  const [view, setView] = useState<ViewKey>(
+    initial("view", VIEWS.map((v) => v.key), "open"),
+  );
   const [counts, setCounts] = useState<Record<ViewKey, number> | null>(null);
-  const [status, setStatus] = useState("");
-  const [channel, setChannel] = useState("");
-  const [assignee, setAssignee] = useState("");
-  const [q, setQ] = useState("");
-  const [debouncedQ, setDebouncedQ] = useState("");
+  const [status, setStatus] = useState(params.get("status") ?? "");
+  const [channel, setChannel] = useState(params.get("channel") ?? "");
+  const [assignee, setAssignee] = useState(params.get("assignee") ?? "");
+  // Seeded from the URL like every other filter. This was missed at first —
+  // the top bar's search navigated here with ?q=… and the list ignored it,
+  // so the search "worked" and returned everything. A drill-down that lands
+  // unfiltered is worse than no drill-down: it looks like an answer.
+  const [q, setQ] = useState(params.get("q") ?? "");
+  const [debouncedQ, setDebouncedQ] = useState(params.get("q") ?? "");
   const [sort, setSort] = useState<SortKey>("updated");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
 
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
   const [count, setCount] = useState(0);
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // An alert links straight to its ticket, so a ticket id in the URL opens
+  // the ticket rather than dropping the agent on a list to find it again.
+  const [selectedId, setSelectedId] = useState<string | null>(params.get("ticket"));
   const [detail, setDetail] = useState<TicketDetail | null>(null);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [reply, setReply] = useState("");
@@ -151,6 +172,13 @@ export default function InboxPage() {
   const [queues, setQueues] = useState<Array<{ id: string; name: string }>>([]);
   const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const [meId, setMeId] = useState<string | null>(null);
+
+  // Filters that arrive ONLY from a drill-down. They have no control of
+  // their own — a link is the only way in — so they are surfaced as a
+  // removable chip and cleared with the rest.
+  const [queue, setQueue] = useState(params.get("queue") ?? "");
+  const [sla, setSla] = useState(params.get("sla") ?? "");
+  const [awaiting, setAwaiting] = useState(params.get("awaiting") === "1");
 
   // Macros. Loaded once for the session — the list is small and an agent
   // opening the picker must not wait on a round trip mid-conversation.
@@ -172,8 +200,11 @@ export default function InboxPage() {
     if (channel) p.set("channel", channel);
     if (assignee) p.set("assignee", assignee);
     if (debouncedQ) p.set("q", debouncedQ);
+    if (queue) p.set("queue", queue);
+    if (sla) p.set("sla", sla);
+    if (awaiting) p.set("awaiting", "1");
     return p.toString();
-  }, [view, sort, dir, status, channel, assignee, debouncedQ]);
+  }, [view, sort, dir, status, channel, assignee, debouncedQ, queue, sla, awaiting]);
 
   const loadList = useCallback(async () => {
     const [listResp, countsResp] = await Promise.all([
@@ -364,7 +395,7 @@ export default function InboxPage() {
     return tUi(lang, "ui_no_tickets");
   };
 
-  const filtersActive = Boolean(status || channel || assignee || debouncedQ);
+  const filtersActive = Boolean(status || channel || assignee || debouncedQ) || queue !== "" || sla !== "" || awaiting;
   const rows = tickets ?? [];
   const allPicked = rows.length > 0 && rows.every((t) => picked.has(t.id));
 
@@ -993,6 +1024,11 @@ export default function InboxPage() {
               setChannel("");
               setAssignee("");
               setQ("");
+              // The drill-only filters clear with the rest. A "Clear" that
+              // leaves an invisible filter applied is worse than no button.
+              setQueue("");
+              setSla("");
+              setAwaiting(false);
             }}
             style={{ ...ui.buttonGhost, padding: "6px 10px", fontSize: 12 }}
           >
@@ -1204,5 +1240,23 @@ function Field({ label, value }: { label: string; value: string }) {
         {value}
       </span>
     </div>
+  );
+}
+
+/**
+ * `useSearchParams` opts a page out of static generation, and Next requires
+ * the boundary to be explicit rather than inferred — the production build
+ * fails on it even though typecheck is perfectly happy. Another case of a
+ * green check not being the check that matters.
+ *
+ * The fallback is deliberately empty: this is a client-rendered workspace
+ * that fetches everything anyway, so a spinner here would flash for one frame
+ * and then be replaced by the screen's own loading state.
+ */
+export default function InboxPage() {
+  return (
+    <Suspense fallback={null}>
+      <InboxWorkspace />
+    </Suspense>
   );
 }

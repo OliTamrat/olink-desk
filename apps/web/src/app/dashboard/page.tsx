@@ -74,8 +74,13 @@ export default function DashboardPage() {
   }
   const maxChannel = Math.max(1, ...byChannel.values());
 
-  const tile = (label: string, value: number | null, accent?: string) => (
-    <div style={{ ...ui.card, flex: 1, minWidth: 160 }}>
+  // Drill-down: a number on a dashboard is a question ("which five?"), and
+  // the only useful answer is the list itself. Every tile carries the filter
+  // that produced it, so the count and the list can never disagree.
+  const tile = (label: string, value: number | null, accent: string | undefined, href: string) => (
+    <Link
+      href={href}
+      style={{ ...ui.card, flex: 1, minWidth: 160, textDecoration: "none", display: "block" }}>
       <div style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8 }}>
         {label}
       </div>
@@ -90,7 +95,7 @@ export default function DashboardPage() {
       >
         {value ?? "—"}
       </div>
-    </div>
+    </Link>
   );
 
   return (
@@ -234,12 +239,13 @@ export default function DashboardPage() {
       ) : null}
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
-        {tile(tUi(lang, "ui_kpi_open"), tickets ? open.length : null, colors.accent)}
-        {tile(tUi(lang, "ui_kpi_new_today"), tickets ? newToday.length : null)}
+        {tile(tUi(lang, "ui_kpi_open"), tickets ? open.length : null, colors.accent, "/inbox?view=open")}
+        {tile(tUi(lang, "ui_kpi_new_today"), tickets ? newToday.length : null, undefined, "/inbox?view=all&status=NEW")}
         {tile(
           tUi(lang, "ui_kpi_awaiting"),
           tickets ? awaiting.length : null,
           awaiting.length > 0 ? colors.warn : colors.success,
+          "/inbox?view=open&awaiting=1",
         )}
       </div>
 
@@ -255,7 +261,12 @@ export default function DashboardPage() {
               {[...byChannel.entries()]
                 .sort((a, b) => b[1] - a[1])
                 .map(([channel, count]) => (
-                  <div key={channel}>
+                  // Each bar drills into the tickets that channel produced.
+                  <Link
+                    key={channel}
+                    href={`/inbox?view=all&channel=${channel}`}
+                    style={{ display: "block", textDecoration: "none" }}
+                  >
                     <div
                       style={{
                         display: "flex",
@@ -288,7 +299,7 @@ export default function DashboardPage() {
                         }}
                       />
                     </div>
-                  </div>
+                  </Link>
                 ))}
             </div>
           )}
@@ -308,7 +319,10 @@ export default function DashboardPage() {
               {(tickets ?? []).slice(0, 8).map((t, i) => (
                 <Link
                   key={t.id}
-                  href="/inbox"
+                  // Drills to THIS ticket, not the inbox in general: landing
+                  // an agent on a list to find the row they just clicked is
+                  // the drill-down not happening.
+                  href={`/inbox?view=all&ticket=${t.id}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
