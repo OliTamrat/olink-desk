@@ -809,6 +809,16 @@ function InboxWorkspace() {
           {detail.contact?.email ? (
             <Field label={tUi(lang, "ui_email")} value={detail.contact.email} />
           ) : null}
+          {/* Drill-down: the rail says who they are, their record says what
+              else they have been dealing with. */}
+          {detail.contactId ? (
+            <Link
+              href={`/customers/${detail.contactId}`}
+              style={{ fontSize: 12, color: colors.accent, textDecoration: "none" }}
+            >
+              {tUi(lang, "ui_customer_open_record")} →
+            </Link>
+          ) : null}
           <Field label={tUi(lang, "ui_language")} value={(detail.language ?? "").toUpperCase()} />
           {/* Almost every ticket arrives anonymous — a widget session id and a
               Telegram chat id are channel identities, not people — so this is

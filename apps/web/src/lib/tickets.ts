@@ -45,6 +45,7 @@ export interface TicketDetail extends Omit<TicketRow, "messages"> {
   queueId: string | null;
   firstResponseDueAt: string | null;
   resolveDueAt: string | null;
+  contactId: string | null;
   contact: {
     name: string | null;
     phone: string | null;

@@ -58,6 +58,20 @@ export default function NewTicketPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // "Log a ticket for them" carries the customer's id. Re-identifying somebody
+  // the agent just clicked on is the small indignity this avoids.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("contact");
+    if (!id) return;
+    void (async () => {
+      const resp = await fetch(`/api/contacts/${id}`);
+      if (!resp.ok) return;
+      const found = ((await resp.json()) as { contact: Match }).contact;
+      setPicked(found);
+      setTicketLang(found.language);
+    })();
+  }, []);
+
   const search = useCallback(async (term: string) => {
     if (!term.trim()) {
       setMatches([]);
