@@ -4,7 +4,7 @@
 // list; "this person has called four times this month, twice about the same
 // thing" is what lets an agent open with something other than "how can I
 // help".
-import { prisma, UserRole } from "@olink-desk/database";
+import { prisma, TicketStatus, UserRole } from "@olink-desk/database";
 import { cleanContact, displayPhone } from "@olink-desk/tickets";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -49,11 +49,29 @@ export async function GET(
   });
   if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Counted rather than derived from the 25 most recent tickets above: a
+  // customer with 40 tickets would otherwise report a total of 25, which is
+  // the kind of number that is wrong quietly and forever.
+  const [openCount, totalCount] = await Promise.all([
+    prisma.ticket.count({
+      where: {
+        organizationId: principal.organization.id,
+        contactId: contact.id,
+        status: { in: [TicketStatus.NEW, TicketStatus.OPEN, TicketStatus.PENDING] },
+      },
+    }),
+    prisma.ticket.count({
+      where: { organizationId: principal.organization.id, contactId: contact.id },
+    }),
+  ]);
+
   return NextResponse.json(
     {
       contact: {
         ...contact,
         phoneDisplay: displayPhone(contact.phone),
+        openCount,
+        totalCount,
       },
     },
     { headers: { "Cache-Control": "no-store" } },

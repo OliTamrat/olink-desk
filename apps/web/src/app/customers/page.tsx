@@ -36,18 +36,6 @@ interface Row {
   ticketCount: number;
 }
 
-interface Detail extends Row {
-  notes: string | null;
-  tickets: Array<{
-    id: string;
-    number: number;
-    subject: string | null;
-    status: string;
-    channel: string;
-    createdAt: string;
-  }>;
-}
-
 export default function CustomersPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
@@ -59,8 +47,6 @@ export default function CustomersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<Detail | null>(null);
 
   const canWrite = !!me && ["AGENT", "SUPERVISOR", "ADMIN"].includes(me.user.role);
 
@@ -86,17 +72,6 @@ export default function CustomersPage() {
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("new") === "1") setAdding(true);
   }, []);
-
-  useEffect(() => {
-    if (!openId) {
-      setDetail(null);
-      return;
-    }
-    void (async () => {
-      const resp = await fetch(`/api/contacts/${openId}`);
-      if (resp.ok) setDetail(((await resp.json()) as { contact: Detail }).contact);
-    })();
-  }, [openId]);
 
   async function save() {
     setSaving(true);
@@ -225,16 +200,16 @@ export default function CustomersPage() {
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {rows.map((c) => (
-              <button
+              // A link, not an expander: a customer is something you can send
+              // a colleague the address of, and the back button should work.
+              <Link
                 key={c.id}
-                onClick={() => setOpenId(c.id === openId ? null : c.id)}
+                href={`/customers/${c.id}`}
                 style={{
                   ...ui.card,
                   padding: 14,
-                  textAlign: "left",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  borderColor: c.id === openId ? colors.accent : colors.border,
+                  textDecoration: "none",
+                  display: "block",
                 }}
               >
                 <div
@@ -259,50 +234,7 @@ export default function CustomersPage() {
                   {c.phoneDisplay}
                   {c.email ? ` · ${c.email}` : ""}
                 </div>
-
-                {c.id === openId && detail ? (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      paddingTop: 12,
-                      borderTop: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: colors.textMuted, marginBottom: 8 }}>
-                      {tUi(lang, "ui_customer_history")}
-                    </div>
-                    {detail.tickets.length === 0 ? (
-                      <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                        {tUi(lang, "ui_customer_no_history")}
-                      </div>
-                    ) : (
-                      <div style={{ display: "grid", gap: 6 }}>
-                        {detail.tickets.map((t) => (
-                          // Drill-down: their history is a way INTO the work,
-                          // not a read-only list.
-                          <Link
-                            key={t.id}
-                            href={`/inbox?ticket=${t.id}`}
-                            style={{
-                              display: "flex",
-                              gap: 10,
-                              fontSize: 13,
-                              color: colors.textBody,
-                              textDecoration: "none",
-                            }}
-                          >
-                            <span style={{ color: colors.textMuted }}>#{t.number}</span>
-                            <span style={{ flex: 1, minWidth: 0 }}>{t.subject ?? "—"}</span>
-                            <span style={{ color: colors.textMuted, fontSize: 12 }}>
-                              {t.status}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-              </button>
+              </Link>
             ))}
           </div>
         )}

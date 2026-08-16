@@ -297,7 +297,17 @@
     "ui_ticket_no_reply_warning": "A logged call has no channel to reply on. Answer this one by calling them back — the desk cannot send to it.",
     "ui_ticket_created": "Ticket #{n} logged",
     "ui_identify_customer": "Name this customer",
-    "ui_identify_hint": "This ticket arrived without a name. Linking it to a customer carries the identity onto everything they send next."
+    "ui_identify_hint": "This ticket arrived without a name. Linking it to a customer carries the identity onto everything they send next.",
+    "ui_customer_since": "Customer since {date}",
+    "ui_customer_open_tickets": "Open now",
+    "ui_customer_total_tickets": "All time",
+    "ui_customer_edit": "Edit details",
+    "ui_customer_new_ticket": "Log a ticket for them",
+    "ui_customer_notes_hint": "What the team should know before speaking to them. Staff only — never shown to the customer.",
+    "ui_customer_no_notes": "No notes yet.",
+    "ui_customer_saved": "Saved",
+    "ui_customer_back": "All customers",
+    "ui_customer_open_record": "Open their record"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -597,7 +607,17 @@
     "ui_ticket_no_reply_warning": "የተመዘገበ ጥሪ የሚመልስበት ቻናል የለውም። ይህን መልሰው በመደወል ይመልሱ — ዴስኩ ወደዚህ መላክ አይችልም።",
     "ui_ticket_created": "ቲኬት #{n} ተመዝግቧል",
     "ui_identify_customer": "ይህን ደንበኛ ይሰይሙ",
-    "ui_identify_hint": "ይህ ቲኬት ያለ ስም ደርሷል። ከደንበኛ ጋር ማገናኘት ማንነቱን ቀጥሎ ወደሚልኩት ሁሉ ያሸጋግራል።"
+    "ui_identify_hint": "ይህ ቲኬት ያለ ስም ደርሷል። ከደንበኛ ጋር ማገናኘት ማንነቱን ቀጥሎ ወደሚልኩት ሁሉ ያሸጋግራል።",
+    "ui_customer_since": "ደንበኛ ከ{date} ጀምሮ",
+    "ui_customer_open_tickets": "አሁን ክፍት",
+    "ui_customer_total_tickets": "በጠቅላላው",
+    "ui_customer_edit": "ዝርዝሮችን አርትዕ",
+    "ui_customer_new_ticket": "ለእነሱ ቲኬት ይመዝግቡ",
+    "ui_customer_notes_hint": "ከማነጋገራቸው በፊት ቡድኑ ማወቅ ያለበት። ለሠራተኞች ብቻ — ለደንበኛው በጭራሽ አይታይም።",
+    "ui_customer_no_notes": "እስካሁን ማስታወሻ የለም።",
+    "ui_customer_saved": "ተቀምጧል",
+    "ui_customer_back": "ሁሉም ደንበኞች",
+    "ui_customer_open_record": "መዝገባቸውን ክፈት"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -897,7 +917,17 @@
     "ui_ticket_no_reply_warning": "Bilbilli galmaa'e karaa deebii itti kennan hin qabu. Kana deebisanii bilbiluudhaan deebisi — deeskiin gara kanaatti erguu hin danda'u.",
     "ui_ticket_created": "Tikeetiin #{n} galmaa'eera",
     "ui_identify_customer": "Maamila kana moggaasi",
-    "ui_identify_hint": "Tikeetiin kun maqaa malee dhufe. Maamila waliin walqabsiisuun eenyummaa isaa gara waan itti aanee ergan hundatti dabarsa."
+    "ui_identify_hint": "Tikeetiin kun maqaa malee dhufe. Maamila waliin walqabsiisuun eenyummaa isaa gara waan itti aanee ergan hundatti dabarsa.",
+    "ui_customer_since": "Maamila {date} irraa eegalee",
+    "ui_customer_open_tickets": "Amma banaa",
+    "ui_customer_total_tickets": "Yeroo hunda",
+    "ui_customer_edit": "Bal'ina gulaali",
+    "ui_customer_new_ticket": "Isaaniif tikeetii galmeessi",
+    "ui_customer_notes_hint": "Isaan waliin haasa'uun dura wanti gareen beekuu qabu. Hojjettootaaf qofa — maamilichaaf gonkumaa hin argisiifamu.",
+    "ui_customer_no_notes": "Amma yaadannoon hin jiru.",
+    "ui_customer_saved": "Olkaa'ameera",
+    "ui_customer_back": "Maamiltoota hunda",
+    "ui_customer_open_record": "Galmee isaanii bani"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1197,7 +1227,17 @@
     "ui_ticket_no_reply_warning": "እተመዝገበ ጻውዒት መልሲ ዝወሃበሉ ቻነል የብሉን። ነዚ መሊስካ ብምድዋል መልሶ — እቲ ደስክ ናብዚ ክሰድድ ኣይክእልን።",
     "ui_ticket_created": "ትኬት #{n} ተመዝጊቡ",
     "ui_identify_customer": "ነዚ ዓሚል ሰይሞ",
-    "ui_identify_hint": "እዚ ትኬት ብዘይ ስም እዩ መጺኡ። ምስ ዓሚል ምትእስሳር ነቲ መንነት ናብ ዝቕጽል ዝሰዱዎ ኩሉ የሰጋግሮ።"
+    "ui_identify_hint": "እዚ ትኬት ብዘይ ስም እዩ መጺኡ። ምስ ዓሚል ምትእስሳር ነቲ መንነት ናብ ዝቕጽል ዝሰዱዎ ኩሉ የሰጋግሮ።",
+    "ui_customer_since": "ካብ {date} ጀሚሩ ዓሚል",
+    "ui_customer_open_tickets": "ሕጂ ክፉት",
+    "ui_customer_total_tickets": "ብጠቕላላ",
+    "ui_customer_edit": "ዝርዝራት ኣርትዕ",
+    "ui_customer_new_ticket": "ንዓታቶም ትኬት መዝግብ",
+    "ui_customer_notes_hint": "ምስኦም ቅድሚ ምዝራብ እቲ ጋንታ ክፈልጦ ዘለዎ። ንሰራሕተኛታት ጥራይ — ንዓሚል ፈጺሙ ኣይረአን።",
+    "ui_customer_no_notes": "ክሳብ ሕጂ መዘኻኸሪ የለን።",
+    "ui_customer_saved": "ተዓቂቡ",
+    "ui_customer_back": "ኩሎም ዓማዊል",
+    "ui_customer_open_record": "መዝገቦም ክፈት"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1497,7 +1537,17 @@
     "ui_ticket_no_reply_warning": "Wicitaan la diiwaan geliyay ma laha kanaal lagaga jawaabo. Kan uga jawaab adigoo dib u wacaya — deesku ma diri karo.",
     "ui_ticket_created": "Tikidh #{n} waa la diiwaan geliyay",
     "ui_identify_customer": "Magacaw macmiilkan",
-    "ui_identify_hint": "Tikidhkan wuxuu yimid magac la'aan. Isku xirka macmiil wuxuu aqoonsiga u gudbinayaa wax kasta oo ay xigta soo diraan."
+    "ui_identify_hint": "Tikidhkan wuxuu yimid magac la'aan. Isku xirka macmiil wuxuu aqoonsiga u gudbinayaa wax kasta oo ay xigta soo diraan.",
+    "ui_customer_since": "Macmiil tan iyo {date}",
+    "ui_customer_open_tickets": "Hadda furan",
+    "ui_customer_total_tickets": "Wakhti walba",
+    "ui_customer_edit": "Wax ka beddel faahfaahinta",
+    "ui_customer_new_ticket": "Tikidh u diiwaan geli",
+    "ui_customer_notes_hint": "Waxa kooxdu ogaan lahayd ka hor inta aanay la hadlin. Shaqaalaha kaliya — waligeed macmiilka lama tuso.",
+    "ui_customer_no_notes": "Weli xusuus-qor ma jiro.",
+    "ui_customer_saved": "Waa la keydiyay",
+    "ui_customer_back": "Macaamiisha oo dhan",
+    "ui_customer_open_record": "Fur diiwaankooda"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1797,6 +1847,16 @@
     "ui_ticket_no_reply_warning": "Simu iliyorekodiwa haina kituo cha kujibia. Jibu hii kwa kuwapigia tena — dawati haliwezi kutuma humo.",
     "ui_ticket_created": "Tiketi #{n} imesajiliwa",
     "ui_identify_customer": "Mtaje mteja huyu",
-    "ui_identify_hint": "Tiketi hii ilifika bila jina. Kuiunganisha na mteja hupeleka utambulisho kwenye kila kitu watakachotuma baadaye."
+    "ui_identify_hint": "Tiketi hii ilifika bila jina. Kuiunganisha na mteja hupeleka utambulisho kwenye kila kitu watakachotuma baadaye.",
+    "ui_customer_since": "Mteja tangu {date}",
+    "ui_customer_open_tickets": "Wazi sasa",
+    "ui_customer_total_tickets": "Muda wote",
+    "ui_customer_edit": "Hariri maelezo",
+    "ui_customer_new_ticket": "Wasajilie tiketi",
+    "ui_customer_notes_hint": "Kile timu inapaswa kujua kabla ya kuzungumza nao. Wafanyakazi pekee — hakionyeshwi kamwe kwa mteja.",
+    "ui_customer_no_notes": "Bado hakuna madokezo.",
+    "ui_customer_saved": "Imehifadhiwa",
+    "ui_customer_back": "Wateja wote",
+    "ui_customer_open_record": "Fungua rekodi yao"
   }
 }
