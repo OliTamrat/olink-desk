@@ -16,6 +16,8 @@ import {
 } from "../../lib/console-ui";
 import {
   CHANNEL_LABELS,
+  duration,
+  priorityKey,
   statusKey,
   timeAgo,
   type TicketDetail,
@@ -23,6 +25,51 @@ import {
 } from "../../lib/tickets";
 
 const FILTERS = ["ALL", "NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"] as const;
+
+const railSelect = {
+  padding: "6px 8px",
+  borderRadius: 6,
+  border: `1px solid ${colors.border}`,
+  background: colors.surfaceRaised,
+  color: colors.textBody,
+  fontSize: 12,
+  maxWidth: 150,
+} as const;
+
+// The SLA chips: what is promised, and how much clock is left. Amber past
+// 80% of the window, red past due — same thresholds as the wallboard.
+function slaChips(detail: TicketDetail, lang: string) {
+  const chips: Array<{ tone: "success" | "info" | "warn"; text: string }> = [];
+  const now = Date.now();
+  const closedish = detail.status === "RESOLVED" || detail.status === "CLOSED";
+  const chip = (dueIso: string | null, key: "ui_sla_first_due" | "ui_sla_resolve_due") => {
+    if (!dueIso) return;
+    const due = new Date(dueIso).getTime();
+    const created = new Date(detail.createdAt).getTime();
+    if (now >= due) {
+      chips.push({ tone: "warn", text: tUi(lang, "ui_sla_overdue", { t: duration(now - due) }) });
+    } else {
+      const progress = (now - created) / Math.max(1, due - created);
+      chips.push({
+        tone: progress >= 0.8 ? "warn" : "info",
+        text: tUi(lang, key, { t: duration(due - now) }),
+      });
+    }
+  };
+  if (!closedish) {
+    if (detail.firstRespondedAt) {
+      chips.push({ tone: "success", text: tUi(lang, "ui_sla_met") });
+    } else {
+      chip(detail.firstResponseDueAt, "ui_sla_first_due");
+    }
+    chip(detail.resolveDueAt, "ui_sla_resolve_due");
+  }
+  return chips.map((c, i) => (
+    <Badge key={i} tone={c.tone}>
+      {c.text}
+    </Badge>
+  ));
+}
 
 export default function InboxPage() {
   const [lang, setLang] = useConsoleLanguage();
@@ -35,6 +82,9 @@ export default function InboxPage() {
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [queues, setQueues] = useState<Array<{ id: string; name: string }>>([]);
+  const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
+  const [meId, setMeId] = useState<string | null>(null);
 
   const loadList = useCallback(async () => {
     const q = filter === "ALL" ? "" : `?status=${filter}`;
@@ -51,6 +101,34 @@ export default function InboxPage() {
     const timer = setInterval(loadList, 20_000);
     return () => clearInterval(timer);
   }, [me, loadList]);
+
+  useEffect(() => {
+    if (!me) return;
+    void (async () => {
+      const [qResp, uResp, meResp] = await Promise.all([
+        fetch("/api/queues"),
+        fetch("/api/users"),
+        fetch("/api/auth/me"),
+      ]);
+      if (qResp.ok) setQueues(((await qResp.json()) as { queues: typeof queues }).queues);
+      if (uResp.ok) setStaff(((await uResp.json()) as { users: typeof staff }).users);
+      if (meResp.ok) {
+        const body = (await meResp.json()) as { user: { id: string } };
+        setMeId(body.user.id);
+      }
+    })();
+  }, [me]);
+
+  // One PATCH covers every rail control; the response is the fresh ticket.
+  async function patchTicket(change: Record<string, unknown>) {
+    if (!selectedId) return;
+    const resp = await fetch(`/api/tickets/${selectedId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(change),
+    });
+    if (resp.ok) await Promise.all([loadDetail(selectedId), loadList()]);
+  }
 
   const loadDetail = useCallback(async (id: string) => {
     const resp = await fetch(`/api/tickets/${id}`);
@@ -246,6 +324,86 @@ export default function InboxPage() {
                   {detail.contact?.name ?? tUi(lang, "ui_customer")}
                   {detail.contact?.phone ? ` · ${detail.contact.phone}` : ""}
                 </span>
+              </div>
+
+              {/* -------------------------------------------- ticket rail */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  alignItems: "center",
+                  padding: "10px 0",
+                  borderBottom: `1px solid ${colors.border}`,
+                }}
+              >
+                {(["NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"] as const).some(
+                  (s) => s === detail.status,
+                ) ? (
+                  <select
+                    aria-label={tUi(lang, "ui_status")}
+                    value={detail.status}
+                    onChange={(e) => void patchTicket({ status: e.target.value })}
+                    style={railSelect}
+                  >
+                    {["NEW", "OPEN", "PENDING", "RESOLVED", "CLOSED"].map((st) => (
+                      <option key={st} value={st}>
+                        {tUi(lang, statusKey(st))}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+                <select
+                  aria-label={tUi(lang, "ui_priority")}
+                  value={detail.priority}
+                  onChange={(e) => void patchTicket({ priority: e.target.value })}
+                  style={railSelect}
+                >
+                  {["LOW", "NORMAL", "HIGH", "URGENT"].map((pr) => (
+                    <option key={pr} value={pr}>
+                      {tUi(lang, priorityKey(pr))}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label={tUi(lang, "ui_assignee")}
+                  value={detail.assigneeId ?? ""}
+                  onChange={(e) =>
+                    void patchTicket({ assigneeId: e.target.value || null })
+                  }
+                  style={railSelect}
+                >
+                  <option value="">{tUi(lang, "ui_unassigned")}</option>
+                  {staff.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+                {meId && detail.assigneeId !== meId ? (
+                  <button
+                    onClick={() => void patchTicket({ assigneeId: meId })}
+                    style={{ ...ui.buttonGhost, padding: "6px 10px", fontSize: 12 }}
+                  >
+                    {tUi(lang, "ui_assign_me")}
+                  </button>
+                ) : null}
+                <select
+                  aria-label={tUi(lang, "ui_queue")}
+                  value={detail.queueId ?? ""}
+                  onChange={(e) =>
+                    void patchTicket({ queueId: e.target.value || null })
+                  }
+                  style={railSelect}
+                >
+                  <option value="">{tUi(lang, "ui_no_queue")}</option>
+                  {queues.map((q) => (
+                    <option key={q.id} value={q.id}>
+                      {q.name}
+                    </option>
+                  ))}
+                </select>
+                {slaChips(detail, lang)}
               </div>
 
               <div style={{ flex: 1, overflowY: "auto", padding: "14px 2px", display: "grid", gap: 10 }}>

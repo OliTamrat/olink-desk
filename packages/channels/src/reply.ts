@@ -14,6 +14,7 @@
 import type { Channel, Organization, PrismaClient, Ticket } from "@olink-desk/database";
 import { Prisma, TicketStatus } from "@olink-desk/database";
 import { detectLanguage, t } from "@olink-desk/i18n";
+import { slaDatesFor } from "@olink-desk/sla";
 
 export interface ChannelReplyInput {
   db: PrismaClient;
@@ -196,6 +197,10 @@ async function createTicketWithNumber(
     language: string;
   },
 ): Promise<Ticket> {
+  // SLA clocks start at creation, on the org's policy for the default
+  // priority (NORMAL — a channel message carries no priority of its own;
+  // re-prioritizing recomputes the clocks in the ticket PATCH).
+  const sla = await slaDatesFor(db, data.organizationId, "NORMAL", new Date());
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const latest = await db.ticket.findFirst({
       where: { organizationId: data.organizationId },
@@ -204,7 +209,7 @@ async function createTicketWithNumber(
     });
     try {
       return await db.ticket.create({
-        data: { ...data, number: (latest?.number ?? 0) + 1 },
+        data: { ...data, ...sla, number: (latest?.number ?? 0) + 1 },
       });
     } catch (err) {
       const isNumberCollision =

@@ -67,3 +67,29 @@ ui_embed_hint	Paste this snippet before </body> on any page of your site.	ይህ
 ui_copy	Copy	ቅዳ	Garagalchi	ቅዳሕ	Koobbi	Nakili	Button that copies the embed snippet.
 ui_copied	Copied!	ተቀድቷል!	Garagalfameera!	ተቐዲሑ!	Waa la koobiyeeyay!	Imenakiliwa!	Copy button after a successful copy.
 ui_open_widget	Open the widget	ዊጀቱን ክፈት	Wijeetii bani	ዊጀት ክፈት	Fur wijidka	Fungua wijeti	Link that opens the org's widget page in a new tab.
+ui_status	Status	ሁኔታ	Haala	ኩነታት	Xaalad	Hali	Ticket rail label: the ticket's status field.
+ui_priority	Priority	ቅድሚያ	Dursa	ቀዳምነት	Mudnaan	Kipaumbele	Ticket rail label: the ticket's priority field.
+ui_assignee	Assignee	ተመዳቢ	Namni ramadame	እተመደበ ሰብ	Qofka loo xilsaaray	Aliyekabidhiwa	Ticket rail label: the agent responsible for the ticket.
+ui_assign_me	Assign to me	ለእኔ መድብ	Anaaf ramadi	ንዓይ መድብ	Ii xilsaar aniga	Nikabidhi mimi	Button: assign the ticket to the signed-in agent.
+ui_unassigned	Unassigned	ያልተመደበ	Hin ramadamne	ዘይተመደበ	Aan la xilsaarin	Haijakabidhiwa	Shown where no agent is assigned (rail and wallboard).
+ui_queue	Queue	ወረፋ	Toora	መስርዕ	Saf	Foleni	Ticket rail label: the queue (named work bucket) the ticket sits in.
+ui_no_queue	No queue	ወረፋ የለም	Toora hin qabu	መስርዕ የለን	Saf ma leh	Hakuna foleni	Shown when a ticket is in no queue.
+ui_new_queue	New queue name	አዲስ የወረፋ ስም	Maqaa toora haaraa	ሓድሽ ስም መስርዕ	Magaca safka cusub	Jina la foleni mpya	Placeholder of the create-a-queue input.
+ui_add	Add	አክል	Dabali	ወስኽ	Ku dar	Ongeza	Button that creates the queue.
+ui_pr_low	Low	ዝቅተኛ	Gadi aanaa	ትሑት	Hoose	Chini	Priority level: lowest.
+ui_pr_normal	Normal	መደበኛ	Idilee	ንቡር	Caadi	Kawaida	Priority level: default.
+ui_pr_high	High	ከፍተኛ	Ol'aanaa	ልዑል	Sare	Juu	Priority level: elevated.
+ui_pr_urgent	Urgent	አስቸኳይ	Ariifachiisaa	ህጹጽ	Degdeg	Dharura	Priority level: highest — tightest SLA clock.
+ui_sla_first_due	First reply due in {t}	የመጀመሪያ ምላሽ በ{t} ውስጥ	Deebiin jalqabaa {t} keessatti	ናይ መጀመርታ መልሲ ኣብ {t}	Jawaabta koowaad {t} gudaheed	Jibu la kwanza ndani ya {t}	SLA chip: time remaining to send the first reply. {t} is a duration like '2h 15m'.
+ui_sla_resolve_due	Resolve due in {t}	መፍትሄ በ{t} ውስጥ	Furmaanni {t} keessatti	ፍታሕ ኣብ {t}	Xallinta {t} gudaheed	Utatuzi ndani ya {t}	SLA chip: time remaining to resolve. {t} is a duration.
+ui_sla_overdue	Overdue by {t}	በ{t} ዘግይቷል	{t} tureera	ብ{t} ደንጉዩ	Waxay dib u dhacday {t}	Imechelewa kwa {t}	SLA chip: the promise was missed. {t} is how late.
+ui_sla_met	First reply sent	የመጀመሪያ ምላሽ ተልኳል	Deebiin jalqabaa ergameera	ናይ መጀመርታ መልሲ ተላኢኹ	Jawaabta koowaad waa la diray	Jibu la kwanza limetumwa	SLA chip: the first reply went out inside the target.
+ui_nav_wallboard	Wallboard	የክትትል ሰሌዳ	Gabatee hordoffii	ሰሌዳ ክትትል	Shaashadda kormeerka	Ubao wa ufuatiliaji	Sidebar item: the supervisor's live overview screen (for a big monitor).
+ui_wb_open	Open	ክፍት	Banaa	ክፉት	Furan	Wazi	Wallboard stat: open tickets right now.
+ui_wb_at_risk	At risk	አደጋ ላይ	Balaa irra	ኣብ ሓደጋ	Khatar ku jira	Hatarini	Wallboard stat: tickets past 80% of their SLA window.
+ui_wb_breached	Breached	ጊዜው ያለፈ	Yeroon darbe	ግዜኡ ዝሓለፈ	Waqtigu dhaafay	Muda umepita	Wallboard stat: tickets past their SLA due time.
+ui_wb_new_today	New today	ዛሬ አዲስ	Har'a haaraa	ሎሚ ሓድሽ	Maanta cusub	Mpya leo	Wallboard stat: tickets opened today.
+ui_wb_oldest	Oldest wait	ረጅሙ ጥበቃ	Eegumsa dheeraa	ዝነውሐ ምጽባይ	Sugitaanka ugu dheer	Subira ndefu zaidi	Wallboard column: the longest a ticket has been waiting.
+ui_wb_agents	Agents	ሰራተኞች	Hojjettoota	ሰራሕተኛታት	Shaqaalaha	Wafanyakazi	Wallboard section: staff and their open assignment counts.
+ui_wb_median_fr	Median first reply today	የዛሬ አማካይ የመጀመሪያ ምላሽ	Deebii jalqabaa giddugaleessa har'aa	ማእከላይ ናይ መጀመርታ መልሲ ሎሚ	Jawaabta koowaad ee dhexe maanta	Wastani wa jibu la kwanza leo	Wallboard stat: median minutes to first reply, today.
+ui_wb_median_res	Median resolution today	የዛሬ አማካይ መፍትሄ	Furmaata giddugaleessa har'aa	ማእከላይ ፍታሕ ሎሚ	Xallinta dhexe maanta	Wastani wa utatuzi leo	Wallboard stat: median minutes to resolution, today.
