@@ -20,7 +20,15 @@ import {
   type ReactNode,
 } from "react";
 
-import { colors, font, radius } from "./theme";
+import {
+  colors,
+  font,
+  radius,
+  RAIL_KEY,
+  THEME_KEY,
+  VIEWS_KEY,
+  type Appearance,
+} from "./theme";
 
 const LANG_KEY = "desk_console_lang";
 
@@ -70,6 +78,55 @@ export function useConsoleLanguage(): [Language, (l: Language) => void] {
     setLang(l);
   };
   return [lang, update];
+}
+
+/**
+ * Whether the app navigation is expanded.
+ *
+ * Remembered, for the same reason the context panel is (ADR 0019): somebody
+ * who collapsed it meant it, and re-expanding on every navigation is the
+ * console overruling a person about their own screen.
+ *
+ * Collapsed is 56px of icons rather than zero. A rail that vanishes entirely
+ * takes "where am I" with it, and the way back becomes a hunt — the same
+ * argument that made the phone's bottom bar slide rather than disappear.
+ */
+export function useRail(): [boolean, (open: boolean) => void] {
+  return useStoredFlag(RAIL_KEY, "data-rail");
+}
+
+/** As `useRail`, for the second layer. Separate key: collapsing the app rail
+ *  says nothing about whether somebody wants their saved views. */
+export function useViewsRail(): [boolean, (open: boolean) => void] {
+  return useStoredFlag(VIEWS_KEY, "data-views");
+}
+
+/**
+ * A remembered on/off whose real effect is CSS.
+ *
+ * The attribute on <html> is the switch — the boot script sets it before
+ * first paint, and `railCss` turns it into widths. React state exists only so
+ * the toggle can label itself; the geometry never waits for hydration, which
+ * is what stopped the rail swinging open and shut on every navigation.
+ */
+function useStoredFlag(key: string, attribute: string): [boolean, (v: boolean) => void] {
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    // Read the ATTRIBUTE, not storage: the boot script has already resolved
+    // it, and reading the same source twice is how two answers appear.
+    setOpen(document.documentElement.getAttribute(attribute) !== "0");
+  }, [attribute]);
+  const update = (next: boolean) => {
+    setOpen(next);
+    try {
+      window.localStorage.setItem(key, next ? "1" : "0");
+    } catch {
+      /* the choice still applies to this tab */
+    }
+    if (next) document.documentElement.removeAttribute(attribute);
+    else document.documentElement.setAttribute(attribute, "0");
+  };
+  return [open, update];
 }
 
 export function LanguagePicker({
@@ -209,7 +266,176 @@ export const Icons = {
       <path d="M21 12H9" />
     </svg>
   ),
+  // Appearance. Three distinct silhouettes rather than three shades of one
+  // shape: which is selected has to be readable at 16px, in a language the
+  // reader may not have, on a phone.
+  sun: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  ),
+  moon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+    </svg>
+  ),
+  monitor: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <rect x="2" y="4" width="20" height="13" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
+  ),
+  // The two rails' collapse controls. A chevron, not a hamburger: a hamburger
+  // says "menu", and this says "the thing beside me folds that way".
+  collapse: (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke}>
+      <path d="M15 6l-6 6 6 6" />
+    </svg>
+  ),
+  expand: (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  ),
 } as const;
+
+/**
+ * The appearance preference: light, dark, or whatever the device says.
+ *
+ * `system` is the default and is stored as the ABSENCE of a key, so a user
+ * who never opens this control keeps following their OS forever — including
+ * across a change of OS setting at dusk. Writing "system" as a value would
+ * work equally well; not writing anything means the boot script in
+ * `theme.ts` has nothing to parse and cannot get it wrong.
+ */
+export function useAppearance(): [Appearance, (a: Appearance) => void] {
+  const [pref, setPref] = useState<Appearance>("system");
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(THEME_KEY);
+      if (stored === "light" || stored === "dark") setPref(stored);
+    } catch {
+      // Private mode. The console renders in the OS theme, which is the
+      // right fallback and not worth a warning.
+    }
+  }, []);
+  const update = (a: Appearance) => {
+    setPref(a);
+    try {
+      if (a === "system") window.localStorage.removeItem(THEME_KEY);
+      else window.localStorage.setItem(THEME_KEY, a);
+    } catch {
+      /* the choice still applies to this tab */
+    }
+    // The attribute is the switch; the stylesheet does the rest. Removing it
+    // hands control back to `prefers-color-scheme`.
+    const root = document.documentElement;
+    if (a === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", a);
+  };
+  return [pref, update];
+}
+
+const APPEARANCES: Array<{ key: Appearance; icon: ReactNode; label: string }> = [
+  { key: "light", icon: Icons.sun, label: "ui_appearance_light" },
+  { key: "dark", icon: Icons.moon, label: "ui_appearance_dark" },
+  { key: "system", icon: Icons.monitor, label: "ui_appearance_system" },
+];
+
+export function AppearanceToggle({ lang }: { lang: Language }) {
+  const [pref, setPref] = useAppearance();
+  const [open, setOpen] = useState(false);
+  const current = APPEARANCES.find((a) => a.key === pref) ?? APPEARANCES[2];
+
+  return (
+    <div style={{ position: "relative" }} data-appearance-menu>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={tUi(lang, "ui_appearance")}
+        aria-expanded={open}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: 8,
+          borderRadius: radius.sm,
+          border: `1px solid ${open ? colors.accent : colors.border}`,
+          background: "transparent",
+          color: colors.textSecondary,
+          cursor: "pointer",
+        }}
+      >
+        {/* The icon shows what is IN EFFECT, so the control reports state as
+            well as offering a change. On `system` that is the monitor rather
+            than the resolved theme: a sun icon on a machine set to light
+            would be indistinguishable from an explicit light choice, and the
+            difference is the whole point of the third option. */}
+        {current.icon}
+      </button>
+      {open ? (
+        <>
+          <div
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 49 }}
+          />
+          <div
+            data-appearance-panel
+            style={{
+              position: "absolute",
+              top: "calc(100% + 6px)",
+              insetInlineEnd: 0,
+              zIndex: 50,
+              minWidth: 168,
+              background: colors.surface,
+              border: `1px solid ${colors.border}`,
+              borderRadius: radius.md,
+              padding: 5,
+              boxShadow: colors.shadow,
+            }}
+          >
+            {APPEARANCES.map((a) => (
+              <button
+                key={a.key}
+                data-appearance={a.key}
+                onClick={() => {
+                  setPref(a.key);
+                  setOpen(false);
+                }}
+                aria-current={a.key === pref}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                  textAlign: "start",
+                  padding: "9px 10px",
+                  borderRadius: radius.sm,
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: font,
+                  fontSize: 13,
+                  fontWeight: a.key === pref ? 600 : 500,
+                  color: a.key === pref ? colors.textPrimary : colors.textBody,
+                  background: a.key === pref ? colors.surfaceHover : "transparent",
+                }}
+              >
+                {a.icon}
+                <span style={{ flex: 1 }}>{tUi(lang, a.label)}</span>
+                {/* A tick, not only a highlight: the highlight is also what
+                    hover looks like on the next row down. */}
+                {a.key === pref ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" {...stroke}>
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 // ------------------------------------------------------------- alerts
 //
@@ -346,7 +572,7 @@ export function AlertBell({ lang }: { lang: Language }) {
             background: colors.surface,
             border: `1px solid ${colors.borderStrong}`,
             borderRadius: 10,
-            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            boxShadow: colors.shadowStrong,
             padding: 10,
             zIndex: 60,
             boxSizing: "border-box",
@@ -551,7 +777,7 @@ function QuickAdd({ lang }: { lang: Language }) {
           padding: "7px 12px 7px 9px",
           borderRadius: 8,
           border: "none",
-          background: colors.accent,
+          background: colors.accentSolid,
           color: colors.onAccent,
           fontSize: 13,
           fontWeight: 600,
@@ -581,7 +807,7 @@ function QuickAdd({ lang }: { lang: Language }) {
               border: `1px solid ${colors.border}`,
               borderRadius: 10,
               padding: 6,
-              boxShadow: "0 12px 32px rgba(0,0,0,.45)",
+              boxShadow: colors.shadow,
             }}
           >
             {items.map((item) => (
@@ -646,7 +872,11 @@ function AccountMenu({
             width: 26,
             height: 26,
             borderRadius: "50%",
-            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+            // Flat, not a gradient: the initials are drawn on it, and the
+            // light end of the old gradient could not carry white text at
+            // 4.5:1. The brand mark below keeps its gradient — nothing is
+            // written on that one.
+            background: colors.accentSolid,
             color: colors.onAccent,
             fontSize: 11,
             fontWeight: 700,
@@ -674,7 +904,7 @@ function AccountMenu({
             background: colors.surface,
             border: `1px solid ${colors.borderStrong}`,
             borderRadius: 10,
-            boxShadow: "0 16px 40px rgba(0,0,0,.55)",
+            boxShadow: colors.shadowStrong,
             padding: 12,
             zIndex: 70,
             display: "grid",
@@ -755,6 +985,8 @@ export function ConsoleShell({
   const router = useRouter();
   usePathname(); // keeps the shell client-routed
   const [contextOpen, setContextOpen] = useContextPanel();
+  const [railOpen, setRailOpen] = useRail();
+  const [viewsOpen, setViewsOpen] = useViewsRail();
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -831,7 +1063,7 @@ export function ConsoleShell({
           width: 26,
           height: 26,
           borderRadius: 8,
-          background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+          background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentSolid})`,
           flexShrink: 0,
         }}
       />
@@ -891,6 +1123,7 @@ export function ConsoleShell({
         <ContextToggle lang={lang} open={contextOpen} onToggle={() => setContextOpen(!contextOpen)} />
       ) : null}
       {me ? <AlertBell lang={lang} /> : null}
+      <AppearanceToggle lang={lang} />
       {me ? (
         <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
       ) : (
@@ -1084,13 +1317,19 @@ export function ConsoleShell({
     >
       {topBar}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Both rails fold. Nine destinations and a views list were on screen
+            at all times, which is 440px of navigation permanently competing
+            with the ticket somebody is reading. Collapsed, the app rail keeps
+            its ICONS — a rail that vanishes takes "where am I" with it, and
+            the way back becomes a hunt. */}
         <aside
+          data-app-rail={railOpen ? "open" : "collapsed"}
           style={{
-            width: 210,
+            width: "var(--rail-w)",
             flexShrink: 0,
             borderRight: `1px solid ${colors.border}`,
             background: colors.surface,
-            padding: "16px 12px",
+            padding: "var(--rail-box)",
             position: "sticky",
             // Below the 56px bar, so the rail scrolls with its own content
             // rather than fighting the bar for the top of the viewport.
@@ -1098,6 +1337,8 @@ export function ConsoleShell({
             height: "calc(100vh - 56px)",
             boxSizing: "border-box",
             overflowY: "auto",
+            overflowX: "hidden",
+            transition: "width .16s ease",
           }}
         >
           <nav style={{ display: "grid", gap: 4 }}>
@@ -1105,47 +1346,126 @@ export function ConsoleShell({
               <Link
                 key={item.key}
                 href={item.href}
+                // The label is the accessible name when it is not drawn.
+                title={railOpen ? undefined : item.label}
+                aria-label={railOpen ? undefined : item.label}
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "var(--rail-justify)",
                   gap: 10,
-                  padding: "9px 10px",
+                  padding: "var(--rail-pad)",
                   borderRadius: radius.sm,
                   textDecoration: "none",
                   fontSize: 14,
+                  whiteSpace: "nowrap",
                   fontWeight: item.key === active ? 600 : 500,
                   color: item.key === active ? colors.textPrimary : colors.textSecondary,
                   background: item.key === active ? colors.surfaceHover : "transparent",
-                  borderLeft: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
+                  borderLeft: `2px solid ${
+                    item.key === active ? colors.accent : "transparent"
+                  }`,
+                  // Collapsed, the 2px rule is most of what marks the active
+                  // item, so it stays; the fill carries the rest.
                 }}
               >
                 {item.icon}
-                {item.label}
+                {/* Rendered always, HIDDEN by the same variable that sets the
+                    width. Conditional rendering on React state would paint
+                    full-width labels inside a 56px rail for one frame. */}
+                <span style={{ display: "var(--rail-label)" }}>{item.label}</span>
               </Link>
             ))}
           </nav>
+          <button
+            onClick={() => setRailOpen(!railOpen)}
+            data-rail-toggle
+            aria-label={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+            aria-expanded={railOpen}
+            title={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "var(--rail-justify)",
+              gap: 10,
+              width: "100%",
+              marginTop: 10,
+              padding: "var(--rail-pad)",
+              borderRadius: radius.sm,
+              border: "none",
+              background: "transparent",
+              color: colors.textMuted,
+              cursor: "pointer",
+              fontFamily: font,
+              fontSize: 13,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {/* Both chevrons exist; CSS picks. Same reason as the labels. */}
+            <span style={{ display: "var(--rail-open)" }}>{Icons.collapse}</span>
+            <span style={{ display: "var(--rail-shut)" }}>{Icons.expand}</span>
+            <span style={{ display: "var(--rail-label)" }}>
+              {tUi(lang, "ui_rail_collapse")}
+            </span>
+          </button>
         </aside>
 
         {sidePanel ? (
           <aside
+            data-views-rail={viewsOpen ? "open" : "collapsed"}
             style={{
-              width: 230,
+              width: "var(--views-w)",
               flexShrink: 0,
-              borderRight: `1px solid ${colors.border}`,
+              borderRight: viewsOpen ? `1px solid ${colors.border}` : "none",
               background: colors.bg,
-              padding: "20px 12px",
+              padding: "var(--views-pad)",
               boxSizing: "border-box",
               height: "calc(100vh - 56px)",
               position: "sticky",
               top: 56,
               overflowY: "auto",
+              // The second rail folds to NOTHING rather than to icons: its
+              // items are saved searches with counts, and a count with no
+              // name attached is not information. Its reopen control lives on
+              // the page beside it, so it is never lost.
+              overflowX: "hidden",
+              transition: "width .16s ease",
             }}
           >
-            {sidePanel}
+            {viewsOpen ? sidePanel : null}
           </aside>
         ) : null}
 
         <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
+          {/* The views rail's own control sits HERE, on the content side,
+              because the rail it opens is zero pixels wide when shut — a
+              control inside it would be invisible exactly when it is needed.
+              Only rendered on screens that have a views rail at all. */}
+          {sidePanel ? (
+            <button
+              onClick={() => setViewsOpen(!viewsOpen)}
+              data-views-toggle
+              aria-expanded={viewsOpen}
+              aria-label={tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                marginBottom: 12,
+                padding: "6px 10px",
+                borderRadius: radius.sm,
+                border: `1px solid ${colors.border}`,
+                background: "transparent",
+                color: colors.textSecondary,
+                cursor: "pointer",
+                fontFamily: font,
+                fontSize: 12.5,
+              }}
+            >
+              {viewsOpen ? Icons.collapse : Icons.expand}
+              {tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+            </button>
+          ) : null}
           {/* The cap and the centring live HERE, once, so a page added later
               gets them without remembering to. Every screen used to pin its
               own max-width to the left, which is what left a void down the
@@ -1428,7 +1748,9 @@ export const ui = {
     padding: "10px 16px",
     borderRadius: radius.sm + 2,
     border: "none",
-    background: colors.accent,
+    // `accentSolid`, not `accent`: this is a FILL with a label on it, and in
+    // the dark theme the text tint is too light to carry white at 4.5:1.
+    background: colors.accentSolid,
     color: colors.onAccent,
     fontSize: 14,
     fontWeight: 600,
@@ -1447,7 +1769,7 @@ export const ui = {
   } as CSSProperties,
   error: {
     background: colors.dangerBg,
-    border: `1px solid ${colors.danger}44`,
+    border: `1px solid ${colors.dangerFaint}`,
     color: colors.danger,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",
@@ -1455,7 +1777,7 @@ export const ui = {
   } as CSSProperties,
   ok: {
     background: colors.successBg,
-    border: `1px solid ${colors.success}44`,
+    border: `1px solid ${colors.successFaint}`,
     color: colors.success,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",
@@ -1463,7 +1785,7 @@ export const ui = {
   } as CSSProperties,
   warn: {
     background: colors.warnBg,
-    border: `1px solid ${colors.warn}44`,
+    border: `1px solid ${colors.warnFaint}`,
     color: colors.warn,
     borderRadius: radius.sm + 2,
     padding: "10px 12px",
@@ -1475,13 +1797,17 @@ export function Badge({
   tone,
   children,
 }: {
-  tone: "success" | "info" | "warn" | "muted";
+  // `danger` was missing, which is why a BREACHED promise rendered in the
+  // same amber as one merely at risk — the single distinction an SLA display
+  // exists to make (ADR 0023).
+  tone: "success" | "info" | "warn" | "danger" | "muted";
   children: ReactNode;
 }) {
   const map = {
     success: { bg: colors.successBg, fg: colors.success },
     info: { bg: colors.infoBg, fg: colors.info },
     warn: { bg: colors.warnBg, fg: colors.warn },
+    danger: { bg: colors.dangerBg, fg: colors.danger },
     muted: { bg: colors.surfaceHover, fg: colors.textSecondary },
   }[tone];
   return (

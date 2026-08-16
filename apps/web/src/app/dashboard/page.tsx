@@ -238,7 +238,19 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+      {/* GRID, not wrapping flex. With `flex: 1` and wrap, the last row
+          stretches its survivors to full width — so three tiles on one line
+          and one on the next gives a lone tile four times the size of its
+          neighbours. `auto-fit` + `minmax` reflows to an even grid at every
+          width instead. */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
         {tile(tUi(lang, "ui_kpi_open"), tickets ? open.length : null, colors.accent, "/inbox?view=open")}
         {tile(tUi(lang, "ui_kpi_new_today"), tickets ? newToday.length : null, undefined, "/inbox?view=all&status=NEW")}
         {tile(
@@ -249,11 +261,40 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
-        <section style={{ ...ui.card, flex: "1 1 260px" }}>
+      {/* `alignItems: flex-start` let these two find their own heights, so
+          their bottom edges never lined up and the pair read as two loose
+          cards rather than a row. Stretched, they end level. The 1:1.6 split
+          gives the recent-ticket list the room its lines actually need while
+          keeping the channel bars wide enough to compare. */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: 16,
+          alignItems: "stretch",
+        }}
+      >
+        {/* A floor on the height, so a card that is LOADING still has the
+            shape of a card. Without it the first paint is two title strips
+            with nothing under them, which reads as a broken page rather than
+            as one still fetching — and it is the first thing anybody sees. */}
+        <section style={{ ...ui.card, display: "flex", flexDirection: "column", minHeight: 200 }}>
           <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_by_channel")}</h2>
           {tickets && byChannel.size === 0 ? (
-            <p style={{ margin: 0, color: colors.textMuted, fontSize: 13 }}>
+            // Centred in the remaining space rather than clinging to the
+            // heading: an empty card that collapses to a title strip is what
+            // made this row read as broken rather than as new.
+            <p
+              style={{
+                margin: 0,
+                flex: 1,
+                display: "grid",
+                placeItems: "center",
+                minHeight: 120,
+                color: colors.textMuted,
+                fontSize: 13,
+              }}
+            >
               {tUi(lang, "ui_no_tickets")}
             </p>
           ) : (
@@ -305,10 +346,28 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section style={{ ...ui.card, flex: "2 1 380px" }}>
+        <section
+          style={{
+            ...ui.card,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 200,
+          }}
+        >
           <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_recent_tickets")}</h2>
           {tickets && tickets.length === 0 ? (
-            <p style={{ margin: 0, color: colors.textMuted, fontSize: 13 }}>
+            <p
+              style={{
+                margin: 0,
+                flex: 1,
+                display: "grid",
+                placeItems: "center",
+                minHeight: 120,
+                textAlign: "center",
+                color: colors.textMuted,
+                fontSize: 13,
+              }}
+            >
               {tUi(lang, "ui_no_tickets")}{" "}
               <Link href="/channels" style={{ color: colors.accent }}>
                 {tUi(lang, "ui_channels_title")} →

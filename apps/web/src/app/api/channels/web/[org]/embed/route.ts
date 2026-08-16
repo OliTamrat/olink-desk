@@ -31,7 +31,7 @@ export async function GET(
   var btn = document.createElement("button");
   btn.id = "olink-desk-btn";
   btn.setAttribute("aria-label", "Chat");
-  btn.style.cssText = "position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;background:linear-gradient(135deg,#7c7cf5,#5b5bd6);box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:0;";
+  btn.style.cssText = "position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;background:linear-gradient(135deg,#5b9dff,#2563eb);box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:0;";
   btn.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
   var frame = document.createElement("iframe");
   frame.id = "olink-desk-frame";

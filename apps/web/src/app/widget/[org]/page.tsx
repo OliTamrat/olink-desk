@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { tUi, useConsoleLanguage, type Language } from "../../../lib/console-ui";
-import { colors, font, radius } from "../../../lib/theme";
+import { colors, font, pinnedThemeCss, radius } from "../../../lib/theme";
 import {
   LANGUAGE_NAMES,
   SUPPORTED_LANGUAGES,
@@ -182,6 +182,13 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
         overflow: "hidden",
       }}
     >
+      {/* The widget does NOT follow the visitor's OS. It lives in an iframe
+          the embed loader creates on a third-party page, and that loader is
+          plain JS on somebody else's site — its border and background are
+          literals it cannot theme. A visitor on a light machine would
+          otherwise get a pale panel inside a dark frame on a bank's homepage.
+          The console's light/dark choice is for staff, on our own origin. */}
+      <style dangerouslySetInnerHTML={{ __html: pinnedThemeCss("dark") }} />
       <header
         style={{
           display: "flex",
@@ -199,7 +206,7 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
             width: 30,
             height: 30,
             borderRadius: "50%",
-            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentStrong})`,
+            background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentSolid})`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -261,7 +268,7 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
                   borderRadius: 12,
                   borderBottomRightRadius: mine ? 4 : 12,
                   borderTopLeftRadius: mine ? 12 : 4,
-                  background: mine ? colors.accentStrong : colors.surfaceRaised,
+                  background: mine ? colors.accentSolid : colors.surfaceRaised,
                   color: mine ? colors.onAccent : colors.textBody,
                   fontSize: 14,
                   whiteSpace: "pre-wrap",
@@ -283,7 +290,7 @@ export default function WidgetPage({ params }: { params: { org: string } }) {
             padding: "8px 12px",
             borderRadius: radius.sm + 2,
             background: colors.dangerBg,
-            border: `1px solid ${colors.danger}44`,
+            border: `1px solid ${colors.dangerFaint}`,
             color: colors.danger,
             fontSize: 13,
           }}
