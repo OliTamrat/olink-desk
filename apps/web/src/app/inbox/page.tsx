@@ -24,6 +24,17 @@ import {
   type Draft,
   type OpenTab,
 } from "../../lib/open-tickets";
+// Priority and the SLA clock are two axes that constantly disagree, and
+// which one a row is allowed to show is a rule a supervisor will argue with.
+// It lives in the package with its tests rather than inline here (ADR 0023).
+import {
+  priorityIsNotable,
+  priorityTone,
+  rowTone,
+  slaReading,
+  type SlaReading,
+  type Tone,
+} from "@olink-desk/tickets/src/urgency";
 import {
   Badge,
   colors,
@@ -112,28 +123,16 @@ const td = {
   verticalAlign: "middle",
 } as const;
 
-function slaState(t: {
-  status: string;
-  createdAt: string;
-  firstRespondedAt?: string | null;
-  firstResponseDueAt?: string | null;
-  resolveDueAt?: string | null;
-}): { tone: "success" | "info" | "warn"; key: string; ms: number } | null {
-  if (t.status === "RESOLVED" || t.status === "CLOSED") return null;
-  const now = Date.now();
-  const created = new Date(t.createdAt).getTime();
-  const pick =
-    !t.firstRespondedAt && t.firstResponseDueAt
-      ? { due: t.firstResponseDueAt, key: "ui_sla_first_due" }
-      : t.resolveDueAt
-        ? { due: t.resolveDueAt, key: "ui_sla_resolve_due" }
-        : null;
-  if (!pick) return null;
-  const due = new Date(pick.due).getTime();
-  if (now >= due) return { tone: "warn", key: "ui_sla_overdue", ms: now - due };
-  const progress = (now - created) / Math.max(1, due - created);
-  return { tone: progress >= 0.8 ? "warn" : "info", key: pick.key, ms: due - now };
-}
+/** The one place a tone becomes ink, so the rail and the chip cannot drift. */
+const TONE_INK: Record<Exclude<Tone, "neutral">, string> = {
+  danger: colors.danger,
+  warn: colors.warn,
+  info: colors.info,
+  success: colors.success,
+};
+
+const slaState = (t: Parameters<typeof slaReading>[0]): SlaReading | null =>
+  slaReading(t, Date.now());
 
 const statusTone = (s: string) =>
   s === "NEW" ? "info" : s === "PENDING" ? "warn" : s === "OPEN" ? "success" : "muted";
@@ -1169,8 +1168,15 @@ function InboxWorkspace() {
                 {detail.firstRespondedAt ? (
                   <Badge tone="success">{tUi(lang, "ui_sla_met")}</Badge>
                 ) : null}
+                {priorityIsNotable(detail.priority) ? (
+                  <Badge tone={priorityTone(detail.priority) === "danger" ? "danger" : "warn"}>
+                    {tUi(lang, priorityKey(detail.priority))}
+                  </Badge>
+                ) : null}
                 {sla ? (
-                  <Badge tone={sla.tone}>{tUi(lang, sla.key, { t: duration(sla.ms) })}</Badge>
+                  <Badge tone={sla.tone === "danger" ? "danger" : sla.tone === "warn" ? "warn" : "info"}>
+                    {tUi(lang, sla.key, { t: duration(sla.ms) })}
+                  </Badge>
                 ) : null}
               </div>
             </div>
@@ -1762,16 +1768,28 @@ function InboxWorkspace() {
             <tbody>
               {rows.map((t) => {
                 const rowSla = slaState(t);
+                const rail = rowTone(t.priority, rowSla);
                 return (
                   <tr
                     key={t.id}
+                    data-row-tone={rail ?? "none"}
                     style={{
                       cursor: "pointer",
                       background: picked.has(t.id) ? colors.surfaceHover : "transparent",
                     }}
                     onClick={() => setSelectedId(t.id)}
                   >
-                    <td style={td} onClick={(e) => e.stopPropagation()}>
+                    <td
+                      style={{
+                        ...td,
+                        // An INSET shadow, not a border: a border would widen
+                        // the cell and shift every coloured row a few pixels
+                        // out of line with the plain ones, which is the exact
+                        // ragged edge this work is meant to remove.
+                        boxShadow: rail ? `inset 3px 0 0 ${TONE_INK[rail]}` : undefined,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
                         aria-label={`Select #${t.number}`}
@@ -1799,9 +1817,12 @@ function InboxWorkspace() {
                       >
                         {t.subject ?? t.messages[0]?.body ?? ""}
                       </div>
-                      {rowSla?.tone === "warn" ? (
+                      {/* On-track promises stay silent — a badge on every row
+                          is a badge on none. At-risk and breached each get
+                          their own colour; they used to share amber. */}
+                      {rowSla && rowSla.state !== "ok" ? (
                         <div style={{ marginTop: 4 }}>
-                          <Badge tone="warn">
+                          <Badge tone={rowSla.tone === "danger" ? "danger" : "warn"}>
                             {tUi(lang, rowSla.key, { t: duration(rowSla.ms) })}
                           </Badge>
                         </div>
@@ -1822,7 +1843,13 @@ function InboxWorkspace() {
                     </td>
                     {!isMobile ? (
                       <td style={{ ...td, color: colors.textSecondary }}>
-                        {tUi(lang, priorityKey(t.priority))}
+                        {priorityIsNotable(t.priority) ? (
+                          <Badge tone={priorityTone(t.priority) === "danger" ? "danger" : "warn"}>
+                            {tUi(lang, priorityKey(t.priority))}
+                          </Badge>
+                        ) : (
+                          tUi(lang, priorityKey(t.priority))
+                        )}
                       </td>
                     ) : null}
                     {!isMobile ? (

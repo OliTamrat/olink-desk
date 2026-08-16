@@ -20,7 +20,15 @@ import {
   type ReactNode,
 } from "react";
 
-import { colors, font, radius, THEME_KEY, type Appearance } from "./theme";
+import {
+  colors,
+  font,
+  radius,
+  RAIL_KEY,
+  THEME_KEY,
+  VIEWS_KEY,
+  type Appearance,
+} from "./theme";
 
 const LANG_KEY = "desk_console_lang";
 
@@ -70,6 +78,55 @@ export function useConsoleLanguage(): [Language, (l: Language) => void] {
     setLang(l);
   };
   return [lang, update];
+}
+
+/**
+ * Whether the app navigation is expanded.
+ *
+ * Remembered, for the same reason the context panel is (ADR 0019): somebody
+ * who collapsed it meant it, and re-expanding on every navigation is the
+ * console overruling a person about their own screen.
+ *
+ * Collapsed is 56px of icons rather than zero. A rail that vanishes entirely
+ * takes "where am I" with it, and the way back becomes a hunt — the same
+ * argument that made the phone's bottom bar slide rather than disappear.
+ */
+export function useRail(): [boolean, (open: boolean) => void] {
+  return useStoredFlag(RAIL_KEY, "data-rail");
+}
+
+/** As `useRail`, for the second layer. Separate key: collapsing the app rail
+ *  says nothing about whether somebody wants their saved views. */
+export function useViewsRail(): [boolean, (open: boolean) => void] {
+  return useStoredFlag(VIEWS_KEY, "data-views");
+}
+
+/**
+ * A remembered on/off whose real effect is CSS.
+ *
+ * The attribute on <html> is the switch — the boot script sets it before
+ * first paint, and `railCss` turns it into widths. React state exists only so
+ * the toggle can label itself; the geometry never waits for hydration, which
+ * is what stopped the rail swinging open and shut on every navigation.
+ */
+function useStoredFlag(key: string, attribute: string): [boolean, (v: boolean) => void] {
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    // Read the ATTRIBUTE, not storage: the boot script has already resolved
+    // it, and reading the same source twice is how two answers appear.
+    setOpen(document.documentElement.getAttribute(attribute) !== "0");
+  }, [attribute]);
+  const update = (next: boolean) => {
+    setOpen(next);
+    try {
+      window.localStorage.setItem(key, next ? "1" : "0");
+    } catch {
+      /* the choice still applies to this tab */
+    }
+    if (next) document.documentElement.removeAttribute(attribute);
+    else document.documentElement.setAttribute(attribute, "0");
+  };
+  return [open, update];
 }
 
 export function LanguagePicker({
@@ -227,6 +284,18 @@ export const Icons = {
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <rect x="2" y="4" width="20" height="13" rx="2" />
       <path d="M8 21h8M12 17v4" />
+    </svg>
+  ),
+  // The two rails' collapse controls. A chevron, not a hamburger: a hamburger
+  // says "menu", and this says "the thing beside me folds that way".
+  collapse: (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke}>
+      <path d="M15 6l-6 6 6 6" />
+    </svg>
+  ),
+  expand: (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke}>
+      <path d="M9 6l6 6-6 6" />
     </svg>
   ),
 } as const;
@@ -916,6 +985,8 @@ export function ConsoleShell({
   const router = useRouter();
   usePathname(); // keeps the shell client-routed
   const [contextOpen, setContextOpen] = useContextPanel();
+  const [railOpen, setRailOpen] = useRail();
+  const [viewsOpen, setViewsOpen] = useViewsRail();
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -1246,13 +1317,19 @@ export function ConsoleShell({
     >
       {topBar}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Both rails fold. Nine destinations and a views list were on screen
+            at all times, which is 440px of navigation permanently competing
+            with the ticket somebody is reading. Collapsed, the app rail keeps
+            its ICONS — a rail that vanishes takes "where am I" with it, and
+            the way back becomes a hunt. */}
         <aside
+          data-app-rail={railOpen ? "open" : "collapsed"}
           style={{
-            width: 210,
+            width: "var(--rail-w)",
             flexShrink: 0,
             borderRight: `1px solid ${colors.border}`,
             background: colors.surface,
-            padding: "16px 12px",
+            padding: "var(--rail-box)",
             position: "sticky",
             // Below the 56px bar, so the rail scrolls with its own content
             // rather than fighting the bar for the top of the viewport.
@@ -1260,6 +1337,8 @@ export function ConsoleShell({
             height: "calc(100vh - 56px)",
             boxSizing: "border-box",
             overflowY: "auto",
+            overflowX: "hidden",
+            transition: "width .16s ease",
           }}
         >
           <nav style={{ display: "grid", gap: 4 }}>
@@ -1267,47 +1346,126 @@ export function ConsoleShell({
               <Link
                 key={item.key}
                 href={item.href}
+                // The label is the accessible name when it is not drawn.
+                title={railOpen ? undefined : item.label}
+                aria-label={railOpen ? undefined : item.label}
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "var(--rail-justify)",
                   gap: 10,
-                  padding: "9px 10px",
+                  padding: "var(--rail-pad)",
                   borderRadius: radius.sm,
                   textDecoration: "none",
                   fontSize: 14,
+                  whiteSpace: "nowrap",
                   fontWeight: item.key === active ? 600 : 500,
                   color: item.key === active ? colors.textPrimary : colors.textSecondary,
                   background: item.key === active ? colors.surfaceHover : "transparent",
-                  borderLeft: `2px solid ${item.key === active ? colors.accent : "transparent"}`,
+                  borderLeft: `2px solid ${
+                    item.key === active ? colors.accent : "transparent"
+                  }`,
+                  // Collapsed, the 2px rule is most of what marks the active
+                  // item, so it stays; the fill carries the rest.
                 }}
               >
                 {item.icon}
-                {item.label}
+                {/* Rendered always, HIDDEN by the same variable that sets the
+                    width. Conditional rendering on React state would paint
+                    full-width labels inside a 56px rail for one frame. */}
+                <span style={{ display: "var(--rail-label)" }}>{item.label}</span>
               </Link>
             ))}
           </nav>
+          <button
+            onClick={() => setRailOpen(!railOpen)}
+            data-rail-toggle
+            aria-label={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+            aria-expanded={railOpen}
+            title={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "var(--rail-justify)",
+              gap: 10,
+              width: "100%",
+              marginTop: 10,
+              padding: "var(--rail-pad)",
+              borderRadius: radius.sm,
+              border: "none",
+              background: "transparent",
+              color: colors.textMuted,
+              cursor: "pointer",
+              fontFamily: font,
+              fontSize: 13,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {/* Both chevrons exist; CSS picks. Same reason as the labels. */}
+            <span style={{ display: "var(--rail-open)" }}>{Icons.collapse}</span>
+            <span style={{ display: "var(--rail-shut)" }}>{Icons.expand}</span>
+            <span style={{ display: "var(--rail-label)" }}>
+              {tUi(lang, "ui_rail_collapse")}
+            </span>
+          </button>
         </aside>
 
         {sidePanel ? (
           <aside
+            data-views-rail={viewsOpen ? "open" : "collapsed"}
             style={{
-              width: 230,
+              width: "var(--views-w)",
               flexShrink: 0,
-              borderRight: `1px solid ${colors.border}`,
+              borderRight: viewsOpen ? `1px solid ${colors.border}` : "none",
               background: colors.bg,
-              padding: "20px 12px",
+              padding: "var(--views-pad)",
               boxSizing: "border-box",
               height: "calc(100vh - 56px)",
               position: "sticky",
               top: 56,
               overflowY: "auto",
+              // The second rail folds to NOTHING rather than to icons: its
+              // items are saved searches with counts, and a count with no
+              // name attached is not information. Its reopen control lives on
+              // the page beside it, so it is never lost.
+              overflowX: "hidden",
+              transition: "width .16s ease",
             }}
           >
-            {sidePanel}
+            {viewsOpen ? sidePanel : null}
           </aside>
         ) : null}
 
         <div style={{ flex: 1, minWidth: 0, padding: "24px 28px", boxSizing: "border-box" }}>
+          {/* The views rail's own control sits HERE, on the content side,
+              because the rail it opens is zero pixels wide when shut — a
+              control inside it would be invisible exactly when it is needed.
+              Only rendered on screens that have a views rail at all. */}
+          {sidePanel ? (
+            <button
+              onClick={() => setViewsOpen(!viewsOpen)}
+              data-views-toggle
+              aria-expanded={viewsOpen}
+              aria-label={tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                marginBottom: 12,
+                padding: "6px 10px",
+                borderRadius: radius.sm,
+                border: `1px solid ${colors.border}`,
+                background: "transparent",
+                color: colors.textSecondary,
+                cursor: "pointer",
+                fontFamily: font,
+                fontSize: 12.5,
+              }}
+            >
+              {viewsOpen ? Icons.collapse : Icons.expand}
+              {tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+            </button>
+          ) : null}
           {/* The cap and the centring live HERE, once, so a page added later
               gets them without remembering to. Every screen used to pin its
               own max-width to the left, which is what left a void down the
@@ -1639,13 +1797,17 @@ export function Badge({
   tone,
   children,
 }: {
-  tone: "success" | "info" | "warn" | "muted";
+  // `danger` was missing, which is why a BREACHED promise rendered in the
+  // same amber as one merely at risk — the single distinction an SLA display
+  // exists to make (ADR 0023).
+  tone: "success" | "info" | "warn" | "danger" | "muted";
   children: ReactNode;
 }) {
   const map = {
     success: { bg: colors.successBg, fg: colors.success },
     info: { bg: colors.infoBg, fg: colors.info },
     warn: { bg: colors.warnBg, fg: colors.warn },
+    danger: { bg: colors.dangerBg, fg: colors.danger },
     muted: { bg: colors.surfaceHover, fg: colors.textSecondary },
   }[tone];
   return (

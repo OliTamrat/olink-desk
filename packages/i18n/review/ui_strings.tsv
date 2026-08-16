@@ -328,3 +328,7 @@ ui_appearance	Appearance	መልክ	Bifa	ትርኢት	Muuqaalka	Mwonekano	Accessi
 ui_appearance_light	Light	ብሩህ	Ifaa	ብሩህ	Iftiin	Angavu	The light theme. One word — it sits in a narrow menu beside an icon.
 ui_appearance_dark	Dark	ጨለማ	Dukkanaa	ጸሊም	Madow	Giza	The dark theme. One word.
 ui_appearance_system	Match my device	እንደ መሣሪያዬ	Akka meeshaa kootii	ከም መሳርሒየ	Sida qalabkayga	Kama kifaa changu	Follow the device's own light/dark setting rather than choosing. Should read as 'whatever my phone or computer is set to', NOT as a technical word like 'System' or 'Automatic' — many users here have never seen an OS setting named that way, and the point is that it changes by itself at dusk.
+ui_rail_collapse	Collapse	አጥብብ	Dhiphisi	ኣጽብብ	Yaree	Kunja	Control at the foot of the app navigation that folds it to icons. One word — it sits in a 210px rail and must not wrap.
+ui_rail_expand	Expand menu	ምናሌን ዘርጋ	Baafata bal'isi	ዝርዝር ኣርሕብ	Ballaari liiska	Panua menyu	The same control once folded, where only an icon and a tooltip are visible. Says what will EXPAND, since at 56px there is no context to infer it from.
+ui_views_hide	Hide views	እይታዎችን ደብቅ	Ilaalcha dhoksi	ትርኢታት ሕባእ	Qari muuqaallada	Ficha mionekano	Button above the page content that folds the saved-views rail away. 'Views' is the same word used for the rail's own heading.
+ui_views_show	Show views	እይታዎችን አሳይ	Ilaalcha agarsiisi	ትርኢታት ኣርኢ	Muuji muuqaallada	Onyesha mionekano	The same button once the views rail is folded. It lives on the CONTENT side because the rail it opens is zero pixels wide when shut.

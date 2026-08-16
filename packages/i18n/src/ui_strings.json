@@ -328,7 +328,11 @@
     "ui_appearance": "Appearance",
     "ui_appearance_light": "Light",
     "ui_appearance_dark": "Dark",
-    "ui_appearance_system": "Match my device"
+    "ui_appearance_system": "Match my device",
+    "ui_rail_collapse": "Collapse",
+    "ui_rail_expand": "Expand menu",
+    "ui_views_hide": "Hide views",
+    "ui_views_show": "Show views"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -659,7 +663,11 @@
     "ui_appearance": "መልክ",
     "ui_appearance_light": "ብሩህ",
     "ui_appearance_dark": "ጨለማ",
-    "ui_appearance_system": "እንደ መሣሪያዬ"
+    "ui_appearance_system": "እንደ መሣሪያዬ",
+    "ui_rail_collapse": "አጥብብ",
+    "ui_rail_expand": "ምናሌን ዘርጋ",
+    "ui_views_hide": "እይታዎችን ደብቅ",
+    "ui_views_show": "እይታዎችን አሳይ"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -990,7 +998,11 @@
     "ui_appearance": "Bifa",
     "ui_appearance_light": "Ifaa",
     "ui_appearance_dark": "Dukkanaa",
-    "ui_appearance_system": "Akka meeshaa kootii"
+    "ui_appearance_system": "Akka meeshaa kootii",
+    "ui_rail_collapse": "Dhiphisi",
+    "ui_rail_expand": "Baafata bal'isi",
+    "ui_views_hide": "Ilaalcha dhoksi",
+    "ui_views_show": "Ilaalcha agarsiisi"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1321,7 +1333,11 @@
     "ui_appearance": "ትርኢት",
     "ui_appearance_light": "ብሩህ",
     "ui_appearance_dark": "ጸሊም",
-    "ui_appearance_system": "ከም መሳርሒየ"
+    "ui_appearance_system": "ከም መሳርሒየ",
+    "ui_rail_collapse": "ኣጽብብ",
+    "ui_rail_expand": "ዝርዝር ኣርሕብ",
+    "ui_views_hide": "ትርኢታት ሕባእ",
+    "ui_views_show": "ትርኢታት ኣርኢ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1652,7 +1668,11 @@
     "ui_appearance": "Muuqaalka",
     "ui_appearance_light": "Iftiin",
     "ui_appearance_dark": "Madow",
-    "ui_appearance_system": "Sida qalabkayga"
+    "ui_appearance_system": "Sida qalabkayga",
+    "ui_rail_collapse": "Yaree",
+    "ui_rail_expand": "Ballaari liiska",
+    "ui_views_hide": "Qari muuqaallada",
+    "ui_views_show": "Muuji muuqaallada"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1983,6 +2003,10 @@
     "ui_appearance": "Mwonekano",
     "ui_appearance_light": "Angavu",
     "ui_appearance_dark": "Giza",
-    "ui_appearance_system": "Kama kifaa changu"
+    "ui_appearance_system": "Kama kifaa changu",
+    "ui_rail_collapse": "Kunja",
+    "ui_rail_expand": "Panua menyu",
+    "ui_views_hide": "Ficha mionekano",
+    "ui_views_show": "Onyesha mionekano"
   }
 }

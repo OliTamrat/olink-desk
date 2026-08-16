@@ -202,6 +202,29 @@ export const font =
 
 export const radius = { sm: 6, md: 10, lg: 14 } as const;
 
+export const RAIL_KEY = "olink-desk.rail-open";
+export const VIEWS_KEY = "olink-desk.views-open";
+
+/**
+ * The rails' geometry, as CSS rather than as React state.
+ *
+ * Same problem as the theme flash and the same shape of fix. React learns
+ * that a rail was collapsed from localStorage in an effect, which is AFTER
+ * first paint — so somebody who folded the rail watched it swing open and
+ * shut again on every navigation, shifting the whole page 154px sideways
+ * each time. Driving width from a custom property lets the boot script decide
+ * before anything is drawn, while React keeps the state it needs for the
+ * toggle's own labelling.
+ *
+ * The labels are gated the same way, or the first paint would be a 56px rail
+ * with full-width text clipped inside it.
+ */
+export const railCss = `
+:root{--rail-w:210px;--rail-label:inline;--rail-justify:flex-start;--rail-pad:9px 10px;--rail-box:16px 12px;--views-w:230px;--views-pad:20px 12px;--rail-open:inline-flex;--rail-shut:none}
+:root[data-rail="0"]{--rail-w:56px;--rail-label:none;--rail-justify:center;--rail-pad:9px 0;--rail-box:16px 8px;--rail-open:none;--rail-shut:inline-flex}
+:root[data-views="0"]{--views-w:0px;--views-pad:0}
+`;
+
 export const THEME_KEY = "olink-desk.appearance";
 export type Appearance = "light" | "dark" | "system";
 
@@ -215,6 +238,10 @@ export type Appearance = "light" | "dark" | "system";
  * `<head>` script that throws takes the page with it, and localStorage throws
  * in private mode on some browsers.
  */
-export const themeBootScript = `try{var t=localStorage.getItem(${JSON.stringify(
+export const themeBootScript = `try{var d=document.documentElement,t=localStorage.getItem(${JSON.stringify(
   THEME_KEY,
-)});if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+)});if(t==="dark"||t==="light")d.setAttribute("data-theme",t);if(localStorage.getItem(${JSON.stringify(
+  RAIL_KEY,
+)})==="0")d.setAttribute("data-rail","0");if(localStorage.getItem(${JSON.stringify(
+  VIEWS_KEY,
+)})==="0")d.setAttribute("data-views","0")}catch(e){}`;
