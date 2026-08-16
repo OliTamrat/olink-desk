@@ -210,7 +210,12 @@
     "ui_alerts_mark_read": "Mark all read",
     "ui_alert_sla_breached": "Past its reply deadline",
     "ui_alert_sla_at_risk": "Close to its reply deadline",
-    "ui_alert_unassigned_waiting": "Waiting with nobody assigned"
+    "ui_alert_unassigned_waiting": "Waiting with nobody assigned",
+    "ui_satisfaction": "Satisfaction",
+    "ui_wb_csat": "Satisfaction today",
+    "ui_csat_responses": "from {n} replies",
+    "ui_csat_none": "Not rated",
+    "ui_csat_awaiting": "Survey sent, no reply yet"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -423,7 +428,12 @@
     "ui_alerts_mark_read": "ሁሉንም እንደተነበበ ምልክት አድርግ",
     "ui_alert_sla_breached": "የመልስ ገደቡ አልፎበታል",
     "ui_alert_sla_at_risk": "ወደ መልስ ገደቡ ተቃርቧል",
-    "ui_alert_unassigned_waiting": "ማንም ሳይመደብለት እየጠበቀ ነው"
+    "ui_alert_unassigned_waiting": "ማንም ሳይመደብለት እየጠበቀ ነው",
+    "ui_satisfaction": "እርካታ",
+    "ui_wb_csat": "የዛሬ እርካታ",
+    "ui_csat_responses": "ከ{n} ምላሾች",
+    "ui_csat_none": "አልተገመገመም",
+    "ui_csat_awaiting": "ዳሰሳ ተልኳል፣ ገና ምላሽ የለም"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -636,7 +646,12 @@
     "ui_alerts_mark_read": "Hunda akka dubbifame mallattoo godhi",
     "ui_alert_sla_breached": "Yeroon deebii isaa darbeera",
     "ui_alert_sla_at_risk": "Yeroo deebii isaatti dhiyaateera",
-    "ui_alert_unassigned_waiting": "Namni itti kenname utuu hin jiraatin eegaa jira"
+    "ui_alert_unassigned_waiting": "Namni itti kenname utuu hin jiraatin eegaa jira",
+    "ui_satisfaction": "Quufa",
+    "ui_wb_csat": "Quufa har'aa",
+    "ui_csat_responses": "deebii {n} irraa",
+    "ui_csat_none": "Hin madaalamne",
+    "ui_csat_awaiting": "Qorannoon ergameera, ammatti deebiin hin jiru"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -849,7 +864,12 @@
     "ui_alerts_mark_read": "ንዅሉ ከም እተነበበ ምልክት ግበር",
     "ui_alert_sla_breached": "ናይ መልሲ ገደቡ ሓሊፉ",
     "ui_alert_sla_at_risk": "ናብ ናይ መልሲ ገደቡ ቀሪቡ",
-    "ui_alert_unassigned_waiting": "ዋላ ሓደ ከይተመደበሉ ይጽበ ኣሎ"
+    "ui_alert_unassigned_waiting": "ዋላ ሓደ ከይተመደበሉ ይጽበ ኣሎ",
+    "ui_satisfaction": "ዕግበት",
+    "ui_wb_csat": "ናይ ሎሚ ዕግበት",
+    "ui_csat_responses": "ካብ {n} መልስታት",
+    "ui_csat_none": "ኣይተገምገመን",
+    "ui_csat_awaiting": "መጽናዕቲ ተላኢኹ፡ ገና መልሲ የለን"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1062,7 +1082,12 @@
     "ui_alerts_mark_read": "Calaamadee dhammaan in la akhriyay",
     "ui_alert_sla_breached": "Wuu dhaafay waqtiga jawaabta",
     "ui_alert_sla_at_risk": "Wuu u dhow yahay waqtiga jawaabta",
-    "ui_alert_unassigned_waiting": "Wuu sugayaa iyadoo aan cidna loo qoondayn"
+    "ui_alert_unassigned_waiting": "Wuu sugayaa iyadoo aan cidna loo qoondayn",
+    "ui_satisfaction": "Qanacsanaan",
+    "ui_wb_csat": "Qanacsanaanta maanta",
+    "ui_csat_responses": "laga bilaabo {n} jawaab",
+    "ui_csat_none": "Lama qiimeynin",
+    "ui_csat_awaiting": "Sahan la diray, weli jawaab ma jirto"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -1275,6 +1300,11 @@
     "ui_alerts_mark_read": "Weka zote kuwa zimesomwa",
     "ui_alert_sla_breached": "Imepita muda wa kujibu",
     "ui_alert_sla_at_risk": "Inakaribia muda wa kujibu",
-    "ui_alert_unassigned_waiting": "Inasubiri bila mtu kukabidhiwa"
+    "ui_alert_unassigned_waiting": "Inasubiri bila mtu kukabidhiwa",
+    "ui_satisfaction": "Kuridhika",
+    "ui_wb_csat": "Kuridhika leo",
+    "ui_csat_responses": "kutoka majibu {n}",
+    "ui_csat_none": "Haijakadiriwa",
+    "ui_csat_awaiting": "Utafiti umetumwa, bado hakuna jibu"
   }
 }

@@ -13,6 +13,7 @@
 // Viber fires one only on a fresh chat, WhatsApp has none at all.
 import type { Channel, Organization, PrismaClient, Ticket } from "@olink-desk/database";
 import { Prisma, TicketStatus } from "@olink-desk/database";
+import { awaitingRating, parseRating } from "@olink-desk/csat";
 import { detectLanguage, t } from "@olink-desk/i18n";
 import { slaDatesFor } from "@olink-desk/sla";
 
@@ -45,6 +46,9 @@ export interface ChannelReplyResult {
   ticketId: string;
   ticketNumber: number;
   ticketCreated: boolean;
+  /** Present only when the inbound message was read as a satisfaction score
+   *  rather than a new message — the caller can then skip its own ack. */
+  csatScore?: number;
 }
 
 // Statuses an inbound message may thread onto. RESOLVED is deliberately not
@@ -101,6 +105,95 @@ export async function channelReply(
       where: { id: conversation.id },
       data: { language: detected },
     });
+  }
+
+  // ---- Is this a satisfaction score rather than a new message?
+  //
+  // After a survey goes out, the next thing the customer sends is either a
+  // rating or a brand new problem, and nothing about the transport tells them
+  // apart. The rule is deliberately narrow — a rating is a message that is
+  // essentially just a number, checked against a survey that is actually open
+  // on this conversation's most recent RESOLVED ticket.
+  //
+  // The asymmetry is on purpose: losing a rating costs a data point, losing a
+  // question costs a customer. So anything with words in it falls straight
+  // through to the ordinary path below and opens a ticket as normal.
+  const surveyed = await db.ticket.findFirst({
+    where: {
+      organizationId: organization.id,
+      conversationId: conversation.id,
+      csatSentAt: { not: null },
+      csatScore: null,
+    },
+    orderBy: { csatSentAt: "desc" },
+  });
+  if (surveyed && awaitingRating(surveyed, new Date())) {
+    const score = parseRating(text);
+    if (score !== null) {
+      await db.ticket.update({
+        where: { id: surveyed.id },
+        data: { csatScore: score },
+      });
+      // The score is recorded on the ticket; the audit row says a rating
+      // happened and what it was, never the customer's words.
+      await db.auditLog.create({
+        data: {
+          organizationId: organization.id,
+          action: "ticket.csat_received",
+          entityType: "ticket",
+          entityId: String(surveyed.id),
+          metadata: { score, channel },
+        },
+      });
+      // Both halves of the exchange are recorded on the ticket that was
+      // surveyed. The customer really did send something and we really did
+      // answer, so a timeline that showed neither — or showed a thank-you
+      // with nothing before it — would be a lie of omission. What is NOT
+      // created is a new ticket, which was the actual point.
+      await db.ticketMessage.create({
+        data: {
+          organizationId: organization.id,
+          ticketId: surveyed.id,
+          direction: "INBOUND",
+          channel,
+          body: text,
+          contactId: conversation.contactId,
+          externalId: input.externalMessageId ?? null,
+        },
+      });
+
+      // Acknowledge in the customer's own language, with no promise of
+      // follow-up: the ticket is closed and nobody is coming back to them.
+      const thanks = t(conversation.language, "csat_thanks");
+      let delivered = false;
+      try {
+        delivered = await send(thanks);
+      } catch {
+        delivered = false;
+      }
+      // Recorded only on real delivery — and on WEB, recording IS delivery
+      // for the widget, which is exactly what an earlier version missed:
+      // it sent without recording, so the customer saw nothing at all.
+      if (delivered) {
+        await db.ticketMessage.create({
+          data: {
+            organizationId: organization.id,
+            ticketId: surveyed.id,
+            direction: "OUTBOUND",
+            channel,
+            body: thanks,
+          },
+        });
+      }
+      return {
+        duplicate: false,
+        conversationId: conversation.id,
+        ticketId: surveyed.id,
+        ticketNumber: surveyed.number,
+        ticketCreated: false,
+        csatScore: score,
+      };
+    }
   }
 
   let ticket = await db.ticket.findFirst({

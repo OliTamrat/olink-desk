@@ -1,4 +1,5 @@
 // One ticket with its full timeline, tenant-scoped through the session.
+import { sendCsatSurvey } from "@olink-desk/channels";
 import { prisma } from "@olink-desk/database";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -192,6 +193,23 @@ export async function PATCH(
     where: { id: ticket.id },
     data,
   });
+
+  // Resolving asks the customer how it went, on the channel they wrote in on
+  // and in their own language. Awaited but never allowed to fail the resolve:
+  // the agent's action must succeed even if the customer's channel is down,
+  // and an unsent survey simply leaves csatSentAt null — which is exactly how
+  // it stays findable later.
+  if (data.status === TicketStatus.RESOLVED) {
+    try {
+      await sendCsatSurvey({
+        db: prisma,
+        organizationId: principal.organization.id,
+        ticketId: ticket.id,
+      });
+    } catch {
+      // Deliberately swallowed. See above.
+    }
+  }
   await prisma.auditLog.create({
     data: {
       organizationId: principal.organization.id,

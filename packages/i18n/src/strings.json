@@ -2,31 +2,43 @@
   "en": {
     "greeting": "Hello! You have reached {org} customer support. Send us your message and our team will reply to you here.",
     "ticket_opened": "Thank you — your message has reached {org}. Your ticket number is {number}. Our team will reply to you here.",
-    "message_received": "Thank you — your message was added to ticket {number}. Our team will get back to you."
+    "message_received": "Thank you — your message was added to ticket {number}. Our team will get back to you.",
+    "csat_ask": "Your request #{number} is resolved. How did we do? Reply with a number from 1 (poor) to 5 (excellent).",
+    "csat_thanks": "Thank you — your feedback has been recorded."
   },
   "am": {
     "greeting": "ሰላም! የ{org} የደንበኞች አገልግሎት ነው። መልዕክትዎን ይላኩልን — ቡድናችን እዚሁ ይመልስልዎታል።",
     "ticket_opened": "አመሰግናለሁ — መልዕክትዎ ለ{org} ደርሷል። የቲኬት ቁጥርዎ {number} ነው። ቡድናችን እዚሁ ይመልስልዎታል።",
-    "message_received": "አመሰግናለሁ — መልዕክትዎ ወደ ቲኬት {number} ታክሏል። ቡድናችን ያገኙዎታል።"
+    "message_received": "አመሰግናለሁ — መልዕክትዎ ወደ ቲኬት {number} ታክሏል። ቡድናችን ያገኙዎታል።",
+    "csat_ask": "ጥያቄዎ #{number} ተፈትቷል። እንዴት ሰራን? ከ1 (ደካማ) እስከ 5 (በጣም ጥሩ) ባለ ቁጥር ይመልሱ።",
+    "csat_thanks": "እናመሰግናለን — አስተያየትዎ ተመዝግቧል።"
   },
   "om": {
     "greeting": "Akkam! Kun tajaajila maamiltootaa {org} ti. Ergaa keessan nuuf ergaa — gareen keenya asuma deebii isiniif kenna.",
     "ticket_opened": "Galatoomaa — ergaan keessan {org} qaqqabeera. Lakkoofsi tiikeetii keessanii {number} dha. Gareen keenya asuma deebii isiniif kenna.",
-    "message_received": "Galatoomaa — ergaan keessan tiikeetii {number} irratti dabalameera. Gareen keenya isin qunnama."
+    "message_received": "Galatoomaa — ergaan keessan tiikeetii {number} irratti dabalameera. Gareen keenya isin qunnama.",
+    "csat_ask": "Gaaffiin keessan #{number} furameera. Akkamitti hojjenne? Lakkoofsa 1 (gadhee) hanga 5 (baayyee gaarii) ta'een deebisaa.",
+    "csat_thanks": "Galatoomaa — yaadni keessan galmaa'eera."
   },
   "ti": {
     "greeting": "ሰላም! እዚ ኣገልግሎት ዓማዊል {org} እዩ። መልእኽትኹም ስደዱልና — ጋንታና ኣብዚ ክምልሰልኩም እዩ።",
     "ticket_opened": "የቐንየለይ — መልእኽትኹም ናብ {org} በጺሑ እዩ። ቁጽሪ ቲኬትኩም {number} እዩ። ጋንታና ኣብዚ ክምልሰልኩም እዩ።",
-    "message_received": "የቐንየለይ — መልእኽትኹም ናብ ቲኬት {number} ተወሲኹ እዩ። ጋንታና ክረኽበኩም እዩ።"
+    "message_received": "የቐንየለይ — መልእኽትኹም ናብ ቲኬት {number} ተወሲኹ እዩ። ጋንታና ክረኽበኩም እዩ።",
+    "csat_ask": "ሕቶኹም #{number} ተፈቲሑ። ከመይ ሰሪሕና? ካብ 1 (ድኹም) ክሳብ 5 (ኣዝዩ ጽቡቕ) ብዘሎ ቍጽሪ መልሱ።",
+    "csat_thanks": "የመስግነኩም — ርእይቶኹም ተመዝጊቡ ኣሎ።"
   },
   "so": {
     "greeting": "Salaan! Kani waa adeegga macaamiisha ee {org}. Fariintaada noo soo dir — kooxdayadu halkan ayay kaaga jawaabi doontaa.",
     "ticket_opened": "Mahadsanid — fariintaadu waxay gaartay {org}. Lambarka tikidhkaagu waa {number}. Kooxdayadu halkan ayay kaaga jawaabi doontaa.",
-    "message_received": "Mahadsanid — fariintaada waxaa lagu daray tikidhka {number}. Kooxdayadu way kula soo xiriiri doontaa."
+    "message_received": "Mahadsanid — fariintaada waxaa lagu daray tikidhka {number}. Kooxdayadu way kula soo xiriiri doontaa.",
+    "csat_ask": "Codsigaaga #{number} waa la xalliyay. Sidee ayaan u shaqeynay? Ku jawaab lambar 1 (liita) ilaa 5 (aad u fiican).",
+    "csat_thanks": "Mahadsanid — ra'yigaaga waa la diiwaangeliyay."
   },
   "sw": {
     "greeting": "Habari! Hii ni huduma kwa wateja ya {org}. Tutumie ujumbe wako — timu yetu itakujibu hapa.",
     "ticket_opened": "Asante — ujumbe wako umefika {org}. Namba ya tiketi yako ni {number}. Timu yetu itakujibu hapa.",
-    "message_received": "Asante — ujumbe wako umeongezwa kwenye tiketi {number}. Timu yetu itawasiliana nawe."
+    "message_received": "Asante — ujumbe wako umeongezwa kwenye tiketi {number}. Timu yetu itawasiliana nawe.",
+    "csat_ask": "Ombi lako #{number} limetatuliwa. Tulifanyaje? Jibu kwa nambari kutoka 1 (duni) hadi 5 (bora sana).",
+    "csat_thanks": "Asante — maoni yako yamehifadhiwa."
   }
 }

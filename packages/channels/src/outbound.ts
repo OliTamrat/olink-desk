@@ -7,8 +7,10 @@
 // The recording rule is the same as inbound acks: an OUTBOUND row is written
 // only when the channel accepted the message. A timeline row the customer
 // never received would mislead the next agent reading it.
+import { shouldSurvey } from "@olink-desk/csat";
 import type { PrismaClient } from "@olink-desk/database";
 import { ChannelAccountKind, TicketStatus } from "@olink-desk/database";
+import { t } from "@olink-desk/i18n";
 
 import { openChannelConfig } from "./crypto";
 import { sendMessaging, sendWhatsApp, type MetaConfig } from "./meta";
@@ -75,8 +77,61 @@ export async function sendAgentReply(opts: {
   });
   if (!ticket) return { ok: false, reason: "ticket_not_found" };
   if (!ticket.conversation) return { ok: false, reason: "no_conversation" };
-  const to = ticket.conversation.externalUserId;
 
+  const sent = await deliverOnChannel(db, organizationId, ticket, body);
+  if (sent !== true) return sent;
+
+  const message = await db.ticketMessage.create({
+    data: {
+      organizationId,
+      ticketId: ticket.id,
+      direction: "OUTBOUND",
+      channel: ticket.channel,
+      body,
+      authorUserId,
+      contactId: ticket.contactId,
+    },
+  });
+  await db.ticket.update({
+    where: { id: ticket.id },
+    data: {
+      status: ticket.status === TicketStatus.NEW ? TicketStatus.OPEN : ticket.status,
+      firstRespondedAt: ticket.firstRespondedAt ?? new Date(),
+    },
+  });
+  // The event, never the words.
+  await db.auditLog.create({
+    data: {
+      organizationId,
+      actorUserId: authorUserId,
+      action: "ticket.replied",
+      entityType: "ticket",
+      entityId: String(ticket.id),
+      metadata: { channel: ticket.channel },
+    },
+  });
+  return { ok: true, messageId: message.id };
+}
+
+// ------------------------------------------------------------- transport
+//
+// Extracted from `sendAgentReply` so the CSAT survey travels the same road.
+// A second copy of this switch would be a second place for a channel to be
+// forgotten, and the one that was forgotten would be the quiet one.
+interface Deliverable {
+  channel: string;
+  conversation: { externalUserId: string } | null;
+  organization: { name: string };
+}
+
+async function deliverOnChannel(
+  db: PrismaClient,
+  organizationId: string,
+  ticket: Deliverable,
+  body: string,
+): Promise<true | ReplyOutcome> {
+  if (!ticket.conversation) return { ok: false, reason: "no_conversation" };
+  const to = ticket.conversation.externalUserId;
   let delivered: boolean;
   switch (ticket.channel) {
     case "WEB": {
@@ -138,35 +193,52 @@ export async function sendAgentReply(opts: {
   }
 
   if (!delivered) return { ok: false, reason: "delivery_failed" };
+  return true;
+}
 
-  const message = await db.ticketMessage.create({
+/**
+ * Send the satisfaction survey for a resolved ticket, in the CUSTOMER's
+ * language — the conversation's sticky language, not the agent's console.
+ *
+ * Failure is swallowed on purpose. Resolving a ticket is the agent's action
+ * and it must succeed even if the customer's channel is down; a survey that
+ * could not be sent simply leaves `csatSentAt` null, which is exactly how an
+ * unsent survey stays findable later. Same reasoning as Bank Assist's rule
+ * that an email failure must never fail the webhook.
+ */
+export async function sendCsatSurvey(opts: {
+  db: PrismaClient;
+  organizationId: string;
+  ticketId: string;
+}): Promise<boolean> {
+  const { db, organizationId, ticketId } = opts;
+  const ticket = await db.ticket.findFirst({
+    where: { id: ticketId, organizationId },
+    include: { conversation: true, organization: true },
+  });
+  if (!ticket || !shouldSurvey(ticket)) return false;
+
+  const language = ticket.conversation?.language || ticket.language;
+  const body = t(language, "csat_ask", { number: ticket.number });
+
+  const sent = await deliverOnChannel(db, organizationId, ticket, body);
+  if (sent !== true) return false;
+
+  await db.ticketMessage.create({
     data: {
       organizationId,
       ticketId: ticket.id,
       direction: "OUTBOUND",
       channel: ticket.channel,
       body,
-      authorUserId,
       contactId: ticket.contactId,
     },
   });
+  // Stamped only after real delivery, so a failed send can be retried and an
+  // unanswerable survey is never treated as outstanding.
   await db.ticket.update({
     where: { id: ticket.id },
-    data: {
-      status: ticket.status === TicketStatus.NEW ? TicketStatus.OPEN : ticket.status,
-      firstRespondedAt: ticket.firstRespondedAt ?? new Date(),
-    },
+    data: { csatSentAt: new Date() },
   });
-  // The event, never the words.
-  await db.auditLog.create({
-    data: {
-      organizationId,
-      actorUserId: authorUserId,
-      action: "ticket.replied",
-      entityType: "ticket",
-      entityId: String(ticket.id),
-      metadata: { channel: ticket.channel },
-    },
-  });
-  return { ok: true, messageId: message.id };
+  return true;
 }

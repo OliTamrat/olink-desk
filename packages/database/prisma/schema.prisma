@@ -250,9 +250,13 @@ model Ticket {
   resolvedAt         DateTime?
   closedAt           DateTime?
 
-  // CSAT — surveyed on the channel the ticket arrived on.
+  // CSAT — surveyed on the channel the ticket arrived on, in the customer's
+  // own language. `csatSentAt` is what makes the survey answerable: an
+  // inbound number is only read as a score while a survey is open on this
+  // ticket, so "5" is a rating today and an ordinary message next month.
   csatScore   Int?
   csatComment String?
+  csatSentAt  DateTime?
 
   // Duplicate handling: a merged ticket points at its survivor.
   mergedIntoId String?

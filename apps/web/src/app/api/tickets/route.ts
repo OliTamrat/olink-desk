@@ -120,6 +120,8 @@ export async function GET(request: NextRequest) {
         resolveDueAt: true,
         assigneeId: true,
         queueId: true,
+        csatScore: true,
+        csatSentAt: true,
         contact: { select: { name: true, phone: true } },
         assignee: { select: { name: true } },
         messages: {

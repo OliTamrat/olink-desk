@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
         createdAt: true,
         firstRespondedAt: true,
         resolvedAt: true,
+        csatScore: true,
       },
     }),
   ]);
@@ -144,6 +145,19 @@ export async function GET(request: NextRequest) {
               Math.round((t.resolvedAt!.getTime() - t.createdAt.getTime()) / 60000),
             ),
         ),
+        // Satisfaction, reported as an average with its own denominator.
+        // The count is not decoration: "4.0" from one reply and "4.0" from
+        // ninety are different facts, and a rate with no denominator is the
+        // easiest number in this product to be misled by (the Bank Assist
+        // rule that a rate with no denominator is null, never zero).
+        csatAverage: (() => {
+          const scores = todayTickets
+            .map((t) => t.csatScore)
+            .filter((n): n is number => typeof n === "number");
+          if (scores.length === 0) return null;
+          return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
+        })(),
+        csatResponses: todayTickets.filter((t) => typeof t.csatScore === "number").length,
       },
     },
     { headers: { "Cache-Control": "no-store" } },
