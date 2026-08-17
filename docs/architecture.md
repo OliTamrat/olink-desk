@@ -18,6 +18,7 @@ packages/macros/     Macro rendering — the customer-language pick and placehol
 packages/tickets/    Opening a ticket (numbers + SLA clocks) and customer
                      identity — phone normalisation and find-or-create
 packages/csat/       Satisfaction scores: parsing a reply, and when to ask
+packages/guardrails/ May a message be auto-answered? Deterministic, no model
 packages/reports/    The statistics the two reports are built from
 packages/retention/  Retention windows, what erasure writes, CSV export
 packages/retrieval/  BM25 search over the knowledge base, with the gate

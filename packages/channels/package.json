@@ -9,9 +9,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@olink-desk/ai": "workspace:*",
     "@olink-desk/csat": "workspace:*",
     "@olink-desk/database": "workspace:*",
+    "@olink-desk/guardrails": "workspace:*",
     "@olink-desk/i18n": "workspace:*",
+    "@olink-desk/retrieval": "workspace:*",
     "@olink-desk/sla": "workspace:*",
     "@olink-desk/tickets": "workspace:*"
   },

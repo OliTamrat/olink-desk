@@ -109,15 +109,24 @@ importers:
 
   packages/channels:
     dependencies:
+      '@olink-desk/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@olink-desk/csat':
         specifier: workspace:*
         version: link:../csat
       '@olink-desk/database':
         specifier: workspace:*
         version: link:../database
+      '@olink-desk/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       '@olink-desk/i18n':
         specifier: workspace:*
         version: link:../i18n
+      '@olink-desk/retrieval':
+        specifier: workspace:*
+        version: link:../retrieval
       '@olink-desk/sla':
         specifier: workspace:*
         version: link:../sla
@@ -159,6 +168,18 @@ importers:
       prisma:
         specifier: ^5.22.0
         version: 5.22.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)
+
+  packages/guardrails:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
