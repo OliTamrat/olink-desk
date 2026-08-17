@@ -60,6 +60,18 @@ export async function GET() {
   // Webhook URLs are built from this; unset means channel connects 503.
   checks.appBaseUrl = process.env.APP_BASE_URL ? "ok" : "unset";
 
+  // Both scheduled passes — escalation and retention — verify this secret and
+  // fail closed without it. Unset is not an error (a deployment may
+  // deliberately run neither), but it IS the difference between a retention
+  // window that destroys data on schedule and one that is a promise nothing
+  // keeps. Reported here as well as on the retention panel, because the panel
+  // is only seen by an admin already inside a workspace, and this is what an
+  // operator and the deploy pipeline actually read.
+  //
+  // Presence only. The value is never echoed, exactly like every other secret
+  // on this route.
+  checks.cronSecret = process.env.CRON_SECRET ? "ok" : "unset";
+
   // Vertex, probed rather than assumed. `isConfigured` only says an env var
   // exists; the question that matters is whether the model ANSWERS — the API
   // may be off, or the runtime service account may lack roles/aiplatform.user,
