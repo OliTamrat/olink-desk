@@ -13,7 +13,7 @@
 
 **The opportunity is real and the timing is unusually good.** Ethiopia has no
 established local helpdesk/ticketing product. The international incumbents
-(Zendesk, Freshdesk, Intercom) are effectively locked out of the domestic market by
+(the global platforms) are effectively locked out of the domestic market by
 the payment rail — Stripe and PayPal cannot pay out to Ethiopian entities, ordinary
 firms need bank FX approval to pay USD subscriptions, and none of them support
 Amharic/Ge'ez UI, Telegram-first workflows, ETB billing, or in-country hosting.
@@ -128,12 +128,12 @@ Options, in rough order of preference:
 |---|---|---|
 | **Ethio Telecom CCaaS** (launched Oct 2022; ~5,000–7,000 ETB/mo at launch pricing) | Voice-centric contact center as a service; ACD, IVR, some omnichannel claims | It carries calls; it is not a system of record. No task tracking, no local-language depth, no on-prem, SOE sales motion. We should *integrate beside it*, not fight it — a customer can run Ethio CCaaS for voice and our product as the ticket/task layer. Also the anchor that legitimizes our price point. |
 | **Odoo + local partners** (Atheer, ETTA are Gold Partners) | Helpdesk module bundled into 4–12-week ERP projects | Odoo Helpdesk is an ERP afterthought: no Telegram-native flow, no Ge'ez-script polish, no SMS/USSD thinking, needs consultants. We are product-led, self-serve, support-specialized. |
-| **Zendesk / Freshdesk / Intercom** | Global feature leaders | Cannot take ETB, no local channels, no Amharic, no residency story, $19–55+/agent/mo USD ≈ 3,000–9,000 ETB — per agent — against agent wages of 6,000–16,000 ETB/mo. Only viable for exporters with FX access. |
+| **Global platforms** | Global feature leaders | Cannot take ETB, no local channels, no Amharic, no residency story, $19–55+/agent/mo USD ≈ 3,000–9,000 ETB — per agent — against agent wages of 6,000–16,000 ETB/mo. Only viable for exporters with FX access. |
 | **Local CRM/ERP builders** (ZalaTech, Addis Software, etc.) | Custom CRM projects | Services businesses, not products; no ticketing specialization. Potential *channel partners* rather than threats. |
 | **Spreadsheets + personal Telegram** | The real incumbent in 90% of accounts | This is the actual competition. The product must be adoptable in a day and cheaper than the chaos it replaces. |
 
 **Watch item:** NBE's February 2026 FX relaxations (100% retention for service
-exporters, corporate FX debit cards) slightly weaken the "can't pay Zendesk" moat
+exporters, corporate FX debit cards) slightly weaken the "can't pay foreign-platform" moat
 for *export-oriented* tech companies. The moat holds for domestic banks, SOEs,
 government, and ordinary firms — which is the core market anyway.
 
@@ -142,7 +142,7 @@ government, and ordinary firms — which is the core market anyway.
 ## 5. What the Ethiopian market requires of the product
 
 This is the heart of the analysis: the concrete requirements that make an
-Ethiopia-fit support product different from a Zendesk clone.
+Ethiopia-fit support product different from a clone of a foreign product.
 
 ### 5.1 Channels — Telegram first, voice as logging, SMS as fallback
 
@@ -318,7 +318,7 @@ renewal walls.
 ## 7. Pricing
 
 **The constraint that shapes everything: an Addis support agent costs an employer
-roughly 6,000–16,000 ETB/month ($37–100).** Zendesk-style $19–55/agent/month
+roughly 6,000–16,000 ETB/month ($37–100).** per-agent $19–55/agent/month
 (≈3,000–9,000 ETB) would equal 30–90% of an agent's wage — dead on arrival.
 Local anchors: Ethio Telecom CCaaS launched at ~5,000–7,000 ETB/month flat;
 Yonet's SME SaaS starts at 5,000 ETB/month; local B2B SaaS clusters at roughly
@@ -394,7 +394,7 @@ support onto it in the same window, so it launches with real multi-tenant volume
 | 4 | **Internet shutdowns** hit SaaS availability | On-prem option, SMS/voice channel redundancy, offline-tolerant console (§5.3). |
 | 5 | **Birr depreciation** erodes USD-equivalent revenue; inflation pressures ETB price points | Annual repricing clause; annual-prepay incentives; SMS metering as an inflation-linked revenue line. |
 | 6 | **INSA certification lead time** before bank/government deals | Reuse Onekof's P1–P6 baseline and audit playbook; start the pack in month 3, before the first regulated-buyer negotiation. |
-| 7 | **Zendesk-via-FX for exporters** (Feb 2026 FX relaxations) | Accept it — exporters are not the core market; compete there on Telegram/Amharic/price, not on FX friction. |
+| 7 | **the global platforms-via-FX for exporters** (Feb 2026 FX relaxations) | Accept it — exporters are not the core market; compete there on Telegram/Amharic/price, not on FX friction. |
 | 8 | **Shortcode/USSD costs opaque** | Treat as enterprise add-ons priced after operator quotes; never on the v1 critical path. |
 | 9 | Fact-freshness: several figures (CCaaS pricing 2022; salary data mixed-vintage; aggregator prices) predate 2026 tariff rises | Re-quote during month-1 vendor conversations; do not print pricing collateral from this document alone. |
 

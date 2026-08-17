@@ -75,7 +75,7 @@ the way a person uses it finds this class of thing.
 
 Named here so they are tracked rather than implied: **AI-assisted drafting**,
 **file attachments**, **voice recording for voicemail**, and a fuller
-Zendesk-shaped composer. Attachments and voice both need a blob store this
+the global platforms-shaped composer. Attachments and voice both need a blob store this
 project does not yet have (no `Attachment` model, no bucket), and drafting
 needs an LLM provider and key — none is configured anywhere in this repo.
 Those are infrastructure decisions, not code that can be written and shipped

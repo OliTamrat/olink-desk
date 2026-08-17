@@ -802,7 +802,7 @@ export default function MacrosPage() {
 }
 
 /**
- * What this macro does, built the way Zendesk builds it: a LIST of actions
+ * What this macro does, built the way this is best built: a LIST of actions
  * you add to, not a fixed row of fields.
  *
  * The difference is not cosmetic. A fixed field says "every macro has a

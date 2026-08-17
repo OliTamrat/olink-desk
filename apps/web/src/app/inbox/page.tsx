@@ -1,5 +1,5 @@
 "use client";
-// The agent workspace, v2 — the Zendesk agent-console shape (ADR 0006):
+// The agent workspace, v2 — the industry-standard agent-console shape (ADR 0006):
 //
 //   [app nav] [views + counts] [ TABLE of tickets                     ]
 //   [app nav] [views + counts] [ properties | conversation | customer ]

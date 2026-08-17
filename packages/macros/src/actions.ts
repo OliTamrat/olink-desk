@@ -1,6 +1,6 @@
 // What a macro DOES, beyond the words it sends.
 //
-// A macro used to be a canned reply plus one optional status change. Zendesk's
+// A macro used to be a canned reply plus one optional status change. the standard
 // model — and the one an agent actually wants — is a small bundle of actions:
 // send this text, set the status, set the priority, add these tags. Doing four
 // things by hand after every canned reply is exactly the repetition a macro

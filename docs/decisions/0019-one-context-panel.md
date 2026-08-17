@@ -3,7 +3,7 @@
 - **Status:** Accepted. Supersedes the `Split` mechanism in ADR 0018; the
   *rule* in 0018 (width is earned, not filled) still stands.
 - **Date:** 2026-08-16
-- **Decision by:** the founder — *"Zendesk does not stretch end to end. They
+- **Decision by:** the founder — *"the global platforms does not stretch end to end. They
   used it for an additional right-hand sidebar which can be opened as a
   slide-out modal."*
 

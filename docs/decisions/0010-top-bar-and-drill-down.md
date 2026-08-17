@@ -4,7 +4,7 @@
 - **Date:** 2026-08-16
 - **Decider:** Founder — "the notification bell needs to be moved to the top
   navbar where it can be seen easily… build a very rich and robust navbar and
-  sidebars inspired by Zendesk", and "any section or card that has links to
+  sidebars inspired by the global platforms", and "any section or card that has links to
   another part should be built with the drill-down feature".
 
 ## The bar
@@ -13,7 +13,7 @@ There was no top bar. The console was a single left rail with everything
 crammed into its bottom — language, sign out, and the alert bell. That is why
 the bell was hard to see, which is the one thing an alert cannot afford.
 
-Zendesk's shape, and the reason for it: **the things an agent reaches for from
+the standard shape, and the reason for it: **the things an agent reaches for from
 any screen belong on a bar that is always in the same place.** So the top bar
 now carries, left to right:
 
@@ -28,7 +28,7 @@ now carries, left to right:
   rather than the work, so they group.
 
 The left rail is now navigation and nothing else. The second sidebar layer
-(a screen's own views) is unchanged — the three-layer Zendesk shape is intact,
+(a screen's own views) is unchanged — the three-layer the global platforms shape is intact,
 with the bar spanning above all of it.
 
 The bell's panel placement is now decided by the **viewport**, not the call

@@ -161,7 +161,7 @@ export default function NewTicketPage() {
     })();
   }, [me]);
 
-  // Zendesk shows "similar resolved tickets" beside a new one. The equivalent
+  // Desk products show "similar resolved tickets" beside a new one. The equivalent
   // worth having here is the KNOWLEDGE BASE: if an article already answers
   // this, the agent can read it while the customer is still on the line
   // instead of researching after hanging up. Matched on the subject, debounced,
@@ -522,7 +522,7 @@ export default function NewTicketPage() {
 
         {error ? <div style={ui.error}>{error}</div> : null}
 
-        {/* The Zendesk shape: properties on the left, the composer in the
+        {/* The the global platforms shape: properties on the left, the composer in the
             middle, what the desk already knows on the right. On a narrow
             window it stacks — properties first, because routing a call is
             decided before it is typed up. */}
@@ -559,7 +559,7 @@ export default function NewTicketPage() {
                     </option>
                   ))}
                 </select>
-                {/* Zendesk's "take it", and worth copying exactly: the agent
+                {/* The "take it" control every desk product ends up with, and worth having: the agent
                     typing up the call is usually the one who will own it, and
                     hunting for their own name in a list of forty is friction
                     on every single ticket. */}
@@ -761,7 +761,7 @@ export default function NewTicketPage() {
             t={(k, params) => tUi(lang, k, params)}
           />
 
-          {/* Apply a macro — Zendesk's own control, and the reason to have it
+          {/* Apply a macro — A control worth having, and the reason for it
               here rather than only in the reply composer: the commonest thing
               an agent types into a call log is the same sentence they typed
               yesterday. It FILLS the box rather than sending anything, so it
@@ -835,7 +835,7 @@ export default function NewTicketPage() {
           </div>
 
           {/* ----------------------------------------------- suggestions */}
-          {/* Zendesk puts "similar resolved tickets" here. The equivalent
+          {/* Desk products put "similar resolved tickets" here. The equivalent
               worth having is the knowledge base: if an article already
               answers this, the agent reads it while the customer is still on
               the line rather than researching after hanging up. */}

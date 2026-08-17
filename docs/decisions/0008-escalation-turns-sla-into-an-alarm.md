@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-16
 - **Context:** First slice taken under full product ownership. Chosen over
-  more Zendesk feature parity because it closes an architectural hole in a
+  more the global platforms feature parity because it closes an architectural hole in a
   feature already shipped, rather than adding a new one.
 
 ## The hole
@@ -19,7 +19,7 @@ found out whenever somebody next opened a tab. An SLA nobody is told about is
 not a promise; it is a column.
 
 That is a half-built feature, not a missing feature — which is why it ranked
-above tags, CSAT and the rest of the Zendesk list.
+above tags, CSAT and the rest of the the global platforms list.
 
 ## Decision
 

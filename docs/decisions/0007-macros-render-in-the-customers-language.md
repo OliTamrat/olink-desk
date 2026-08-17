@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-08-16
-- **Context:** Zendesk parity work. Macros (canned replies) are the largest
+- **Context:** the global platforms parity work. Macros (canned replies) are the largest
   single agent-speed win in any desk product, and the one place Desk can
   beat the benchmark outright rather than match it.
 

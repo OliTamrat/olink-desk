@@ -1,4 +1,4 @@
-// Per-priority SLA targets — the Zendesk-standard model (ADR 0006). One
+// Per-priority SLA targets — the industry-standard model (ADR 0006). One
 // SlaPolicy row per priority per org, created lazily with these defaults;
 // every number is data, editable from Settings later without touching code.
 // Channel overrides live at the policy layer when Settings lands; v1 ships
