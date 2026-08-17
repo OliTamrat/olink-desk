@@ -171,27 +171,32 @@ export default function KnowledgePage() {
             <h1 style={ui.h1}>{tUi(lang, "ui_kb_title")}</h1>
             <p style={{ ...ui.sub, maxWidth: 620 }}>{tUi(lang, "ui_kb_subtitle")}</p>
           </div>
-          {canWrite && !editing ? (
-            <button
-              style={ui.button}
-              onClick={() => {
-                setEditing(blank());
-                setBodyLang("en");
-              }}
-            >
-              {tUi(lang, "ui_kb_new")}
-            </button>
+          {/* The switch lives HERE, beside "New article", rather than as its
+              own block above the list or under a Settings tab — a control
+              belongs next to the thing it acts on, but a switch an admin
+              flips once should not cost the page a whole card's worth of
+              height above the articles every time it loads. An icon button
+              with a popover, the AlertBell's own shape, costs nothing until
+              someone opens it. */}
+          {!editing ? (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <AutoAnswerControl lang={lang} />
+              {canWrite ? (
+                <button
+                  style={ui.button}
+                  onClick={() => {
+                    setEditing(blank());
+                    setBodyLang("en");
+                  }}
+                >
+                  {tUi(lang, "ui_kb_new")}
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
 
         {error ? <div style={ui.error}>{error}</div> : null}
-
-        {/* The switch lives HERE rather than in Settings on purpose: what it
-            turns on is these articles answering customers directly, and a
-            control belongs next to the thing it acts on. Buried under a
-            settings tab it reads as configuration; here it reads as what the
-            page is for. */}
-        {!editing ? <AutoAnswerCard lang={lang} /> : null}
 
         {editing ? (
           <div style={{ ...ui.card, ...layout.centred, display: "grid", gap: 12 }}>
@@ -531,7 +536,7 @@ export default function KnowledgePage() {
  * anything yet. So the card carries the article counts, whether the model is
  * reachable at all, and how many messages it has actually answered.
  */
-function AutoAnswerCard({ lang }: { lang: Parameters<typeof tUi>[0] }) {
+function AutoAnswerControl({ lang }: { lang: Parameters<typeof tUi>[0] }) {
   interface State {
     enabled: boolean;
     canEdit: boolean;
@@ -541,8 +546,10 @@ function AutoAnswerCard({ lang }: { lang: Parameters<typeof tUi>[0] }) {
     modelReady: boolean;
   }
   const [state, setState] = useState<State | null>(null);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
+  const { isMobile } = useViewport();
 
   useEffect(() => {
     void (async () => {
@@ -580,69 +587,110 @@ function AutoAnswerCard({ lang }: { lang: Parameters<typeof tUi>[0] }) {
   const inert = state.publishedArticles === 0;
 
   return (
-    <section
-      style={{
-        ...ui.card,
-        ...layout.centred,
-        display: "grid",
-        gap: 10,
-        borderColor: on ? colors.accent : colors.border,
-      }}
-      data-auto-answer-card
-    >
-      <div style={{ display: "flex", gap: 11, alignItems: "center", flexWrap: "wrap" }}>
-        <IconTile size={34}>
-          <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
-            <path d="M12 3a9 9 0 0 0-9 9v5a2 2 0 0 0 2 2h2v-6H5v-1a7 7 0 0 1 14 0v1h-2v6h2a2 2 0 0 0 2-2v-5a9 9 0 0 0-9-9z" />
-          </svg>
-        </IconTile>
-        <h2 style={{ ...ui.h2, margin: 0, flex: 1 }}>{tUi(lang, "ui_aa_title")}</h2>
-        <Badge tone={on ? "success" : "muted"}>
-          {tUi(lang, on ? "ui_aa_on" : "ui_aa_off")}
-        </Badge>
-      </div>
+    <div style={{ position: "relative" }} data-auto-answer-control>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label={tUi(lang, "ui_aa_title")}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          padding: "7px 10px",
+          borderRadius: 6,
+          border: `1px solid ${open ? colors.accent : colors.border}`,
+          background: on ? colors.surfaceHover : "transparent",
+          color: colors.textSecondary,
+          fontSize: 12.5,
+          cursor: "pointer",
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: on ? colors.success : colors.textMuted,
+            flexShrink: 0,
+          }}
+        />
+        <svg width="15" height="15" viewBox="0 0 24 24" {...stroke} aria-hidden>
+          <path d="M12 3a9 9 0 0 0-9 9v5a2 2 0 0 0 2 2h2v-6H5v-1a7 7 0 0 1 14 0v1h-2v6h2a2 2 0 0 0 2-2v-5a9 9 0 0 0-9-9z" />
+        </svg>
+        {!isMobile ? <span>{tUi(lang, on ? "ui_aa_on" : "ui_aa_off")}</span> : null}
+      </button>
 
-      <p style={{ ...ui.sub, margin: 0, maxWidth: 620 }}>{tUi(lang, "ui_aa_blurb")}</p>
+      {open ? (
+        <section
+          style={{
+            ...(isMobile
+              ? { position: "fixed" as const, top: 62, left: 12, right: 12, width: "auto" }
+              : { position: "absolute" as const, top: "calc(100% + 8px)", right: 0, width: 340 }),
+            maxWidth: "calc(100vw - 24px)",
+            background: colors.surface,
+            border: `1px solid ${colors.borderStrong}`,
+            borderRadius: 10,
+            boxShadow: colors.shadowStrong,
+            padding: 14,
+            zIndex: 60,
+            boxSizing: "border-box",
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <strong style={{ fontSize: 13.5, color: colors.textPrimary, flex: 1 }}>
+              {tUi(lang, "ui_aa_title")}
+            </strong>
+            <Badge tone={on ? "success" : "muted"}>
+              {tUi(lang, on ? "ui_aa_on" : "ui_aa_off")}
+            </Badge>
+          </div>
 
-      {failure ? <div style={ui.error}>{failure}</div> : null}
+          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: colors.textSecondary }}>
+            {tUi(lang, "ui_aa_blurb")}
+          </p>
 
-      {!state.modelReady ? (
-        <div style={ui.error} data-aa-no-model>
-          {tUi(lang, "ui_aa_no_model")}
-        </div>
-      ) : inert ? (
-        <div style={{ ...ui.sub, margin: 0, color: colors.warn }} data-aa-no-articles>
-          {tUi(lang, "ui_aa_no_articles")}
-        </div>
+          {failure ? <div style={ui.error}>{failure}</div> : null}
+
+          {!state.modelReady ? (
+            <div style={{ fontSize: 12, color: colors.danger }} data-aa-no-model>
+              {tUi(lang, "ui_aa_no_model")}
+            </div>
+          ) : inert ? (
+            <div style={{ fontSize: 12, color: colors.warn }} data-aa-no-articles>
+              {tUi(lang, "ui_aa_no_articles")}
+            </div>
+          ) : null}
+
+          {state.canEdit ? (
+            <button
+              data-aa-toggle
+              disabled={busy}
+              onClick={() => void toggle()}
+              style={{ ...(on ? ui.buttonGhost : ui.button), padding: "6px 12px", fontSize: 12.5 }}
+            >
+              {tUi(lang, on ? "ui_aa_turn_off" : "ui_aa_turn_on")}
+            </button>
+          ) : (
+            <span style={{ fontSize: 12, color: colors.textMuted }}>
+              {tUi(lang, "ui_aa_admin_only")}
+            </span>
+          )}
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", fontSize: 11.5, color: colors.textMuted }}>
+            <span>
+              {tUi(lang, "ui_aa_counts", {
+                published: state.publishedArticles,
+                drafts: state.draftArticles,
+              })}
+            </span>
+            {state.answeredCount > 0 ? (
+              <span>{tUi(lang, "ui_aa_answered", { n: state.answeredCount })}</span>
+            ) : null}
+          </div>
+        </section>
       ) : null}
-
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        {state.canEdit ? (
-          <button
-            data-aa-toggle
-            disabled={busy}
-            onClick={() => void toggle()}
-            style={on ? ui.buttonGhost : ui.button}
-          >
-            {tUi(lang, on ? "ui_aa_turn_off" : "ui_aa_turn_on")}
-          </button>
-        ) : (
-          <span style={{ fontSize: 13, color: colors.textMuted }}>
-            {tUi(lang, "ui_aa_admin_only")}
-          </span>
-        )}
-        <span style={{ fontSize: 12.5, color: colors.textMuted }}>
-          {tUi(lang, "ui_aa_counts", {
-            published: state.publishedArticles,
-            drafts: state.draftArticles,
-          })}
-        </span>
-        {state.answeredCount > 0 ? (
-          <span style={{ fontSize: 12.5, color: colors.textMuted }}>
-            {tUi(lang, "ui_aa_answered", { n: state.answeredCount })}
-          </span>
-        ) : null}
-      </div>
-    </section>
+    </div>
   );
 }
