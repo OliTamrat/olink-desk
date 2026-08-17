@@ -58,6 +58,22 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
         if: steps.gate.outputs.skip == 'false'
 
+      # Idempotent, and it runs BEFORE the deploy so a revision never starts
+      # expecting a model the project cannot serve. `services enable` is a
+      # no-op when the API is already on.
+      #
+      # Deliberately NOT `|| exit 1`: a deployer service account without
+      # serviceusage permission is a permissions question for a human, not a
+      # reason to block a deploy of everything else. The service reports the
+      # truth either way — GET /api/health probes Vertex and says whether it
+      # actually answers, which is the only claim worth making.
+      - name: Enable Vertex AI on the project
+        if: steps.gate.outputs.skip == 'false'
+        run: |
+          gcloud services enable aiplatform.googleapis.com \
+            --project "${{ secrets.GCP_PROJECT_ID }}" --quiet \
+            || echo "::warning::Could not enable aiplatform.googleapis.com — enable it in the console, or grant the deployer roles/serviceusage.serviceUsageAdmin. AI drafting stays off until then."
+
       - name: Build and push image
         if: steps.gate.outputs.skip == 'false'
         run: |
@@ -99,6 +115,7 @@ jobs:
             --allow-unauthenticated \
             --min-instances 0 \
             --service-account "olink-desk-runtime@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com" \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},VERTEX_LOCATION=us-central1" \
             --set-secrets "DATABASE_URL=olink-desk-database-url:latest,JWT_SECRET=olink-desk-jwt-secret:latest,CHANNEL_CONFIG_KEY=olink-desk-channel-config-key:latest,DESK_ADMIN_SECRET=olink-desk-admin-secret:latest" \
             --quiet
 

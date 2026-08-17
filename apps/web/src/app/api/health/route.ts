@@ -8,6 +8,7 @@
 // No secret value is ever echoed; checks report ok / a failure reason only.
 import { signSession, verifySession } from "@olink-desk/auth";
 import { openChannelConfig, sealChannelConfig } from "@olink-desk/channels";
+import { generate, isConfigured, vertexConfig } from "@olink-desk/ai";
 import { prisma } from "@olink-desk/database";
 import { NextResponse } from "next/server";
 
@@ -58,6 +59,31 @@ export async function GET() {
 
   // Webhook URLs are built from this; unset means channel connects 503.
   checks.appBaseUrl = process.env.APP_BASE_URL ? "ok" : "unset";
+
+  // Vertex, probed rather than assumed. `isConfigured` only says an env var
+  // exists; the question that matters is whether the model ANSWERS — the API
+  // may be off, or the runtime service account may lack roles/aiplatform.user,
+  // and both look identical from the outside until something is called.
+  //
+  // Never fails the health check: a desk with no AI drafting is fully working,
+  // and turning a green deployment red over an optional feature would stop
+  // real deploys.
+  if (!isConfigured()) {
+    checks.ai = "off";
+  } else {
+    try {
+      const cfg = vertexConfig();
+      await generate(cfg!, {
+        system: "Reply with the single word: ok",
+        prompt: "ping",
+        thinkingBudget: 0,
+        maxOutputTokens: 8,
+      });
+      checks.ai = "ok";
+    } catch (err) {
+      checks.ai = reason(err);
+    }
+  }
 
   return NextResponse.json(
     {

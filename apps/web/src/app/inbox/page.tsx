@@ -178,6 +178,33 @@ function InboxWorkspace() {
   const [detail, setDetail] = useState<TicketDetail | null>(null);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [reply, setReply] = useState("");
+  // Whether this deployment can draft at all. Discovered from the endpoint's
+  // own 501 rather than from an env var the browser cannot see — so the
+  // button is absent on a deployment without Vertex instead of present and
+  // always failing.
+  const [canDraft, setCanDraft] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+
+  // Asked once, on a HEAD-shaped probe against the current ticket. A draft
+  // costs a model call, so the probe must never trigger one — it reads the
+  // 501 that means "not configured" and nothing else.
+  useEffect(() => {
+    if (!selectedId) return;
+    let live = true;
+    void (async () => {
+      const resp = await fetch(`/api/tickets/${selectedId}/draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ probe: true }),
+      }).catch(() => null);
+      // 501 is the only "off" answer. 400 (nothing to draft from yet) still
+      // means the feature exists, so the button stays.
+      if (live) setCanDraft(Boolean(resp) && resp!.status !== 501);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [selectedId]);
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -1321,8 +1348,56 @@ function InboxWorkspace() {
                     {tUi(lang, mode ? "ui_internal_note" : "ui_public_reply")}
                   </button>
                 ))}
+                {/* Draft, not send. What comes back lands in the box the
+                    agent is about to type in, and nothing leaves the desk
+                    until they press Send — which is the whole reason this is
+                    safe without the guardrails a customer-facing bot needs.
+
+                    Absent entirely when the deployment has no model, rather
+                    than present and failing. */}
+                {canDraft && (
+                  <button
+                    data-ai-draft
+                    disabled={drafting || !selectedId}
+                    onClick={() => {
+                      if (!selectedId) return;
+                      setDrafting(true);
+                      void (async () => {
+                        try {
+                          const resp = await fetch(`/api/tickets/${selectedId}/draft`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            // Whatever the agent already typed is the steer,
+                            // not something to throw away.
+                            body: JSON.stringify({ intent: reply.trim() || undefined }),
+                          });
+                          const data = (await resp.json()) as { draft?: string; error?: string };
+                          if (resp.ok && data.draft) setReply(data.draft);
+                          else setSendError(data.error ?? String(resp.status));
+                        } finally {
+                          setDrafting(false);
+                        }
+                      })();
+                    }}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 6,
+                      border: `1px solid ${colors.border}`,
+                      background: "transparent",
+                      color: colors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: drafting ? "wait" : "pointer",
+                      fontFamily: "inherit",
+                      marginLeft: "auto",
+                      opacity: drafting ? 0.6 : 1,
+                    }}
+                  >
+                    {tUi(lang, drafting ? "ui_ai_drafting" : "ui_ai_draft")}
+                  </button>
+                )}
                 {macros.length > 0 && (
-                  <div style={{ position: "relative", marginLeft: "auto" }}>
+                  <div style={{ position: "relative", marginLeft: canDraft ? 6 : "auto" }}>
                     <button
                       onClick={() => setMacroOpen(!macroOpen)}
                       style={{

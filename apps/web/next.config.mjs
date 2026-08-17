@@ -5,6 +5,7 @@ const nextConfig = {
   // Cloud Run, Ethio Telecom ECS, and an on-prem box.
   output: "standalone",
   transpilePackages: [
+    "@olink-desk/ai",
     "@olink-desk/auth",
     "@olink-desk/channels",
     "@olink-desk/database",

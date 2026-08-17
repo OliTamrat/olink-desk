@@ -378,6 +378,8 @@ export const UI_NOTES: Record<string, string> = {
   ui_wb_no_queues_hint: "The sentence under that title. Says why the board is empty AND what to do about it, so the empty state is a route rather than a dead end.",
   ui_wb_nothing_yet: "Stands in for a median or a score the desk has not produced yet. Replaces an em-dash: three stacked dashes is what a BROKEN panel looks like, where words say the desk is simply quiet.",
   ui_wb_agents_blurb: "The sentence under the Agents heading. Says what the numbers beside each name mean and that tapping one is a destination — nobody should have to click to find out whether clicking does anything.",
+  ui_ai_draft: "Button in the reply composer that writes a first draft from the conversation and the desk's own published articles. It DRAFTS — nothing is sent until the agent presses Send, and the wording must not imply otherwise.",
+  ui_ai_drafting: "The same button while the model is working.",
   ui_channel_missing: "Shown when a channel key in the URL is not one the product supports — a renamed or mistyped address.",
   ui_channel_missing_hint: "The way back out of that.",
   ui_channel_page_blurb: "Under the credentials heading on a channel's own page. Says the values are the provider's, and that they are stored encrypted.",
