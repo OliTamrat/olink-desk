@@ -23,6 +23,29 @@ import {
   useMe,
 } from "../../../lib/console-ui";
 import { CHANNEL_LABELS, statusKey } from "../../../lib/tickets";
+// Deep import: `@olink-desk/tickets` pulls Prisma through its barrel, and this
+// is a client component. `phone.ts` is pure string work with no imports.
+import { displayPhone, normalizePhone } from "@olink-desk/tickets/src/phone";
+
+/**
+ * Dialling codes offered beside the number field.
+ *
+ * Ethiopia first because that is the desk. The rest are where this desk's
+ * customers actually ring from — the Gulf, North America, Europe, and the
+ * neighbouring countries — rather than a full ISO list nobody scrolls.
+ */
+const DIAL_CODES = [
+  { cc: "+251", flag: "🇪🇹" },
+  { cc: "+1", flag: "🇺🇸" },
+  { cc: "+44", flag: "🇬🇧" },
+  { cc: "+971", flag: "🇦🇪" },
+  { cc: "+966", flag: "🇸🇦" },
+  { cc: "+254", flag: "🇰🇪" },
+  { cc: "+252", flag: "🇸🇴" },
+  { cc: "+253", flag: "🇩🇯" },
+  { cc: "+49", flag: "🇩🇪" },
+  { cc: "+39", flag: "🇮🇹" },
+] as const;
 
 const LANGS = [
   { code: "en", name: "English" },
@@ -55,7 +78,11 @@ export default function NewTicketPage() {
   const [customerQuery, setCustomerQuery] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [picked, setPicked] = useState<Match | null>(null);
+  const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [cc, setCc] = useState("+251");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -112,6 +139,36 @@ export default function NewTicketPage() {
     return () => clearTimeout(id);
   }, [customerQuery, picked, search]);
 
+  // A local Ethiopian number is written 09… and normalises on its own, so the
+  // dialling code is only prefixed when the agent did NOT type a local or
+  // already-international form. Blindly gluing "+251" onto "0911…" would make
+  // every correctly-typed number invalid.
+  const typedPhone = newPhone.trim();
+  const composedPhone = !typedPhone
+    ? ""
+    : typedPhone.startsWith("+") || typedPhone.startsWith("00") || typedPhone.startsWith("0")
+      ? typedPhone
+      : `${cc}${typedPhone}`;
+  const normalized = composedPhone ? normalizePhone(composedPhone) : null;
+  const phoneState: "empty" | "ok" | "bad" = !composedPhone
+    ? "empty"
+    : normalized
+      ? "ok"
+      : "bad";
+
+  // Everything the submit button needs to be sure of, in one place, so the
+  // button can be DISABLED for a reason it can also explain. The old form
+  // accepted anything and reported the problem afterwards.
+  const identity = picked
+    ? { ok: true as const }
+    : !creating
+      ? { ok: false as const, why: "ui_new_need_customer" }
+      : phoneState === "bad"
+        ? { ok: false as const, why: "ui_customer_phone_bad" }
+        : !normalized && !newEmail.trim()
+          ? { ok: false as const, why: "ui_customer_identity_why" }
+          : { ok: true as const };
+
   async function submit() {
     setSaving(true);
     setError("");
@@ -128,11 +185,14 @@ export default function NewTicketPage() {
           // Either an existing customer, or enough to find-or-create one from
           // what the agent typed. Making them go and create the person first
           // is how a call ends before the ticket is written.
+          // The typed fields, never the search box.
           ...(picked
             ? { contactId: picked.id }
-            : customerQuery.trim()
-              ? { phone: customerQuery, name: newName }
-              : {}),
+            : {
+                name: newName.trim(),
+                ...(normalized ? { phone: normalized } : {}),
+                ...(newEmail.trim() ? { email: newEmail.trim() } : {}),
+              }),
         }),
       });
       const data = (await resp.json()) as { error?: string; ticket?: { id: string; number: number } };
@@ -188,8 +248,14 @@ export default function NewTicketPage() {
           {/* Stated up front, not discovered later. A ticket with no channel
               behind it cannot be answered by the desk, and an agent needs to
               know that while deciding what to promise the customer. */}
+          {/* Was shown on both channels with one wording about calling back.
+              A walk-in is not answered by phoning them, and a customer at the
+              counter may have left no number at all. */}
           <div style={{ ...ui.warn, fontSize: 12 }}>
-            {tUi(lang, "ui_ticket_no_reply_warning")}
+            {tUi(
+              lang,
+              channel === "PHONE" ? "ui_ticket_no_reply_warning" : "ui_ticket_no_reply_walk_in",
+            )}
           </div>
 
           <div>
@@ -223,7 +289,18 @@ export default function NewTicketPage() {
               </div>
             ) : (
               <>
+                {/* SEARCH. Only ever a search — what is typed here is never
+                    submitted as anything.
+
+                    It used to be both: with nothing picked, the form posted
+                    this box's text as `phone`. So typing a customer's NAME
+                    into a box labelled "Customer" produced "That phone number
+                    was not recognised", pointing at a field the form did not
+                    have — and it did it on a walk-in too, where there may be
+                    no number at all. Two jobs in one input, and neither of
+                    them said which. */}
                 <input
+                  data-customer-search
                   style={ui.input}
                   value={customerQuery}
                   onChange={(e) => setCustomerQuery(e.target.value)}
@@ -235,6 +312,7 @@ export default function NewTicketPage() {
                     {matches.map((m) => (
                       <button
                         key={m.id}
+                        data-customer-match={m.id}
                         onClick={() => {
                           setPicked(m);
                           setMatches([]);
@@ -247,20 +325,133 @@ export default function NewTicketPage() {
                           padding: "7px 10px",
                         }}
                       >
-                        {m.name || "—"} · {m.phoneDisplay}
+                        {m.name || tUi(lang, "ui_no_name")} · {m.phoneDisplay}
                       </button>
                     ))}
                   </div>
                 ) : null}
-                {customerQuery.trim() && matches.length === 0 ? (
-                  <input
-                    style={{ ...ui.input, marginTop: 6 }}
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder={tUi(lang, "ui_customer_name")}
-                    aria-label={tUi(lang, "ui_customer_name")}
-                  />
-                ) : null}
+
+                {/* CREATE. Its own fields, each labelled, shown when the
+                    agent says this is somebody new — never inferred from a
+                    search coming back empty, because "no match yet" is also
+                    what a half-typed name looks like. */}
+                {creating ? (
+                  <div
+                    data-new-customer
+                    style={{
+                      marginTop: 10,
+                      padding: 12,
+                      borderRadius: 8,
+                      border: `1px solid ${colors.border}`,
+                      background: colors.surfaceRaised,
+                      display: "grid",
+                      gap: 10,
+                    }}
+                  >
+                    <div>
+                      <label style={ui.label}>{tUi(lang, "ui_customer_name")}</label>
+                      <input
+                        data-new-name
+                        style={ui.input}
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        aria-label={tUi(lang, "ui_customer_name")}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={ui.label}>
+                        {tUi(lang, "ui_customer_phone")}{" "}
+                        <span style={{ color: colors.textMuted, fontWeight: 400 }}>
+                          {tUi(lang, "ui_setup_optional")}
+                        </span>
+                      </label>
+                      {/* The dialling code is a picker rather than something
+                          to remember. Ethiopia leads because that is the desk;
+                          the rest exist because a diaspora customer calling in
+                          is the ordinary case, not the exception. */}
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <select
+                          data-phone-cc
+                          value={cc}
+                          onChange={(e) => setCc(e.target.value)}
+                          aria-label={tUi(lang, "ui_customer_phone_cc")}
+                          style={{ ...ui.input, width: 132, flexShrink: 0 }}
+                        >
+                          {DIAL_CODES.map((d) => (
+                            <option key={d.cc} value={d.cc}>
+                              {d.flag} {d.cc}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          data-new-phone
+                          style={{ ...ui.input, flex: 1, minWidth: 0 }}
+                          value={newPhone}
+                          onChange={(e) => setNewPhone(e.target.value)}
+                          inputMode="tel"
+                          placeholder={cc === "+251" ? "09… / 07…" : ""}
+                          aria-label={tUi(lang, "ui_customer_phone")}
+                        />
+                      </div>
+                      {/* Judged as they type, beside the field it is about —
+                          not as a red banner at the top of the page after a
+                          submit that threw everything else away. */}
+                      {phoneState === "bad" ? (
+                        <p
+                          data-phone-error
+                          style={{ margin: "6px 0 0", fontSize: 12, color: colors.danger }}
+                        >
+                          {tUi(lang, "ui_customer_phone_bad")}
+                        </p>
+                      ) : phoneState === "ok" ? (
+                        <p
+                          data-phone-ok
+                          style={{ margin: "6px 0 0", fontSize: 12, color: colors.success }}
+                        >
+                          {displayPhone(normalized ?? "")}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div>
+                      <label style={ui.label}>
+                        {tUi(lang, "ui_customer_email")}{" "}
+                        <span style={{ color: colors.textMuted, fontWeight: 400 }}>
+                          {tUi(lang, "ui_setup_optional")}
+                        </span>
+                      </label>
+                      <input
+                        data-new-email
+                        style={ui.input}
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        inputMode="email"
+                        aria-label={tUi(lang, "ui_customer_email")}
+                      />
+                    </div>
+
+                    {/* Says WHY one of the two is needed. The old copy stated
+                        the rule as a refusal after the fact. */}
+                    <p style={{ margin: 0, fontSize: 12, color: colors.textMuted, lineHeight: 1.5 }}>
+                      {tUi(lang, "ui_customer_identity_why")}
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    data-new-customer-open
+                    onClick={() => {
+                      setCreating(true);
+                      // Whatever they typed to search with is almost always
+                      // the person's name, so it seeds the name field rather
+                      // than being thrown away.
+                      if (!newName) setNewName(customerQuery.trim());
+                    }}
+                    style={{ ...ui.buttonGhost, marginTop: 8, fontSize: 13 }}
+                  >
+                    + {tUi(lang, "ui_customer_new")}
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -329,10 +520,22 @@ export default function NewTicketPage() {
             </div>
           </div>
 
+          {/* The button says what is still missing rather than being an
+              inert grey rectangle. A disabled control with no reason attached
+              is the same dead end as an error after submit, one step earlier. */}
+          {!subject.trim() || !identity.ok ? (
+            <p data-submit-blocked style={{ margin: 0, fontSize: 12.5, color: colors.textMuted }}>
+              {!identity.ok
+                ? tUi(lang, identity.why)
+                : tUi(lang, "ui_new_need_subject")}
+            </p>
+          ) : null}
+
           <div style={{ display: "flex", gap: 8 }}>
             <button
-              style={{ ...ui.button, opacity: saving || !subject.trim() ? 0.6 : 1 }}
-              disabled={saving || !subject.trim()}
+              data-submit-ticket
+              style={{ ...ui.button, opacity: saving || !subject.trim() || !identity.ok ? 0.6 : 1 }}
+              disabled={saving || !subject.trim() || !identity.ok}
               onClick={() => void submit()}
             >
               {saving ? tUi(lang, "ui_saving") : tUi(lang, "ui_new_ticket_title")}
