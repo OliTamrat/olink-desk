@@ -107,6 +107,14 @@ jobs:
       - name: Deploy to Cloud Run
         if: steps.gate.outputs.skip == 'false'
         run: |
+          # --set-secrets takes ONE comma-separated string and REPLACES the
+          # whole set rather than merging. Dropping an entry takes that secret
+          # off the revision; dropping DATABASE_URL means the instance fails to
+          # start. Add to the string, never rewrite it.
+          #
+          # This comment lives above the command, not inside it: every line
+          # below ends in a backslash, so a comment between them would be
+          # joined to the previous line and split the command in two.
           gcloud run deploy "$SERVICE" \
             --image "$IMAGE" \
             --region "$REGION" \
@@ -116,7 +124,7 @@ jobs:
             --min-instances 0 \
             --service-account "olink-desk-runtime@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com" \
             --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},VERTEX_LOCATION=us-central1" \
-            --set-secrets "DATABASE_URL=olink-desk-database-url:latest,JWT_SECRET=olink-desk-jwt-secret:latest,CHANNEL_CONFIG_KEY=olink-desk-channel-config-key:latest,DESK_ADMIN_SECRET=olink-desk-admin-secret:latest" \
+            --set-secrets "DATABASE_URL=olink-desk-database-url:latest,JWT_SECRET=olink-desk-jwt-secret:latest,CHANNEL_CONFIG_KEY=olink-desk-channel-config-key:latest,DESK_ADMIN_SECRET=olink-desk-admin-secret:latest,CRON_SECRET=olink-desk-cron-secret:latest" \
             --quiet
 
       - name: Set APP_BASE_URL from the service URL
