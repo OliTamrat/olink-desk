@@ -1,8 +1,14 @@
 # Turn on the scheduled passes (escalation and retention)
 
-**Status: NOT DONE in production.** Both passes are deployed and neither can
-run. This runbook is the fix, and it needs a `gcloud` session against the
-project — no agent sandbox has one.
+**Status: DONE — 2026-08-17.** Both jobs exist and are `ENABLED`, both
+force-runs returned **200**, and `/api/health` reports `cronSecret: ok`.
+
+Kept for the next environment, which needs all five steps from scratch.
+
+> **Live but idle, and that is correct.** Retention answers
+> `scannedOrganizations: 0` until a workspace sets a window in
+> Settings → Data lifecycle. The pass running with nothing to do is a different
+> state from the pass not running, which is why that count is in the response.
 
 ## What is wrong
 

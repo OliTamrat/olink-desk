@@ -261,13 +261,12 @@ Cloud Run on every green CI run, and the deploy is not called done until the
 new revision answers `GET /api/health` — which reports the database, the
 secrets, and whether the model actually responds.
 
-> **The scheduled passes are not switched on yet.** SLA escalation and the
-> retention pass both verify `CRON_SECRET` and fail closed without it, and the
-> deploy does not currently supply one — so neither has ever run in production.
-> `GET /api/health` reports `cronSecret: unset` while that is true.
-> `docs/runbooks/turn-on-the-scheduled-passes.md` is the fix, in the order that
-> does not break the deploy — with a PowerShell path in
-> `turn-on-the-scheduled-passes-powershell.md`.
+> **The scheduled passes are live** as of 2026-08-17 — SLA escalation every 15
+> minutes, retention nightly, both verifying `CRON_SECRET` and failing closed
+> without it. Retention runs but erases nothing until a workspace sets a window
+> in Settings → Data lifecycle; that is a deliberate act, not a default.
+> `docs/runbooks/turn-on-the-scheduled-passes.md` (and its PowerShell path)
+> covers standing them up in a fresh environment.
 
 ---
 

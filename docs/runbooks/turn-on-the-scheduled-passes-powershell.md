@@ -9,7 +9,9 @@ single line on purpose — PowerShell's line continuation is a backtick, and a
 single trailing space after it breaks the command in a way that reads as a
 gcloud error.
 
-## The two Windows-specific traps
+**Status: DONE — 2026-08-17.** Kept for the next environment.
+
+## The three traps
 
 **1. Never pipe a secret into `gcloud secrets create`.**
 
@@ -28,7 +30,21 @@ front. This exact failure cost a day in Olink Bank Assist.
 Step 1 below writes the file with `[System.IO.File]::WriteAllText` and an
 explicit BOM-less encoder, which is the only reliable way.
 
-**2. `--message-body ""` is unreliable from PowerShell.** An empty-string
+**2. `gcloud scheduler jobs create` PRINTS THE SECRET BACK.** It echoes the
+whole job config on success, including the `X-Cron-Secret` header value in
+plaintext. On a shared screen, a screenshot, or a scrollback someone else
+reads, that is the secret disclosed — and it happened here, twice, before
+anybody noticed. Pipe the output away and check the job separately:
+
+```powershell
+gcloud scheduler jobs create http olink-desk-escalate ... | Out-Null
+gcloud scheduler jobs describe olink-desk-escalate --project $Project --location $Region --format "value(name,schedule,state)"
+```
+
+`describe` shows the same headers, so use `--format` to name only the fields
+you want. Rotation is in "If the secret is exposed" below.
+
+**3. `--message-body ""` is unreliable from PowerShell.** An empty-string
 argument is sometimes dropped before `gcloud` sees it. Step 4 passes `"{}"`
 instead — safe here because **neither cron route reads the request body**; both
 authenticate on the `X-Cron-Secret` header alone.
@@ -221,6 +237,33 @@ anything:
 gcloud scheduler jobs pause olink-desk-escalate  --project $Project --location $Region
 gcloud scheduler jobs pause olink-desk-retention --project $Project --location $Region
 ```
+
+## If the secret is exposed
+
+Rotating is three commands and a short window of 403s. `:latest` resolves when
+a Cloud Run **revision is created**, not per request, so adding a version
+changes nothing until a new revision exists — that is the step people skip.
+
+```powershell
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$bytes = New-Object byte[] 32
+$rng.GetBytes($bytes)
+$NewSecret = [System.BitConverter]::ToString($bytes).Replace('-','').ToLower()
+
+$tmp = [System.IO.Path]::GetTempFileName()
+[System.IO.File]::WriteAllText($tmp, $NewSecret, (New-Object System.Text.UTF8Encoding $false))
+gcloud secrets versions add olink-desk-cron-secret --project $Project --data-file=$tmp | Out-Null
+Remove-Item $tmp -Force
+
+gcloud run services update $Service --region $Region --project $Project --update-secrets "CRON_SECRET=olink-desk-cron-secret:latest" | Out-Null
+
+gcloud scheduler jobs update http olink-desk-escalate  --project $Project --location $Region --update-headers "X-Cron-Secret=$NewSecret" | Out-Null
+gcloud scheduler jobs update http olink-desk-retention --project $Project --location $Region --update-headers "X-Cron-Secret=$NewSecret" | Out-Null
+```
+
+Between the Cloud Run update and the scheduler updates the jobs get 403s.
+Harmless — escalation skips a cycle and retention is nightly. Re-run step 5
+afterwards to confirm 200s again.
 
 ## Do not
 
