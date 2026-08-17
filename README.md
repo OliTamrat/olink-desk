@@ -266,7 +266,8 @@ secrets, and whether the model actually responds.
 > deploy does not currently supply one — so neither has ever run in production.
 > `GET /api/health` reports `cronSecret: unset` while that is true.
 > `docs/runbooks/turn-on-the-scheduled-passes.md` is the fix, in the order that
-> does not break the deploy.
+> does not break the deploy — with a PowerShell path in
+> `turn-on-the-scheduled-passes-powershell.md`.
 
 ---
 
