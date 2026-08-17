@@ -419,7 +419,15 @@
     "ui_kb_search": "Find an article",
     "ui_kb_summary": "{n} articles · {ready} written in all six languages",
     "ui_kb_summary_one": "1 article · {ready} written in all six languages",
-    "ui_kb_no_match": "No article matches that"
+    "ui_kb_no_match": "No article matches that",
+    "ui_customer_new": "New customer",
+    "ui_no_name": "No name",
+    "ui_customer_phone_bad": "That is not a number we recognise. Use 09… or 07…, or pick a dialling code and enter the rest.",
+    "ui_customer_phone_cc": "Dialling code",
+    "ui_customer_identity_why": "A phone number or an email — it is how the same person is recognised the next time they get in touch.",
+    "ui_new_need_customer": "Pick a customer, or add a new one.",
+    "ui_new_need_subject": "Say what it is about before logging it.",
+    "ui_ticket_no_reply_walk_in": "A visit has no channel to reply on. Follow this one up in person, or by calling the number on their record — the desk cannot send to it."
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -841,7 +849,15 @@
     "ui_kb_search": "ጽሑፍ ይፈልጉ",
     "ui_kb_summary": "{n} ጽሑፎች · {ready} በስድስቱም ቋንቋዎች ተጽፈዋል",
     "ui_kb_summary_one": "1 ጽሑፍ · {ready} በስድስቱም ቋንቋዎች ተጽፏል",
-    "ui_kb_no_match": "ከዚያ ጋር የሚዛመድ ጽሑፍ የለም"
+    "ui_kb_no_match": "ከዚያ ጋር የሚዛመድ ጽሑፍ የለም",
+    "ui_customer_new": "አዲስ ደንበኛ",
+    "ui_no_name": "ስም የለም",
+    "ui_customer_phone_bad": "ይህን ቁጥር አናውቀውም። 09… ወይም 07… ይጠቀሙ፣ ወይም የመደወያ ኮድ መርጠው ቀሪውን ያስገቡ።",
+    "ui_customer_phone_cc": "የመደወያ ኮድ",
+    "ui_customer_identity_why": "ስልክ ቁጥር ወይም ኢሜይል — ተመሳሳዩ ሰው በሚቀጥለው ጊዜ ሲገናኝ የሚታወቅበት መንገድ ነው።",
+    "ui_new_need_customer": "ደንበኛ ይምረጡ፣ ወይም አዲስ ይጨምሩ።",
+    "ui_new_need_subject": "ከመመዝገብዎ በፊት ስለ ምን እንደሆነ ይግለጹ።",
+    "ui_ticket_no_reply_walk_in": "ጉብኝት የሚመልስበት ቻናል የለውም። ይህን በአካል ይከታተሉ፣ ወይም በመዝገባቸው ላይ ባለው ቁጥር ይደውሉ — ዴስኩ ወደዚህ መላክ አይችልም።"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1263,7 +1279,15 @@
     "ui_kb_search": "Barruu barbaadi",
     "ui_kb_summary": "Barruu {n} · {ready} afaanota jaha hundaan barreeffamaniiru",
     "ui_kb_summary_one": "Barruu 1 · {ready} afaanota jaha hundaan barreeffameera",
-    "ui_kb_no_match": "Barruun sanaan walsimu hin jiru"
+    "ui_kb_no_match": "Barruun sanaan walsimu hin jiru",
+    "ui_customer_new": "Maamila haaraa",
+    "ui_no_name": "Maqaa hin qabu",
+    "ui_customer_phone_bad": "Lakkoofsa kana hin beeknu. 09… yookaan 07… fayyadami, yookaan koodii bilbilaa filadhuutii kan hafe galchi.",
+    "ui_customer_phone_cc": "Koodii bilbilaa",
+    "ui_customer_identity_why": "Lakkoofsa bilbilaa yookaan iimeelii — namni sun yeroo itti aanu yommuu quunnamu ittiin beekamuudha.",
+    "ui_new_need_customer": "Maamila filadhu, yookaan haaraa dabali.",
+    "ui_new_need_subject": "Osoo hin galmeessin dura waa'ee maalii akka ta'e ibsi.",
+    "ui_ticket_no_reply_walk_in": "Daawwannaan karaa ittiin deebi'an hin qabu. Kana dhuunfaan hordofi, yookaan lakkoofsa galmee isaanii irra jiruun bilbili — deeskiin gara kanaatti erguu hin danda'u."
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1685,7 +1709,15 @@
     "ui_kb_search": "ጽሑፍ ድለ",
     "ui_kb_summary": "{n} ጽሑፋት · {ready} ብዅሎም ሽዱሽተ ቋንቋታት ተጻሒፎም",
     "ui_kb_summary_one": "1 ጽሑፍ · {ready} ብዅሎም ሽዱሽተ ቋንቋታት ተጻሒፉ",
-    "ui_kb_no_match": "ምስኡ ዝሰማማዕ ጽሑፍ የለን"
+    "ui_kb_no_match": "ምስኡ ዝሰማማዕ ጽሑፍ የለን",
+    "ui_customer_new": "ሓድሽ ዓሚል",
+    "ui_no_name": "ስም የብሉን",
+    "ui_customer_phone_bad": "ነዚ ቁጽሪ ኣይንፈልጦን። 09… ወይ 07… ተጠቐም፡ ወይ ኮድ ደወል መሪጽካ ነቲ ዝተረፈ ኣእቱ።",
+    "ui_customer_phone_cc": "ኮድ ደወል",
+    "ui_customer_identity_why": "ቁጽሪ ስልኪ ወይ ኢመይል — እቲ ሰብ ኣብ ዝቕጽል ግዜ ምስ ተራኸበ ዝልለየሉ መንገዲ እዩ።",
+    "ui_new_need_customer": "ዓሚል ምረጽ፡ ወይ ሓድሽ ወስኽ።",
+    "ui_new_need_subject": "ቅድሚ ምምዝጋብካ ብዛዕባ እንታይ ምዃኑ ግለጽ።",
+    "ui_ticket_no_reply_walk_in": "ምብጻሕ መልሲ ዝወሃበሉ መስመር የብሉን። ነዚ ብኣካል ተኸታተሎ፡ ወይ በቲ ኣብ መዝገቦም ዘሎ ቁጽሪ ደውል — እቲ ደስክ ናብዚ ክሰድድ ኣይክእልን።"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2107,7 +2139,15 @@
     "ui_kb_search": "Raadi maqaal",
     "ui_kb_summary": "{n} maqaal · {ready} oo ku qoran dhammaan lixda luqadood",
     "ui_kb_summary_one": "1 maqaal · {ready} oo ku qoran dhammaan lixda luqadood",
-    "ui_kb_no_match": "Maqaal taas u dhigma ma jiro"
+    "ui_kb_no_match": "Maqaal taas u dhigma ma jiro",
+    "ui_customer_new": "Macmiil cusub",
+    "ui_no_name": "Magac ma leh",
+    "ui_customer_phone_bad": "Taas ma aha lambar aan garanayno. Isticmaal 09… ama 07…, ama dooro koodhka wacitaanka oo geli inta kale.",
+    "ui_customer_phone_cc": "Koodhka wacitaanka",
+    "ui_customer_identity_why": "Lambar taleefan ama iimayl — waa sida qofka isku mid ah loo garto marka xiga ee uu soo xidhiidho.",
+    "ui_new_need_customer": "Dooro macmiil, ama mid cusub ku dar.",
+    "ui_new_need_subject": "Ka hor inta aadan diiwaan gelin, sheeg waxay ku saabsan tahay.",
+    "ui_ticket_no_reply_walk_in": "Booqasho ma laha kanaal laga jawaabo. Tan si shakhsi ah u raac, ama wac lambarka diiwaankooda ku qoran — miiska ma diri karo."
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2529,6 +2569,14 @@
     "ui_kb_search": "Tafuta makala",
     "ui_kb_summary": "Makala {n} · {ready} zimeandikwa kwa lugha zote sita",
     "ui_kb_summary_one": "Makala 1 · {ready} imeandikwa kwa lugha zote sita",
-    "ui_kb_no_match": "Hakuna makala inayolingana na hiyo"
+    "ui_kb_no_match": "Hakuna makala inayolingana na hiyo",
+    "ui_customer_new": "Mteja mpya",
+    "ui_no_name": "Hakuna jina",
+    "ui_customer_phone_bad": "Hiyo si namba tunayoitambua. Tumia 09… au 07…, au chagua msimbo wa kupiga simu kisha weka iliyobaki.",
+    "ui_customer_phone_cc": "Msimbo wa kupiga simu",
+    "ui_customer_identity_why": "Namba ya simu au barua pepe — ndivyo mtu yule yule anavyotambuliwa atakapowasiliana tena.",
+    "ui_new_need_customer": "Chagua mteja, au ongeza mpya.",
+    "ui_new_need_subject": "Eleza inahusu nini kabla ya kuisajili.",
+    "ui_ticket_no_reply_walk_in": "Ziara haina njia ya kujibia. Fuatilia hii ana kwa ana, au piga namba iliyo kwenye rekodi yao — dawati haliwezi kutuma hapa."
   }
 }
