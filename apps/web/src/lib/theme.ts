@@ -248,8 +248,8 @@ export const VIEWS_KEY = "olink-desk.views-open";
  * with full-width text clipped inside it.
  */
 export const railCss = `
-:root{--rail-w:210px;--rail-label:inline;--rail-justify:flex-start;--rail-pad:9px 10px;--rail-box:16px 12px;--views-w:230px;--views-pad:20px 12px;--rail-open:inline-flex;--rail-shut:none}
-:root[data-rail="0"]{--rail-w:56px;--rail-label:none;--rail-justify:center;--rail-pad:9px 0;--rail-box:16px 8px;--rail-open:none;--rail-shut:inline-flex}
+:root{--rail-w:210px;--rail-label:inline;--rail-justify:flex-start;--rail-pad:9px 10px;--rail-box:16px 12px;--views-w:230px;--views-pad:20px 12px;--rail-open:inline-flex;--rail-shut:none;--rail-sub:grid}
+:root[data-rail="0"]{--rail-w:56px;--rail-label:none;--rail-justify:center;--rail-pad:9px 0;--rail-box:16px 8px;--rail-open:none;--rail-shut:inline-flex;--rail-sub:none}
 :root[data-views="0"]{--views-w:0px;--views-pad:0}
 `;
 
