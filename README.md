@@ -261,6 +261,13 @@ Cloud Run on every green CI run, and the deploy is not called done until the
 new revision answers `GET /api/health` — which reports the database, the
 secrets, and whether the model actually responds.
 
+> **The scheduled passes are not switched on yet.** SLA escalation and the
+> retention pass both verify `CRON_SECRET` and fail closed without it, and the
+> deploy does not currently supply one — so neither has ever run in production.
+> `GET /api/health` reports `cronSecret: unset` while that is true.
+> `docs/runbooks/turn-on-the-scheduled-passes.md` is the fix, in the order that
+> does not break the deploy.
+
 ---
 
 ## Engineering conventions
