@@ -680,7 +680,7 @@ export function AlertBell({ lang }: { lang: Language }) {
 // -------------------------------------------------------------- the shell
 export interface ShellUser {
   organization: { slug: string; name: string };
-  user: { name: string; role: string };
+  user: { id: string; name: string; role: string };
 }
 
 // ------------------------------------------------------------ the top bar

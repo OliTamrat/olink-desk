@@ -435,7 +435,12 @@
     "ui_attach_voice_note": "Voice note · {d}",
     "ui_attach_count": "{n} attached",
     "ui_attach_mic_denied": "No microphone available, or permission was refused. Check the browser's site permissions and try again.",
-    "ui_attach_some_failed": "The ticket was logged, but some files did not upload: {list}"
+    "ui_attach_some_failed": "The ticket was logged, but some files did not upload: {list}",
+    "ui_ch_sms": "Text message",
+    "ui_new_suggested": "Answers you already have",
+    "ui_new_suggested_blurb": "Knowledge base articles matching this subject — read one while they are still on the line.",
+    "ui_new_suggested_none": "Type a subject and anything the desk has already written about it appears here.",
+    "ui_lang_unset": "Not set"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -873,7 +878,12 @@
     "ui_attach_voice_note": "የድምጽ ማስታወሻ · {d}",
     "ui_attach_count": "{n} ተያይዘዋል",
     "ui_attach_mic_denied": "ማይክሮፎን የለም፣ ወይም ፈቃድ ተከልክሏል። የአሳሹን የጣቢያ ፈቃዶች ይመልከቱ እና እንደገና ይሞክሩ።",
-    "ui_attach_some_failed": "ጥያቄው ተመዝግቧል፣ ነገር ግን አንዳንድ ፋይሎች አልተሰቀሉም፦ {list}"
+    "ui_attach_some_failed": "ጥያቄው ተመዝግቧል፣ ነገር ግን አንዳንድ ፋይሎች አልተሰቀሉም፦ {list}",
+    "ui_ch_sms": "የጽሑፍ መልእክት",
+    "ui_new_suggested": "አስቀድመው ያሏቸው መልሶች",
+    "ui_new_suggested_blurb": "ከዚህ ርዕስ ጋር የሚዛመዱ የእውቀት መሠረት ጽሑፎች — አሁንም በስልክ ላይ እያሉ አንዱን ያንብቡ።",
+    "ui_new_suggested_none": "ርዕስ ይተይቡ እና ዴስኩ ስለ እሱ ቀደም ብሎ የጻፈው ማንኛውም ነገር እዚህ ይታያል።",
+    "ui_lang_unset": "አልተዘጋጀም"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1311,7 +1321,12 @@
     "ui_attach_voice_note": "Yaadannoo sagalee · {d}",
     "ui_attach_count": "{n} maxxanfameera",
     "ui_attach_mic_denied": "Maaykiroofoonni hin jiru, yookaan hayyamni diddameera. Hayyama iddoo interneetii sakatta'ii irra deebi'ii yaali.",
-    "ui_attach_some_failed": "Iyyannoon galmaa'eera, garuu faayilonni tokko tokko hin ol kaafamne: {list}"
+    "ui_attach_some_failed": "Iyyannoon galmaa'eera, garuu faayilonni tokko tokko hin ol kaafamne: {list}",
+    "ui_ch_sms": "Ergaa barreeffamaa",
+    "ui_new_suggested": "Deebiiwwan duraan qabdan",
+    "ui_new_suggested_blurb": "Barruuwwan buufata beekumsaa mata-duree kanaan walsimu — utuu isaan bilbila irra jiranuu tokko dubbisi.",
+    "ui_new_suggested_none": "Mata-duree barreessi, wanti deeskiin waa'ee isaa duraan barreesse asitti mul'ata.",
+    "ui_lang_unset": "Hin qindoofne"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1749,7 +1764,12 @@
     "ui_attach_voice_note": "ናይ ድምጺ መዘኻኸሪ · {d}",
     "ui_attach_count": "{n} ተታሓሒዞም",
     "ui_attach_mic_denied": "ማይክሮፎን የለን፡ ወይ ፍቓድ ተኸልኪሉ። ናይ መርበብ ፍቓዳት ኣረጋግጽ እሞ እንደገና ፈትን።",
-    "ui_attach_some_failed": "እቲ ጠለብ ተመዝጊቡ፡ ግን ገለ ፋይላት ኣይተሰቕሉን፦ {list}"
+    "ui_attach_some_failed": "እቲ ጠለብ ተመዝጊቡ፡ ግን ገለ ፋይላት ኣይተሰቕሉን፦ {list}",
+    "ui_ch_sms": "ናይ ጽሑፍ መልእኽቲ",
+    "ui_new_suggested": "ድሮ ዘለዉኻ መልስታት",
+    "ui_new_suggested_blurb": "ምስዚ ኣርእስቲ ዝሰማምዑ ናይ ፍልጠት ጽሑፋት — ገና ኣብ ስልኪ እንከለዉ ሓደ ኣንብብ።",
+    "ui_new_suggested_none": "ኣርእስቲ ጽሓፍ፡ እቲ ደስክ ብዛዕባኡ ቅድሚ ሕጂ ዝጸሓፎ ኣብዚ ይረአ።",
+    "ui_lang_unset": "ኣይተቐመጠን"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2187,7 +2207,12 @@
     "ui_attach_voice_note": "Cod duuban · {d}",
     "ui_attach_count": "{n} lifaaqan",
     "ui_attach_mic_denied": "Makarafoon lama helin, ama oggolaanshaha waa la diiday. Hubi oggolaanshaha goobta browser-ka oo mar kale isku day.",
-    "ui_attach_some_failed": "Codsiga waa la diiwaan geliyay, laakiin faylal qaar lama soo gelin: {list}"
+    "ui_attach_some_failed": "Codsiga waa la diiwaan geliyay, laakiin faylal qaar lama soo gelin: {list}",
+    "ui_ch_sms": "Fariin qoraal ah",
+    "ui_new_suggested": "Jawaabaha aad hore u haysatay",
+    "ui_new_suggested_blurb": "Maqaallada aqoonta ee la mid ah mawduucan — mid akhri iyagoo weli khadka ku jira.",
+    "ui_new_suggested_none": "Qor mawduuc, wax kasta oo miisku hore uga qoray halkan ayey ka soo muuqan doonaan.",
+    "ui_lang_unset": "Lama dejin"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2625,6 +2650,11 @@
     "ui_attach_voice_note": "Ujumbe wa sauti · {d}",
     "ui_attach_count": "{n} zimeambatishwa",
     "ui_attach_mic_denied": "Hakuna kipaza sauti, au ruhusa ilikataliwa. Angalia ruhusa za tovuti kwenye kivinjari kisha jaribu tena.",
-    "ui_attach_some_failed": "Tiketi imesajiliwa, lakini baadhi ya faili hazikupakiwa: {list}"
+    "ui_attach_some_failed": "Tiketi imesajiliwa, lakini baadhi ya faili hazikupakiwa: {list}",
+    "ui_ch_sms": "Ujumbe wa maandishi",
+    "ui_new_suggested": "Majibu uliyo nayo tayari",
+    "ui_new_suggested_blurb": "Makala za maarifa zinazolingana na mada hii — soma moja wakiwa bado kwenye simu.",
+    "ui_new_suggested_none": "Andika mada na chochote ambacho dawati limeandika kuhusu hilo kitaonekana hapa.",
+    "ui_lang_unset": "Haijawekwa"
   }
 }
