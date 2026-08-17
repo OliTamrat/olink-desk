@@ -386,7 +386,14 @@
     "ui_ws_error_default_unserved": "You can only fall back to a language you answer in.",
     "ui_sla_explainer": "First response is how long a customer waits to hear anything; resolution is how long until the ticket is finished. These are the promises the inbox colours tickets against.",
     "ui_sections_hide": "Hide sections",
-    "ui_sections_show": "Show sections"
+    "ui_sections_show": "Show sections",
+    "ui_st_done": "Done",
+    "ui_overview_title": "Ticket status overview",
+    "ui_overview_blurb": "A snapshot of where all your work sits. Tap any row to see what is in it.",
+    "ui_overview_total": "Total tickets",
+    "ui_overview_clear": "Clear",
+    "ui_overview_recent": "The most recently updated tickets in this status.",
+    "ui_overview_see_all": "See all {n}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -775,7 +782,14 @@
     "ui_ws_error_default_unserved": "መመለስ የሚችሉበት ቋንቋ ብቻ መጠቀም ይችላሉ።",
     "ui_sla_explainer": "የመጀመሪያ ምላሽ ደንበኛው ማንኛውንም ነገር ለመስማት የሚጠብቀው ጊዜ ነው፤ መፍትሔ ደግሞ ቲኬቱ እስኪጠናቀቅ ያለው ጊዜ ነው። ኢንቦክሱ ቲኬቶችን የሚያቀልመው በእነዚህ ቃል ኪዳኖች ላይ ተመስርቶ ነው።",
     "ui_sections_hide": "ክፍሎችን ደብቅ",
-    "ui_sections_show": "ክፍሎችን አሳይ"
+    "ui_sections_show": "ክፍሎችን አሳይ",
+    "ui_st_done": "ተጠናቋል",
+    "ui_overview_title": "የቲኬት ሁኔታ አጠቃላይ እይታ",
+    "ui_overview_blurb": "ሥራዎ ሁሉ የት እንዳለ ቅጽበታዊ እይታ። በውስጡ ያለውን ለማየት ማንኛውንም ረድፍ ይንኩ።",
+    "ui_overview_total": "ጠቅላላ ቲኬቶች",
+    "ui_overview_clear": "አጽዳ",
+    "ui_overview_recent": "በዚህ ሁኔታ ውስጥ በቅርቡ የተዘመኑ ቲኬቶች።",
+    "ui_overview_see_all": "ሁሉንም {n} ይመልከቱ"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1164,7 +1178,14 @@
     "ui_ws_error_default_unserved": "Afaan ittiin deebistu qofatti deebi'uu dandeessa.",
     "ui_sla_explainer": "Deebiin jalqabaa yeroo maamilli waan tokko dhaga'uuf eegudha; furmaanni immoo hanga tikeetiin xumuramutti yeroo fudhatudha. Inboksiin waadaawwan kanneen irratti hundaa'ee tikeetii halluu godha.",
     "ui_sections_hide": "Kutaalee dhoksi",
-    "ui_sections_show": "Kutaalee agarsiisi"
+    "ui_sections_show": "Kutaalee agarsiisi",
+    "ui_st_done": "Xumurame",
+    "ui_overview_title": "Ilaalcha waliigalaa haala tikeetii",
+    "ui_overview_blurb": "Hojiin kee hundi eessa akka jiru agarsiisa. Waan keessa jiru arguuf sarara kamiyyuu tuqi.",
+    "ui_overview_total": "Tikeetii waliigalaa",
+    "ui_overview_clear": "Haqi",
+    "ui_overview_recent": "Tikeetiiwwan dhiheenya kana haala kana keessatti haaromfaman.",
+    "ui_overview_see_all": "Hunda {n} ilaali"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1553,7 +1574,14 @@
     "ui_ws_error_default_unserved": "ናብቲ ትምልሰሉ ቋንቋ ጥራይ ክትምለስ ትኽእል።",
     "ui_sla_explainer": "ቀዳማይ መልሲ ማለት ዓሚል ገለ ንኽሰምዕ ዝጽበዮ ግዜ እዩ፤ መፍትሒ ድማ እቲ ትኬት ክሳብ ዝውዳእ ዘሎ ግዜ እዩ። እቲ ኢንቦክስ ንትኬታት ብእዞም መብጽዓታት እዩ ዝሓብሮም።",
     "ui_sections_hide": "ክፍልታት ሕባእ",
-    "ui_sections_show": "ክፍልታት ኣርኢ"
+    "ui_sections_show": "ክፍልታት ኣርኢ",
+    "ui_st_done": "ተወዲኡ",
+    "ui_overview_title": "ሓፈሻዊ ትርኢት ኩነታት ትኬት",
+    "ui_overview_blurb": "ኩሉ ስራሕካ ኣበይ ከም ዘሎ ቅጽበታዊ ትርኢት። ኣብኡ ዘሎ ንምርኣይ ዝኾነ መስመር ተንክፍ።",
+    "ui_overview_total": "ጠቕላላ ትኬታት",
+    "ui_overview_clear": "ኣጽሪ",
+    "ui_overview_recent": "ኣብዚ ኩነታት ብቐረባ እዋን ዝተሓደሱ ትኬታት።",
+    "ui_overview_see_all": "ኩሎም {n} ርአ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1942,7 +1970,14 @@
     "ui_ws_error_default_unserved": "Waxaad ku noqon kartaa oo kaliya luqad aad kaga jawaabto.",
     "ui_sla_explainer": "Jawaabta koowaad waa muddada macmiilku sugayo inuu wax maqlo; xallintuna waa ilaa tikidhku dhammaado. Kuwani waa ballamaha uu sanduuqu tikidhada midabka ugu qoro.",
     "ui_sections_hide": "Qari qaybaha",
-    "ui_sections_show": "Muuji qaybaha"
+    "ui_sections_show": "Muuji qaybaha",
+    "ui_st_done": "Dhammaaday",
+    "ui_overview_title": "Guudmarka xaaladda tikidhada",
+    "ui_overview_blurb": "Muuqaal degdeg ah oo muujinaya meesha shaqadaadu ku taal. Taabo saf kasta si aad u aragto waxa ku jira.",
+    "ui_overview_total": "Wadarta tikidhada",
+    "ui_overview_clear": "Nadiifi",
+    "ui_overview_recent": "Tikidhada ugu dambeeyay ee la cusboonaysiiyay xaaladdan.",
+    "ui_overview_see_all": "Arag dhammaan {n}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2331,6 +2366,13 @@
     "ui_ws_error_default_unserved": "Unaweza kurudi tu kwenye lugha unayojibu kwayo.",
     "ui_sla_explainer": "Jibu la kwanza ni muda mteja anaosubiri kusikia chochote; utatuzi ni hadi tiketi imalizike. Haya ndiyo maahadi ambayo kikasha hutia rangi tiketi kwa kuyategemea.",
     "ui_sections_hide": "Ficha sehemu",
-    "ui_sections_show": "Onyesha sehemu"
+    "ui_sections_show": "Onyesha sehemu",
+    "ui_st_done": "Imekamilika",
+    "ui_overview_title": "Muhtasari wa hali za tiketi",
+    "ui_overview_blurb": "Mtazamo wa haraka wa mahali kazi yako yote ilipo. Gusa safu yoyote kuona kilichomo.",
+    "ui_overview_total": "Jumla ya tiketi",
+    "ui_overview_clear": "Futa",
+    "ui_overview_recent": "Tiketi zilizosasishwa hivi karibuni katika hali hii.",
+    "ui_overview_see_all": "Ona zote {n}"
   }
 }

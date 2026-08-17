@@ -197,6 +197,34 @@ export function pinnedThemeCss(theme: "light" | "dark"): string {
   return `:root{color-scheme:${theme};${block(theme)}}`;
 }
 
+/**
+ * The lifecycle chart palette, in stack order.
+ *
+ * Here rather than in the screen because it is part of the design system, and
+ * because the no-raw-hex guard is right to insist: a colour chosen once and
+ * validated should not then live somewhere a second person can add a fifth to
+ * it without re-running the checks.
+ *
+ * NOT eyeballed. Run through the palette validator against both real surfaces
+ * in this exact order, because order is what the adjacent-pair colour-blind
+ * check reads. The obvious first set — blue, green, amber, violet, slate —
+ * failed three ways: outside the lightness band, slate below the chroma
+ * floor, and violet against blue at ΔE 1.3 under deuteranopia, which is
+ * invisible. Looking at it would never have found the third.
+ *
+ * One set for both themes: every hue sits inside the overlap of the light and
+ * dark lightness bands, so neither theme needs its own steps.
+ *
+ * Adding a fifth state means re-running the validator, not picking a nice
+ * colour — four is already at the point where adjacent hues stay separable.
+ */
+export const LIFECYCLE_INK = {
+  NEW: "#2563eb",
+  OPEN: "#0d9488",
+  PENDING: "#d97706",
+  DONE: "#9333ea",
+} as const;
+
 export const font =
   "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Ethiopic', sans-serif";
 

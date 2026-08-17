@@ -19,7 +19,16 @@ export async function GET(request: NextRequest) {
   if (isDenied(principal)) return principal;
   const organizationId = principal.organization.id;
 
-  const [mine, unassigned, open, solved, all] = await Promise.all([
+  // One grouped count for the whole lifecycle, alongside the view counts.
+  // The dashboard's overview needs a number per STATUS, and five more
+  // `count()` calls to get them would be five more round trips for data the
+  // database can group in one.
+  const [byStatus, mine, unassigned, open, solved, all] = await Promise.all([
+    prisma.ticket.groupBy({
+      by: ["status"],
+      where: { organizationId },
+      _count: { _all: true },
+    }),
     prisma.ticket.count({
       where: { organizationId, assigneeId: principal.user.id, status: { in: OPEN } },
     }),
@@ -37,7 +46,14 @@ export async function GET(request: NextRequest) {
   ]);
 
   return NextResponse.json(
-    { mine, unassigned, open, solved, all },
+    {
+      mine,
+      unassigned,
+      open,
+      solved,
+      all,
+      byStatus: Object.fromEntries(byStatus.map((r) => [r.status, r._count._all])),
+    },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
