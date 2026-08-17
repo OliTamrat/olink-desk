@@ -509,7 +509,13 @@ model Macro {
   // Applied to the ticket after the reply is actually delivered — never at
   // insert time. A macro that changed the status while the agent was still
   // reading the draft would move a ticket nobody had answered.
-  setStatus TicketStatus?
+  //
+  // CLOSED and NEW are refused at the edge (`cleanActions`), not by the type:
+  // a macro fired in one click must not end a conversation the customer is
+  // still in, nor walk a ticket back past its own first-response clock.
+  setStatus   TicketStatus?
+  setPriority TicketPriority?
+  addTags     String[]        @default([])
 
   isActive   Boolean @default(true)
   usageCount Int     @default(0)

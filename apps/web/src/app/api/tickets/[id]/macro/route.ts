@@ -95,7 +95,13 @@ export async function POST(
       language: rendered.language,
       fellBack: rendered.fellBack,
       requestedLanguage: language,
+      // Every action the macro carries, returned together and applied by the
+      // caller only once the reply is actually delivered. Splitting them —
+      // status here, tags at insert — is how a ticket ends up tagged for a
+      // reply nobody sent.
       setStatus: macro.setStatus,
+      setPriority: macro.setPriority,
+      addTags: macro.addTags,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

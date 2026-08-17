@@ -4,7 +4,12 @@
 // organization's name — the same reasoning that puts Bank Assist's curated
 // answers behind a review step rather than in every agent's hands.
 import { prisma, UserRole, TicketStatus } from "@olink-desk/database";
-import { ensureStarterMacros, macroBodiesError, parseBodies } from "@olink-desk/macros";
+import {
+  cleanActions,
+  ensureStarterMacros,
+  macroBodiesError,
+  parseBodies,
+} from "@olink-desk/macros";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -42,6 +47,8 @@ export async function GET(request: NextRequest) {
         category: m.category,
         bodies: parseBodies(m.bodies),
         setStatus: m.setStatus,
+        setPriority: m.setPriority,
+        addTags: m.addTags,
         isActive: m.isActive,
         usageCount: m.usageCount,
       })),
@@ -72,9 +79,10 @@ export async function POST(request: NextRequest) {
   const bodiesError = macroBodiesError(bodies);
   if (bodiesError) return NextResponse.json({ error: bodiesError }, { status: 400 });
 
-  const setStatus = SETTABLE_STATUS.includes(payload.setStatus as TicketStatus)
-    ? (payload.setStatus as TicketStatus)
-    : null;
+  // One validator for all three, shared with PATCH and unit-tested — the
+  // status check used to live here as an inline `includes`, which is fine for
+  // one field and becomes three chances to disagree for three.
+  const actions = cleanActions(payload);
   const category =
     typeof payload.category === "string" && payload.category.trim()
       ? payload.category.trim().slice(0, 60)
@@ -87,7 +95,9 @@ export async function POST(request: NextRequest) {
         title,
         category,
         bodies: bodies as object,
-        setStatus,
+        setStatus: actions.setStatus,
+        setPriority: actions.setPriority,
+        addTags: actions.addTags,
         createdById: principal.user.id,
       },
     });

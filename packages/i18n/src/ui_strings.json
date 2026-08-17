@@ -355,7 +355,17 @@
     "ui_setup_app_secret": "App secret",
     "ui_setup_verify_token": "Verify token",
     "ui_setup_verify_hint": "Any phrase you choose. Type the same one into Meta when it asks.",
-    "ui_setup_webhook_meta": "Meta signs each delivery itself — paste this address and your verify token into the Meta dashboard, and nothing else needs sending."
+    "ui_setup_webhook_meta": "Meta signs each delivery itself — paste this address and your verify token into the Meta dashboard, and nothing else needs sending.",
+    "ui_macro_actions": "When this macro runs",
+    "ui_macro_actions_empty": "No actions yet. It will send the reply and change nothing else.",
+    "ui_macro_action_status": "Set status",
+    "ui_macro_action_priority": "Set priority",
+    "ui_macro_action_tags": "Add tags",
+    "ui_macro_action_remove": "Remove this action",
+    "ui_macro_tag_placeholder": "Type a tag, press Enter",
+    "ui_macro_does_status": "Sets status to {value}",
+    "ui_macro_does_priority": "Sets priority to {value}",
+    "ui_macro_does_tags": "Adds tags: {list}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -713,7 +723,17 @@
     "ui_setup_app_secret": "የመተግበሪያ ሚስጥር",
     "ui_setup_verify_token": "የማረጋገጫ ቶከን",
     "ui_setup_verify_hint": "የመረጡት ማንኛውም ሐረግ። Meta ሲጠይቅ ተመሳሳዩን ይጻፉ።",
-    "ui_setup_webhook_meta": "Meta እያንዳንዱን መልእክት ራሱ ይፈርማል — ይህን አድራሻና የማረጋገጫ ቶከንዎን በMeta ዳሽቦርድ ውስጥ ይለጥፉ፤ ሌላ መላክ አያስፈልግም።"
+    "ui_setup_webhook_meta": "Meta እያንዳንዱን መልእክት ራሱ ይፈርማል — ይህን አድራሻና የማረጋገጫ ቶከንዎን በMeta ዳሽቦርድ ውስጥ ይለጥፉ፤ ሌላ መላክ አያስፈልግም።",
+    "ui_macro_actions": "ይህ ማክሮ ሲሠራ",
+    "ui_macro_actions_empty": "እስካሁን ተግባር የለም። መልሱን ብቻ ይልካል፤ ሌላ ምንም አይለውጥም።",
+    "ui_macro_action_status": "ሁኔታ አስቀምጥ",
+    "ui_macro_action_priority": "ቅድሚያ አስቀምጥ",
+    "ui_macro_action_tags": "መለያዎች ጨምር",
+    "ui_macro_action_remove": "ይህን ተግባር አስወግድ",
+    "ui_macro_tag_placeholder": "መለያ ይተይቡ፣ Enter ይጫኑ",
+    "ui_macro_does_status": "ሁኔታውን ወደ {value} ያደርጋል",
+    "ui_macro_does_priority": "ቅድሚያውን ወደ {value} ያደርጋል",
+    "ui_macro_does_tags": "መለያዎችን ይጨምራል፦ {list}"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1071,7 +1091,17 @@
     "ui_setup_app_secret": "Iccitii aplikeeshinii",
     "ui_setup_verify_token": "Tookenii mirkaneessaa",
     "ui_setup_verify_hint": "Jecha kamiyyuu ati filatte. Yeroo Meta gaafatu isuma barreessi.",
-    "ui_setup_webhook_meta": "Meta ergaa hunda ofii isaatii mallatteessa — teessoo kanaa fi tookenii mirkaneessaa kee gara daashboordii Meta keessatti maxxansi; kanaan alatti wanti ergamu hin jiru."
+    "ui_setup_webhook_meta": "Meta ergaa hunda ofii isaatii mallatteessa — teessoo kanaa fi tookenii mirkaneessaa kee gara daashboordii Meta keessatti maxxansi; kanaan alatti wanti ergamu hin jiru.",
+    "ui_macro_actions": "Yeroo maakiroon kun hojjetu",
+    "ui_macro_actions_empty": "Hanga ammaatti gochi hin jiru. Deebii qofa erga; waan biraa hin jijjiiru.",
+    "ui_macro_action_status": "Haala kaa'i",
+    "ui_macro_action_priority": "Dursa kaa'i",
+    "ui_macro_action_tags": "Mallattoo dabali",
+    "ui_macro_action_remove": "Gocha kana haqi",
+    "ui_macro_tag_placeholder": "Mallattoo barreessi, Enter dhiibi",
+    "ui_macro_does_status": "Haala gara {value} jijjiira",
+    "ui_macro_does_priority": "Dursa gara {value} jijjiira",
+    "ui_macro_does_tags": "Mallattoo dabala: {list}"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1429,7 +1459,17 @@
     "ui_setup_app_secret": "ምስጢር ኣፕሊኬሽን",
     "ui_setup_verify_token": "ቶከን መረጋገጺ",
     "ui_setup_verify_hint": "ዝኾነ ዝመረጽካዮ ሓረግ። Meta ምስ ሓተተ ተመሳሳሊ ጽሓፍ።",
-    "ui_setup_webhook_meta": "Meta ንነፍሲ ወከፍ ምስዳድ ባዕሉ እዩ ዝፍርሞ — ነዚ ኣድራሻን ናትካ ቶከን መረጋገጺን ኣብ ዳሽቦርድ Meta ለጥፎም፤ ካልእ ምስዳድ ኣየድልን።"
+    "ui_setup_webhook_meta": "Meta ንነፍሲ ወከፍ ምስዳድ ባዕሉ እዩ ዝፍርሞ — ነዚ ኣድራሻን ናትካ ቶከን መረጋገጺን ኣብ ዳሽቦርድ Meta ለጥፎም፤ ካልእ ምስዳድ ኣየድልን።",
+    "ui_macro_actions": "እዚ ማክሮ ክሰርሕ ከሎ",
+    "ui_macro_actions_empty": "ክሳብ ሕጂ ተግባር የለን። መልሲ ጥራይ ይሰድድ፤ ካልእ ኣይቕይርን።",
+    "ui_macro_action_status": "ኩነታት ኣቐምጥ",
+    "ui_macro_action_priority": "ቀዳምነት ኣቐምጥ",
+    "ui_macro_action_tags": "መለለዪታት ወስኽ",
+    "ui_macro_action_remove": "ነዚ ተግባር ኣወግድ",
+    "ui_macro_tag_placeholder": "መለለዪ ጽሓፍ፡ Enter ጠውቕ",
+    "ui_macro_does_status": "ኩነታት ናብ {value} ይቕይር",
+    "ui_macro_does_priority": "ቀዳምነት ናብ {value} ይቕይር",
+    "ui_macro_does_tags": "መለለዪታት ይውስኽ፦ {list}"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -1787,7 +1827,17 @@
     "ui_setup_app_secret": "Sirta abka",
     "ui_setup_verify_token": "Calaamadda xaqiijinta",
     "ui_setup_verify_hint": "Weedh kasta oo aad dooratid. Marka Meta ku weydiiyo isla midkaas qor.",
-    "ui_setup_webhook_meta": "Meta ayaa iyada qudheedu saxeexda dirid kasta — ku dhaji cinwaankan iyo calaamaddaada xaqiijinta dashboard-ka Meta, waxna kale looma baahna in la diro."
+    "ui_setup_webhook_meta": "Meta ayaa iyada qudheedu saxeexda dirid kasta — ku dhaji cinwaankan iyo calaamaddaada xaqiijinta dashboard-ka Meta, waxna kale looma baahna in la diro.",
+    "ui_macro_actions": "Marka makrahani shaqeeyo",
+    "ui_macro_actions_empty": "Wali ma jiro ficil. Wuxuu dirayaa jawaabta oo keliya, waxna kale ma beddelayo.",
+    "ui_macro_action_status": "Deji xaaladda",
+    "ui_macro_action_priority": "Deji mudnaanta",
+    "ui_macro_action_tags": "Ku dar summado",
+    "ui_macro_action_remove": "Ka saar ficilkan",
+    "ui_macro_tag_placeholder": "Qor summad, taabo Enter",
+    "ui_macro_does_status": "Xaaladda wuxuu u beddelayaa {value}",
+    "ui_macro_does_priority": "Mudnaanta wuxuu u beddelayaa {value}",
+    "ui_macro_does_tags": "Wuxuu ku darayaa summado: {list}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2145,6 +2195,16 @@
     "ui_setup_app_secret": "Siri ya programu",
     "ui_setup_verify_token": "Tokeni ya uthibitisho",
     "ui_setup_verify_hint": "Kifungu chochote unachochagua. Andika kilekile Meta itakapouliza.",
-    "ui_setup_webhook_meta": "Meta hutia saini kila ujumbe yenyewe — bandika anwani hii na tokeni yako ya uthibitisho kwenye dashibodi ya Meta, na hakuna kingine cha kutuma."
+    "ui_setup_webhook_meta": "Meta hutia saini kila ujumbe yenyewe — bandika anwani hii na tokeni yako ya uthibitisho kwenye dashibodi ya Meta, na hakuna kingine cha kutuma.",
+    "ui_macro_actions": "Makro hii inapofanya kazi",
+    "ui_macro_actions_empty": "Hakuna vitendo bado. Itatuma jibu tu, na haitabadilisha kingine.",
+    "ui_macro_action_status": "Weka hali",
+    "ui_macro_action_priority": "Weka kipaumbele",
+    "ui_macro_action_tags": "Ongeza lebo",
+    "ui_macro_action_remove": "Ondoa kitendo hiki",
+    "ui_macro_tag_placeholder": "Andika lebo, bonyeza Enter",
+    "ui_macro_does_status": "Inaweka hali kuwa {value}",
+    "ui_macro_does_priority": "Inaweka kipaumbele kuwa {value}",
+    "ui_macro_does_tags": "Inaongeza lebo: {list}"
   }
 }

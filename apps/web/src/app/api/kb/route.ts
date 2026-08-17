@@ -4,6 +4,7 @@
 // Public search lives in the widget's own route. This one is the staff side —
 // writing, publishing and seeing which articles actually deflect.
 import { prisma, UserRole } from "@olink-desk/database";
+import { ensureStarterArticles } from "@olink-desk/retrieval";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../lib/session";
@@ -27,6 +28,12 @@ export async function GET(request: NextRequest) {
   const principal = await requireUser(request);
   if (isDenied(principal)) return principal;
 
+  // Four generic articles on a workspace that has none, unpublished. An
+  // empty knowledge base is true and useless: it cannot show that an article
+  // carries a title AND a body in six languages, that publishing is a
+  // separate decision from writing, or that deflections are the number worth
+  // watching.
+  await ensureStarterArticles(prisma, principal.organization.id);
   const articles = await prisma.kbArticle.findMany({
     where: { organizationId: principal.organization.id },
     orderBy: [{ deflections: "desc" }, { updatedAt: "desc" }],

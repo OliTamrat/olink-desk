@@ -279,7 +279,14 @@ function InboxWorkspace() {
   const [macroQ, setMacroQ] = useState("");
   const [macroNote, setMacroNote] = useState<string | null>(null);
   const [macroWarn, setMacroWarn] = useState<string | null>(null);
-  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  // Everything a macro will do once the reply is actually delivered. Held
+  // together rather than as three states: they are one decision the agent
+  // made by picking a macro, and they have to be applied or discarded as one.
+  const [pendingActions, setPendingActions] = useState<{
+    setStatus: string | null;
+    setPriority: string | null;
+    addTags: string[];
+  } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQ(q.trim()), 350);
@@ -470,6 +477,8 @@ function InboxWorkspace() {
         fellBack?: boolean;
         requestedLanguage?: string;
         setStatus?: string | null;
+        setPriority?: string | null;
+        addTags?: string[];
         error?: string;
       };
       if (!resp.ok || !data.text) {
@@ -483,7 +492,11 @@ function InboxWorkspace() {
       // into an internal note nobody sends.
       setInternal(false);
       setReply(data.text);
-      setPendingStatus(data.setStatus ?? null);
+      setPendingActions({
+        setStatus: data.setStatus ?? null,
+        setPriority: data.setPriority ?? null,
+        addTags: data.addTags ?? [],
+      });
       setMacroNote(
         tUi(lang, "ui_macro_inserted_in", { lang: LANG_NAMES[data.language ?? "en"] ?? "" }),
       );
@@ -609,13 +622,24 @@ function InboxWorkspace() {
         setReply("");
         setMacroNote(null);
         setMacroWarn(null);
-        // A macro's status change is applied only once the customer has
-        // actually received the reply — a ticket must never read RESOLVED
-        // because someone opened a draft and walked away.
-        if (pendingStatus && !internal) {
-          await patchTicket({ status: pendingStatus });
+        // A macro's actions are applied only once the customer has actually
+        // received the reply — a ticket must never read RESOLVED because
+        // someone opened a draft and walked away. And never for an internal
+        // note: that is a message to colleagues, not an answer to anybody.
+        if (pendingActions && !internal) {
+          const change: Record<string, unknown> = {};
+          if (pendingActions.setStatus) change.status = pendingActions.setStatus;
+          if (pendingActions.setPriority) change.priority = pendingActions.setPriority;
+          if (Object.keys(change).length > 0) await patchTicket(change);
+          for (const name of pendingActions.addTags) {
+            await fetch(`/api/tickets/${selectedId}/tags`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name }),
+            });
+          }
         }
-        setPendingStatus(null);
+        setPendingActions(null);
         await Promise.all([loadDetail(selectedId), loadList()]);
       } else {
         const body = (await resp.json().catch(() => null)) as { error?: string } | null;

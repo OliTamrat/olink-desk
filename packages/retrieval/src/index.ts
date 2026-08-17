@@ -9,3 +9,8 @@ export {
   type Hit,
 } from "./retrieve";
 export { STOPWORDS, STOPWORDS_BY_LANGUAGE } from "./stopwords";
+export {
+  ensureStarterArticles,
+  STARTER_ARTICLES,
+  type StarterArticle,
+} from "./starters";
