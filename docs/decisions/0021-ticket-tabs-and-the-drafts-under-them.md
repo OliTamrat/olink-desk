@@ -2,14 +2,14 @@
 
 - **Status:** Accepted
 - **Date:** 2026-08-16
-- **Context:** Founder, from the Zendesk agent-console screenshot: several open
+- **Context:** Founder, from the the global platforms agent-console screenshot: several open
   tickets as switchable tabs across the top. Agreed as its own scope rather
   than a layout tweak, because the tab strip is the small half of it.
 
 ## The strip is not the feature
 
 An agent works several tickets at once — a customer goes quiet, a colleague is
-asked, a refund is checked. Zendesk's tabs are the visible answer to that. But
+asked, a refund is checked. the standard tabs are the visible answer to that. But
 copying the row alone would have made this product **worse**, and that is the
 decision worth recording.
 

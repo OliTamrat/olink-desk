@@ -8,7 +8,7 @@
 
 ## The benchmark
 
-Olink Desk is built to the **Zendesk-class feature standard with Intercom's
+Olink Desk is built to the **the global platforms-class feature standard with Intercom's
 conversation feel**: conversation-threaded tickets (not email cases), and
 the eight pillars every industry-standard desk rests on — omnichannel with
 one conversation identity, tenant security/audit/encrypted credentials,
@@ -29,7 +29,7 @@ first-class *companion*, not the design driver. This supersedes the
 
 ## The SLA model (v1, shipped)
 
-1. **Targets per priority** — the Zendesk-standard model. One `SlaPolicy`
+1. **Targets per priority** — the industry-standard model. One `SlaPolicy`
    row per priority per org (URGENT 15m/4h, HIGH 1h/1bd, NORMAL 4h/3bd,
    LOW 1bd/5bd), seeded lazily on first use; every number is data, editable
    from Settings when that screen lands. **Channel overrides are approved

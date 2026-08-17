@@ -4,7 +4,7 @@
 // composer, and the agent presses send themselves. That is a deliberate line:
 // a one-click button that both writes and delivers a message under the
 // organization's name means the first time anyone reads the sentence is after
-// the customer has. Zendesk draws it the same way, and here it also gives the
+// the customer has. Desk products draw it the same way, and here it also gives the
 // agent the chance to see the language-fallback warning before sending.
 //
 // The rendering language is the TICKET's, never the agent's console language.

@@ -2,9 +2,9 @@
 
 - **Status:** Accepted
 - **Date:** 2026-08-16
-- **Context:** Founder, from a phone screenshot and a Zendesk comparison: the
+- **Context:** Founder, from a phone screenshot and a the global platforms comparison: the
   bottom bar has too much on it (cap it at five with a More), it should slide
-  away as the page scrolls, and Zendesk's macro builder puts a **preview
+  away as the page scrolls, and the standard macro builder puts a **preview
   beside the editor**.
 
 ## The bar had nine items at `flex: 1`

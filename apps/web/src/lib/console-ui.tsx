@@ -688,7 +688,7 @@ export interface ShellUser {
 
 // ------------------------------------------------------------ the top bar
 //
-// Zendesk's shape, and the reason for it: the things an agent reaches for
+// The standard console shape, and the reason for it: the things an agent reaches for
 // from ANY screen — search, alerts, who am I, sign out — belong on a bar that
 // is always in the same place, not tucked into the bottom of a rail. The
 // alert bell in particular was reported as hard to see down there, which is
@@ -996,7 +996,7 @@ export function ConsoleShell({
   active: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
-   * beside the app nav (the Zendesk shape — product rail, then Views).
+   * beside the app nav (the standard console shape — product rail, then Views).
    * Screens with no context pass nothing and the layer is not rendered.
    */
   sidePanel?: ReactNode;

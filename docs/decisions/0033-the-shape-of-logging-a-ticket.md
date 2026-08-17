@@ -1,14 +1,14 @@
-# ADR 0033 — The Zendesk shape for logging a ticket
+# ADR 0033 — The the global platforms shape for logging a ticket
 
 - **Status:** Accepted
 - **Date:** 2026-08-17
 - **Context:** Founder: "The new ticket creation page really needs a lot of
-  improvements. For your reference please see ours and Zendesk" — with a
-  screenshot of Zendesk's New Ticket screen.
+  improvements. For your reference please see ours and the global platforms" — with a
+  screenshot of the standard New Ticket screen.
 
 ## What the reference is actually doing
 
-Zendesk's new-ticket screen is three columns, and the split is not cosmetic:
+the standard new-ticket screen is three columns, and the split is not cosmetic:
 
 1. **Left — properties.** Requester, Assignee (with *take it*), Followers,
    Tags, Type, Priority. Everything about **where this goes**.
@@ -41,7 +41,7 @@ calls, and logging one as "phone call" makes the channel report wrong.
 
 ## Adapted rather than copied: the right rail
 
-Zendesk shows *similar resolved tickets*. The equivalent worth having here is
+the global platforms shows *similar resolved tickets*. The equivalent worth having here is
 the **knowledge base**: if an article already answers this, the agent reads it
 **while the customer is still on the line** rather than researching after
 hanging up. Matched on the subject, debounced, and it only ever offers — it

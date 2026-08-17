@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-16
 - **Context:** Founder, in one message: tickets should be colour-coded by
-  priority and SLA "like Zendesk" rather than everything being one accent; the
+  priority and SLA "like the global platforms" rather than everything being one accent; the
   sidebars are always visible and make the console feel crowded; and the
   dashboard's cards and sections should line up.
 

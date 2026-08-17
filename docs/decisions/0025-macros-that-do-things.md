@@ -3,12 +3,12 @@
 - **Status:** Accepted
 - **Date:** 2026-08-16
 - **Context:** Founder, from a live workspace: enhance the Macros page and copy
-  Zendesk's new-macro creation process, and add a few knowledge-base articles
+  the standard new-macro creation process, and add a few knowledge-base articles
   so the feature can be seen working.
 
 ## A macro was a canned reply with one dropdown bolted on
 
-Zendesk's model — and the one an agent actually wants — is a small **bundle of
+the standard model — and the one an agent actually wants — is a small **bundle of
 actions**: send this text, set the status, set the priority, add these tags.
 Doing three more things by hand after every canned reply is exactly the
 repetition a macro exists to remove.

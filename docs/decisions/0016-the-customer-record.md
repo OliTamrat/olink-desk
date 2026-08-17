@@ -3,9 +3,9 @@
 - **Status:** Accepted
 - **Date:** 2026-08-16
 - **Context:** ADR 0015 built the identity layer. Comparing the result against
-  Zendesk's customer page (founder screenshots, 2026-08-16) separated three
+  the standard customer page (founder screenshots, 2026-08-16) separated three
   different things: work I left half-done, a real product gap, and features
-  that are Zendesk carrying weight this product does not have.
+  that are the global platforms carrying weight this product does not have.
 
 ## Two things were half-shipped, and that is the important part
 
@@ -51,11 +51,11 @@ merging two people is the worst outcome this table can produce.
 An agent unsure whether the customer can read a note writes nothing useful.
 The field says plainly: staff only, never shown to the customer.
 
-## What we are NOT copying from Zendesk, and why
+## What we are NOT copying from the global platforms, and why
 
 Recorded so the next session does not read these as oversights:
 
-- **Organizations** (Zendesk's "Org." — customers belonging to a company).
+- **Organizations** (the standard "Org." — customers belonging to a company).
   Genuinely valuable for B2B desks and worth building. It needs a new model
   and a migration, and the name collides with our `Organization` = tenant, so
   it is a decision rather than a field. **Roadmap, not oversight.**
@@ -64,11 +64,11 @@ Recorded so the next session does not read these as oversights:
   identifies them" is a design question. Adding a secondary number without
   answering it would quietly reintroduce the duplicate problem ADR 0015
   closed.
-- **Time zone.** Ethiopia is one timezone. This is Zendesk carrying global
+- **Time zone.** Ethiopia is one timezone. This is the global platforms carrying global
   weight. It becomes real the day a tenant operates outside EAT, and not
   before.
 - **User type / Access / Security settings / Help center tab.** All of these
-  configure Zendesk's **end-user portal** — customer logins, what a customer
+  configure the standard **end-user portal** — customer logins, what a customer
   may see of their own tickets. This product has no customer login; a customer
   reaches us on Telegram or a widget and is identified by the channel. Copying
   the fields would be copying an architecture we deliberately do not have.
