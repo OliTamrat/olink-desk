@@ -8,6 +8,7 @@ in:
 ```
 apps/web/            Next.js 14 App Router — agent console, supervisor console,
                      admin, the customer widget, and every channel webhook
+packages/ai/         Gemini over Vertex AI — reply drafting, no API key anywhere
 packages/database/   Prisma schema + generated client (@olink-desk/database)
 packages/auth/       Password hashing, session tokens, org registration, lockout
 packages/channels/   Channel adapters + the shared inbound spine (channelReply)
