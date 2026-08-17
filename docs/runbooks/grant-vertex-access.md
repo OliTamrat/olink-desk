@@ -1,13 +1,17 @@
 # Grant the runtime service account access to Vertex AI
 
-**Status: NOT DONE.** `GET /api/health` reports it on every deploy:
+**Status: DONE — 2026-08-17.** `GET /api/health` reports `"ai":"ok"`, which
+means the model answered a real prompt rather than that a variable is set.
 
-```
-"ai":"fail: vertex refused (403) — the runtime service account needs
-      roles/aiplatform.user and aiplatform.googleapis.com must be enabled"
-```
+Kept for the next environment (staging, or an in-country deployment), where
+the same two steps are needed again from scratch.
 
-Needs a `gcloud` session against the project. No agent sandbox has one.
+> **The wrong API is easy to enable.** Searching "Vertex AI" in the console's
+> API library returns several products, and **Vertex AI Search for commerce**
+> (`retail.googleapis.com`) is one of them — retail product search, unrelated
+> to text generation. Enabling it changes nothing and the 403 persists. The one
+> to enable is `aiplatform.googleapis.com`, plain **Vertex AI API**. This
+> happened on the first attempt here.
 
 ## What is affected
 
@@ -34,7 +38,9 @@ health message names both because they look identical from outside:
 1. `aiplatform.googleapis.com` is not enabled on the project, or
 2. the runtime service account lacks `roles/aiplatform.user`.
 
-## Fix — PowerShell
+## The two steps
+
+### PowerShell
 
 ```powershell
 $Project = "<your GCP project id>"
@@ -48,7 +54,7 @@ gcloud services enable aiplatform.googleapis.com --project $Project
 gcloud projects add-iam-policy-binding $Project --member "serviceAccount:$Runtime" --role "roles/aiplatform.user"
 ```
 
-## Fix — bash
+### bash
 
 ```bash
 PROJECT=<your GCP project id>

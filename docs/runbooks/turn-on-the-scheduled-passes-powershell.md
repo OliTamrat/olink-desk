@@ -97,15 +97,31 @@ gcloud secrets delete olink-desk-cron-secret --project $Project --quiet
 
 ## 2. Let the runtime service account read it
 
+**Check first — on this project it is already done.** As of 2026-08-17
+`olink-desk-runtime` holds `roles/secretmanager.secretAccessor` at the
+**project** level, which covers every secret including one created a minute
+ago. Confirm before adding anything:
+
+```powershell
+gcloud projects get-iam-policy $Project --flatten "bindings[].members" --filter "bindings.role:roles/secretmanager.secretAccessor" --format "value(bindings.members)"
+```
+
+If `olink-desk-runtime@…` is in that list, **skip to step 3**.
+
+Only if it is absent, bind it on the secret itself — narrower than the
+project-wide grant, and the right shape for a fresh environment:
+
 ```powershell
 gcloud secrets add-iam-policy-binding olink-desk-cron-secret --project $Project --member "serviceAccount:$Runtime" --role roles/secretmanager.secretAccessor
-```
-
-Confirm the binding exists:
-
-```powershell
 gcloud secrets get-iam-policy olink-desk-cron-secret --project $Project
 ```
+
+> **Worth revisiting later, not now.** A project-level `secretAccessor` lets
+> the runtime read *every* secret in the project, not only the four it needs.
+> That is broader than this service requires, and tightening it to per-secret
+> bindings is a real hardening item — but it is a change to how the running
+> service gets its credentials, so it belongs in its own deliberate pass, not
+> bolted onto turning the cron on.
 
 ## 3. Add it to the deploy
 
