@@ -440,7 +440,8 @@
     "ui_new_suggested": "Answers you already have",
     "ui_new_suggested_blurb": "Knowledge base articles matching this subject — read one while they are still on the line.",
     "ui_new_suggested_none": "Type a subject and anything the desk has already written about it appears here.",
-    "ui_lang_unset": "Not set"
+    "ui_lang_unset": "Not set",
+    "ui_customers_none_title": "No customers yet"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -883,7 +884,8 @@
     "ui_new_suggested": "አስቀድመው ያሏቸው መልሶች",
     "ui_new_suggested_blurb": "ከዚህ ርዕስ ጋር የሚዛመዱ የእውቀት መሠረት ጽሑፎች — አሁንም በስልክ ላይ እያሉ አንዱን ያንብቡ።",
     "ui_new_suggested_none": "ርዕስ ይተይቡ እና ዴስኩ ስለ እሱ ቀደም ብሎ የጻፈው ማንኛውም ነገር እዚህ ይታያል።",
-    "ui_lang_unset": "አልተዘጋጀም"
+    "ui_lang_unset": "አልተዘጋጀም",
+    "ui_customers_none_title": "እስካሁን ደንበኞች የሉም"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1326,7 +1328,8 @@
     "ui_new_suggested": "Deebiiwwan duraan qabdan",
     "ui_new_suggested_blurb": "Barruuwwan buufata beekumsaa mata-duree kanaan walsimu — utuu isaan bilbila irra jiranuu tokko dubbisi.",
     "ui_new_suggested_none": "Mata-duree barreessi, wanti deeskiin waa'ee isaa duraan barreesse asitti mul'ata.",
-    "ui_lang_unset": "Hin qindoofne"
+    "ui_lang_unset": "Hin qindoofne",
+    "ui_customers_none_title": "Hanga ammaatti maamiltoonni hin jiran"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1769,7 +1772,8 @@
     "ui_new_suggested": "ድሮ ዘለዉኻ መልስታት",
     "ui_new_suggested_blurb": "ምስዚ ኣርእስቲ ዝሰማምዑ ናይ ፍልጠት ጽሑፋት — ገና ኣብ ስልኪ እንከለዉ ሓደ ኣንብብ።",
     "ui_new_suggested_none": "ኣርእስቲ ጽሓፍ፡ እቲ ደስክ ብዛዕባኡ ቅድሚ ሕጂ ዝጸሓፎ ኣብዚ ይረአ።",
-    "ui_lang_unset": "ኣይተቐመጠን"
+    "ui_lang_unset": "ኣይተቐመጠን",
+    "ui_customers_none_title": "ክሳብ ሕጂ ዓማዊል የለዉን"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2212,7 +2216,8 @@
     "ui_new_suggested": "Jawaabaha aad hore u haysatay",
     "ui_new_suggested_blurb": "Maqaallada aqoonta ee la mid ah mawduucan — mid akhri iyagoo weli khadka ku jira.",
     "ui_new_suggested_none": "Qor mawduuc, wax kasta oo miisku hore uga qoray halkan ayey ka soo muuqan doonaan.",
-    "ui_lang_unset": "Lama dejin"
+    "ui_lang_unset": "Lama dejin",
+    "ui_customers_none_title": "Wali macaamiil ma jiraan"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2655,6 +2660,7 @@
     "ui_new_suggested": "Majibu uliyo nayo tayari",
     "ui_new_suggested_blurb": "Makala za maarifa zinazolingana na mada hii — soma moja wakiwa bado kwenye simu.",
     "ui_new_suggested_none": "Andika mada na chochote ambacho dawati limeandika kuhusu hilo kitaonekana hapa.",
-    "ui_lang_unset": "Haijawekwa"
+    "ui_lang_unset": "Haijawekwa",
+    "ui_customers_none_title": "Bado hakuna wateja"
   }
 }

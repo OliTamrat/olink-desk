@@ -18,6 +18,7 @@ import {
   useMe,
 } from "../../lib/console-ui";
 import { SETUP, type SetupSpec } from "../../lib/channel-setup";
+import { IconTile, stroke } from "../../lib/card";
 
 interface CatalogueEntry {
   key: string;
@@ -43,6 +44,9 @@ export default function ChannelsPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
   const [channels, setChannels] = useState<CatalogueEntry[]>([]);
+  // Which channel's form is open. One at a time — an accordion, so the page
+  // cannot grow back into the wall of forms this replaced.
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [tg, setTg] = useState<TelegramStatus | null>(null);
   const [tgError, setTgError] = useState<string | null>(null);
   const [token, setToken] = useState("");
@@ -292,53 +296,107 @@ export default function ChannelsPage() {
             })()}
 
             {/* --------------------------------------- rest of catalogue */}
+            {/* One card per channel, CLOSED. Every credential form used to be
+                expanded at once — ten of them, four thousand pixels, so
+                reaching USSD meant scrolling past nine forms nobody was
+                filling in. An admin connects one channel at a time; the page
+                should look like that decision, not like every decision at
+                once. Opening one closes the last, so the page never grows
+                back into a wall. */}
             {channels
               .filter((c) => c.key !== "telegram" && c.key !== "web")
-              .map((c) => (
-                <section key={c.key} style={ui.card}>
-                  <div
+              .map((c) => {
+                const open = expanded === c.key;
+                return (
+                <section key={c.key} style={{ ...ui.card, padding: open ? 20 : 14 }} data-channel={c.key}>
+                  <button
+                    type="button"
+                    data-channel-toggle={c.key}
+                    aria-expanded={open}
+                    onClick={() => setExpanded(open ? null : c.key)}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
+                      gap: 12,
+                      width: "100%",
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      cursor: "pointer",
+                      textAlign: "start",
+                      fontFamily: "inherit",
                     }}
                   >
-                    <h2 style={ui.h2}>{c.name}</h2>
-                    {badge(c.status)}
-                  </div>
-                  <p style={{ margin: 0, color: colors.textSecondary, fontSize: 14 }}>
-                    {c.blurb}
-                  </p>
-                  {SETUP[c.key] ? (
-                    <ChannelSetup
-                      lang={lang}
-                      slug={me?.organization.slug ?? ""}
-                      specs={SETUP[c.key]}
-                      onSaved={() => me && void refresh(me.organization.slug)}
-                    />
-                  ) : null}
-                  {c.needs.length > 0 ? (
-                    <>
-                      <p
+                    <IconTile size={34} tint={c.status === "live" ? colors.success : colors.textMuted}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+                      </svg>
+                    </IconTile>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span
                         style={{
-                          margin: "12px 0 4px",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: colors.textBody,
+                          display: "block",
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: colors.textPrimary,
                         }}
                       >
-                        {tUi(lang, "ui_needs")}
-                      </p>
-                      <ul style={{ margin: 0, paddingLeft: 18, color: colors.textSecondary, fontSize: 13 }}>
-                        {c.needs.map((n) => (
-                          <li key={n}>{n}</li>
-                        ))}
-                      </ul>
-                    </>
+                        {c.name}
+                      </span>
+                      {/* The blurb stays visible when closed — it is what an
+                          admin reads to decide WHETHER to open this one. */}
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 12.5,
+                          color: colors.textMuted,
+                          marginTop: 2,
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        {c.blurb}
+                      </span>
+                    </span>
+                    {badge(c.status)}
+                    <span aria-hidden style={{ color: colors.textMuted, flexShrink: 0, width: 14 }}>
+                      {open ? "\u2304" : "\u203a"}
+                    </span>
+                  </button>
+
+                  {open ? (
+                    <div style={{ marginTop: 14 }}>
+                      {SETUP[c.key] ? (
+                        <ChannelSetup
+                          lang={lang}
+                          slug={me?.organization.slug ?? ""}
+                          specs={SETUP[c.key]}
+                          onSaved={() => me && void refresh(me.organization.slug)}
+                        />
+                      ) : null}
+                      {c.needs.length > 0 ? (
+                        <>
+                          <p
+                            style={{
+                              margin: "12px 0 4px",
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: colors.textBody,
+                            }}
+                          >
+                            {tUi(lang, "ui_needs")}
+                          </p>
+                          <ul style={{ margin: 0, paddingLeft: 18, color: colors.textSecondary, fontSize: 13 }}>
+                            {c.needs.map((n) => (
+                              <li key={n}>{n}</li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : null}
+                    </div>
                   ) : null}
                 </section>
-              ))}
+                );
+              })}
           </div>
         )}
       </div>

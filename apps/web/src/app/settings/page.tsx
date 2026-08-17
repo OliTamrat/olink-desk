@@ -11,6 +11,8 @@ import {
 } from "@olink-desk/i18n";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { IconTile, stroke } from "../../lib/card";
+
 import {
   Badge,
   colors,
@@ -285,7 +287,12 @@ export default function SettingsPage() {
       {tab === "sla" ? (
         <div style={{ ...layout.centred, display: "grid", gap: 16 }}>
           <section style={ui.card}>
-            <h2 style={{ ...ui.h2, marginBottom: 6 }}>{tUi(lang, "ui_tab_sla")}</h2>
+            <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 6 }}>
+              <IconTile size={34}>
+                <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}><path d="M12 7v5l3 2" /><circle cx="12" cy="12" r="9" /></svg>
+              </IconTile>
+              <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_tab_sla")}</h2>
+            </div>
             {/* What the two numbers actually promise, and that they are what
                 colours the inbox. Four rows of unexplained minute boxes is a
                 form; this makes it a decision. */}
@@ -331,7 +338,12 @@ export default function SettingsPage() {
           </section>
 
           <section style={ui.card}>
-            <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_business_hours")}</h2>
+            <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 14 }}>
+              <IconTile size={34}>
+                <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+              </IconTile>
+              <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_business_hours")}</h2>
+            </div>
             {!calendar ? (
               <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>
             ) : (
@@ -422,7 +434,12 @@ export default function SettingsPage() {
       {tab === "team" ? (
         <div style={{ ...layout.centred, display: "grid", gap: 16 }}>
           <section style={ui.card}>
-            <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_invite_teammate")}</h2>
+            <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 14 }}>
+              <IconTile size={34}>
+                <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+              </IconTile>
+              <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_invite_teammate")}</h2>
+            </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
               <input
                 placeholder={tUi(lang, "ui_your_name")}
@@ -695,7 +712,12 @@ function WorkspacePanel({
   return (
     <div style={{ ...layout.centred, display: "grid", gap: 16 }} data-workspace-panel>
       <section style={ui.card}>
-        <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_ws_identity")}</h2>
+        <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 14 }}>
+              <IconTile size={34}>
+                <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 9h10M7 13h6" /></svg>
+              </IconTile>
+              <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_ws_identity")}</h2>
+            </div>
         <div style={{ display: "grid", gap: 14 }}>
           <div>
             <label style={ui.label} htmlFor="ws-name">
@@ -762,7 +784,12 @@ function WorkspacePanel({
       </section>
 
       <section style={ui.card}>
-        <h2 style={{ ...ui.h2, marginBottom: 6 }}>{tUi(lang, "ui_ws_languages")}</h2>
+        <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 6 }}>
+              <IconTile size={34}>
+                <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18" /></svg>
+              </IconTile>
+              <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_ws_languages")}</h2>
+            </div>
         <p style={{ ...ui.sub, marginBottom: 14 }}>{tUi(lang, "ui_ws_languages_hint")}</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
           {SUPPORTED_LANGUAGES.map((code) => {
