@@ -409,7 +409,12 @@
     "ui_macro_summary": "{n} macros · {ready} written in all six languages",
     "ui_macro_no_match": "No macro matches that",
     "ui_macro_no_match_hint": "Try a different word, or clear the filter to see all of them.",
-    "ui_macro_summary_one": "1 macro · {ready} written in all six languages"
+    "ui_macro_summary_one": "1 macro · {ready} written in all six languages",
+    "ui_rep_nothing_yet": "Nothing yet in this window",
+    "ui_rep_volume_blurb": "One bar per day. Quiet days are drawn too, so a slow week reads as a slow week.",
+    "ui_rep_volume_peak": "Busiest day: {n} on {date}",
+    "ui_rep_no_volume": "Nothing came in during this window",
+    "ui_rep_no_volume_hint": "Try a longer range, or connect a channel so customers can reach you."
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -821,7 +826,12 @@
     "ui_macro_summary": "{n} ማክሮዎች · {ready} በስድስቱም ቋንቋዎች ተጽፈዋል",
     "ui_macro_no_match": "ከዚያ ጋር የሚዛመድ ማክሮ የለም",
     "ui_macro_no_match_hint": "ሌላ ቃል ይሞክሩ፣ ወይም ሁሉንም ለማየት ማጣሪያውን ያጽዱ።",
-    "ui_macro_summary_one": "1 ማክሮ · {ready} በስድስቱም ቋንቋዎች ተጽፏል"
+    "ui_macro_summary_one": "1 ማክሮ · {ready} በስድስቱም ቋንቋዎች ተጽፏል",
+    "ui_rep_nothing_yet": "በዚህ ወቅት እስካሁን ምንም የለም",
+    "ui_rep_volume_blurb": "በየቀኑ አንድ አሞሌ። ጸጥ ያሉ ቀናትም ይሳላሉ፣ ስለዚህ የተረጋጋ ሳምንት እንደዚያው ይነበባል።",
+    "ui_rep_volume_peak": "በጣም የተጨናነቀው ቀን፦ {date} ላይ {n}",
+    "ui_rep_no_volume": "በዚህ ወቅት ምንም አልገባም",
+    "ui_rep_no_volume_hint": "ረዘም ያለ ወቅት ይሞክሩ፣ ወይም ደንበኞች እንዲደርሱዎት ቻናል ያገናኙ።"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1233,7 +1243,12 @@
     "ui_macro_summary": "Maakiroo {n} · {ready} afaanota jaha hundaan barreeffamaniiru",
     "ui_macro_no_match": "Maakiroon sanaan walsimu hin jiru",
     "ui_macro_no_match_hint": "Jecha biraa yaali, yookaan hunda ilaaluuf calaltuu haqi.",
-    "ui_macro_summary_one": "Maakiroo 1 · {ready} afaanota jaha hundaan barreeffameera"
+    "ui_macro_summary_one": "Maakiroo 1 · {ready} afaanota jaha hundaan barreeffameera",
+    "ui_rep_nothing_yet": "Yeroo kana keessatti hanga ammaatti homaa hin jiru",
+    "ui_rep_volume_blurb": "Guyyaatti sarara tokko. Guyyoonni tasgabbaa'oonis ni kaafamu, kanaaf torbeen suuta jedhu akkasumatti dubbifama.",
+    "ui_rep_volume_peak": "Guyyaa hojiin baay'atu: {date} irratti {n}",
+    "ui_rep_no_volume": "Yeroo kana keessatti homaa hin seenne",
+    "ui_rep_no_volume_hint": "Yeroo dheeraa yaali, yookaan maamiltoonni si qaqqabuu akka danda'aniif channelii walqabsiisi."
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1645,7 +1660,12 @@
     "ui_macro_summary": "{n} ማክሮታት · {ready} ብዅሎም ሽዱሽተ ቋንቋታት ተጻሒፎም",
     "ui_macro_no_match": "ምስኡ ዝሰማማዕ ማክሮ የለን",
     "ui_macro_no_match_hint": "ካልእ ቃል ፈትን፡ ወይ ኩሎም ንምርኣይ ነቲ መጻረዪ ኣጽሪ።",
-    "ui_macro_summary_one": "1 ማክሮ · {ready} ብዅሎም ሽዱሽተ ቋንቋታት ተጻሒፉ"
+    "ui_macro_summary_one": "1 ማክሮ · {ready} ብዅሎም ሽዱሽተ ቋንቋታት ተጻሒፉ",
+    "ui_rep_nothing_yet": "ኣብዚ እዋን እዚ ክሳብ ሕጂ ዋላ ሓደ የለን",
+    "ui_rep_volume_blurb": "ኣብ መዓልቲ ሓደ መስመር። ህዱኣት መዓልትታት እውን ይስኣሉ፡ ስለዚ ህዱእ ሰሙን ከምኡ ይንበብ።",
+    "ui_rep_volume_peak": "ዝያዳ ስራሕ ዝነበሮ መዓልቲ፦ ኣብ {date} {n}",
+    "ui_rep_no_volume": "ኣብዚ እዋን እዚ ዋላ ሓደ ኣይኣተወን",
+    "ui_rep_no_volume_hint": "ነዊሕ እዋን ፈትን፡ ወይ ዓማዊል ክበጽሑኻ ምእንቲ ቻነል ኣተሓሕዝ."
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2057,7 +2077,12 @@
     "ui_macro_summary": "{n} makarooyin · {ready} oo ku qoran dhammaan lixda luqadood",
     "ui_macro_no_match": "Makaro taas u dhiganta ma jirto",
     "ui_macro_no_match_hint": "Isku day eray kale, ama nadiifi shaandhada si aad dhammaan u aragto.",
-    "ui_macro_summary_one": "1 makaro · {ready} oo ku qoran dhammaan lixda luqadood"
+    "ui_macro_summary_one": "1 makaro · {ready} oo ku qoran dhammaan lixda luqadood",
+    "ui_rep_nothing_yet": "Muddadan weli waxba ma jiraan",
+    "ui_rep_volume_blurb": "Maalintii hal xariiq. Maalmaha aamusan sidoo kale waa la sawiraa, sidaas darteed toddobaad deggan sidaas ayuu u muuqdaa.",
+    "ui_rep_volume_peak": "Maalinta ugu mashquulsan: {n} {date}",
+    "ui_rep_no_volume": "Muddadan waxba ma soo gelin",
+    "ui_rep_no_volume_hint": "Isku day muddo dheer, ama ku xidh kanaal si macaamiishu kuu soo gaadhaan."
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2469,6 +2494,11 @@
     "ui_macro_summary": "Makro {n} · {ready} zimeandikwa kwa lugha zote sita",
     "ui_macro_no_match": "Hakuna makro inayolingana na hiyo",
     "ui_macro_no_match_hint": "Jaribu neno lingine, au ondoa kichujio ili kuona zote.",
-    "ui_macro_summary_one": "Makro 1 · {ready} imeandikwa kwa lugha zote sita"
+    "ui_macro_summary_one": "Makro 1 · {ready} imeandikwa kwa lugha zote sita",
+    "ui_rep_nothing_yet": "Bado hakuna chochote katika kipindi hiki",
+    "ui_rep_volume_blurb": "Mstari mmoja kwa siku. Siku tulivu pia huchorwa, hivyo wiki tulivu husomeka kama ilivyo.",
+    "ui_rep_volume_peak": "Siku yenye shughuli nyingi: {n} tarehe {date}",
+    "ui_rep_no_volume": "Hakuna kilichoingia katika kipindi hiki",
+    "ui_rep_no_volume_hint": "Jaribu kipindi kirefu zaidi, au unganisha njia ili wateja waweze kukufikia."
   }
 }
