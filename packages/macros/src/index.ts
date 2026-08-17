@@ -26,3 +26,9 @@ export {
   type MacroPriority,
   type SettableStatus,
 } from "./actions";
+export {
+  coverage,
+  MACRO_LANGUAGES,
+  type Coverage,
+  type MacroLanguage,
+} from "./coverage";

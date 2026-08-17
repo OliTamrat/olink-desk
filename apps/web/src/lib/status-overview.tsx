@@ -18,35 +18,13 @@ import { type ReactNode } from "react";
 import { composition, type LifecycleKey, type StatusCounts } from "@olink-desk/reports";
 import type { Language } from "@olink-desk/i18n";
 
+import { IconTile, stroke } from "./card";
 import { colors, LIFECYCLE_INK, radius } from "./theme";
 
-/** A rounded-square icon tile — the marker every card in this language wears. */
-export function IconTile({
-  children,
-  tint,
-}: {
-  children: ReactNode;
-  tint?: string;
-}): ReactNode {
-  return (
-    <span
-      aria-hidden
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 40,
-        height: 40,
-        flexShrink: 0,
-        borderRadius: radius.md,
-        background: colors.surfaceHover,
-        color: tint ?? colors.accent,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
+// The tile and the glyph set now live in `card.tsx` with the rest of the card
+// language. Re-exported because this module was where they started and the
+// dashboard still reaches for them here.
+export { IconTile };
 
 export function StatusOverview({
   lang,
@@ -361,12 +339,4 @@ const cardStyle = {
   borderRadius: radius.lg,
   padding: 20,
   boxSizing: "border-box",
-} as const;
-
-const stroke = {
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.8,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
 } as const;
