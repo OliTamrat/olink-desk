@@ -37,3 +37,18 @@ export {
   type SlaState,
   type Tone,
 } from "./urgency";
+export {
+  cleanAttachment,
+  cleanFilename,
+  humanDuration,
+  humanSize,
+  isAudio,
+  isInlineRenderable,
+  sniffContentType,
+  FALLBACK_CONTENT_TYPE,
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENTS_PER_MESSAGE,
+  MAX_FILENAME_LENGTH,
+  type AttachmentInput,
+  type CleanAttachment,
+} from "./attachments";

@@ -427,7 +427,15 @@
     "ui_customer_identity_why": "A phone number or an email — it is how the same person is recognised the next time they get in touch.",
     "ui_new_need_customer": "Pick a customer, or add a new one.",
     "ui_new_need_subject": "Say what it is about before logging it.",
-    "ui_ticket_no_reply_walk_in": "A visit has no channel to reply on. Follow this one up in person, or by calling the number on their record — the desk cannot send to it."
+    "ui_ticket_no_reply_walk_in": "A visit has no channel to reply on. Follow this one up in person, or by calling the number on their record — the desk cannot send to it.",
+    "ui_attach_file": "Attach a file",
+    "ui_attach_record": "Record a voice note",
+    "ui_attach_stop": "Stop",
+    "ui_attach_remove": "Remove",
+    "ui_attach_voice_note": "Voice note · {d}",
+    "ui_attach_count": "{n} attached",
+    "ui_attach_mic_denied": "No microphone available, or permission was refused. Check the browser's site permissions and try again.",
+    "ui_attach_some_failed": "The ticket was logged, but some files did not upload: {list}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -857,7 +865,15 @@
     "ui_customer_identity_why": "ስልክ ቁጥር ወይም ኢሜይል — ተመሳሳዩ ሰው በሚቀጥለው ጊዜ ሲገናኝ የሚታወቅበት መንገድ ነው።",
     "ui_new_need_customer": "ደንበኛ ይምረጡ፣ ወይም አዲስ ይጨምሩ።",
     "ui_new_need_subject": "ከመመዝገብዎ በፊት ስለ ምን እንደሆነ ይግለጹ።",
-    "ui_ticket_no_reply_walk_in": "ጉብኝት የሚመልስበት ቻናል የለውም። ይህን በአካል ይከታተሉ፣ ወይም በመዝገባቸው ላይ ባለው ቁጥር ይደውሉ — ዴስኩ ወደዚህ መላክ አይችልም።"
+    "ui_ticket_no_reply_walk_in": "ጉብኝት የሚመልስበት ቻናል የለውም። ይህን በአካል ይከታተሉ፣ ወይም በመዝገባቸው ላይ ባለው ቁጥር ይደውሉ — ዴስኩ ወደዚህ መላክ አይችልም።",
+    "ui_attach_file": "ፋይል ያያይዙ",
+    "ui_attach_record": "የድምጽ ማስታወሻ ይቅዱ",
+    "ui_attach_stop": "አቁም",
+    "ui_attach_remove": "አስወግድ",
+    "ui_attach_voice_note": "የድምጽ ማስታወሻ · {d}",
+    "ui_attach_count": "{n} ተያይዘዋል",
+    "ui_attach_mic_denied": "ማይክሮፎን የለም፣ ወይም ፈቃድ ተከልክሏል። የአሳሹን የጣቢያ ፈቃዶች ይመልከቱ እና እንደገና ይሞክሩ።",
+    "ui_attach_some_failed": "ጥያቄው ተመዝግቧል፣ ነገር ግን አንዳንድ ፋይሎች አልተሰቀሉም፦ {list}"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1287,7 +1303,15 @@
     "ui_customer_identity_why": "Lakkoofsa bilbilaa yookaan iimeelii — namni sun yeroo itti aanu yommuu quunnamu ittiin beekamuudha.",
     "ui_new_need_customer": "Maamila filadhu, yookaan haaraa dabali.",
     "ui_new_need_subject": "Osoo hin galmeessin dura waa'ee maalii akka ta'e ibsi.",
-    "ui_ticket_no_reply_walk_in": "Daawwannaan karaa ittiin deebi'an hin qabu. Kana dhuunfaan hordofi, yookaan lakkoofsa galmee isaanii irra jiruun bilbili — deeskiin gara kanaatti erguu hin danda'u."
+    "ui_ticket_no_reply_walk_in": "Daawwannaan karaa ittiin deebi'an hin qabu. Kana dhuunfaan hordofi, yookaan lakkoofsa galmee isaanii irra jiruun bilbili — deeskiin gara kanaatti erguu hin danda'u.",
+    "ui_attach_file": "Faayilii maxxansi",
+    "ui_attach_record": "Yaadannoo sagalee waraabi",
+    "ui_attach_stop": "Dhaabi",
+    "ui_attach_remove": "Haqi",
+    "ui_attach_voice_note": "Yaadannoo sagalee · {d}",
+    "ui_attach_count": "{n} maxxanfameera",
+    "ui_attach_mic_denied": "Maaykiroofoonni hin jiru, yookaan hayyamni diddameera. Hayyama iddoo interneetii sakatta'ii irra deebi'ii yaali.",
+    "ui_attach_some_failed": "Iyyannoon galmaa'eera, garuu faayilonni tokko tokko hin ol kaafamne: {list}"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1717,7 +1741,15 @@
     "ui_customer_identity_why": "ቁጽሪ ስልኪ ወይ ኢመይል — እቲ ሰብ ኣብ ዝቕጽል ግዜ ምስ ተራኸበ ዝልለየሉ መንገዲ እዩ።",
     "ui_new_need_customer": "ዓሚል ምረጽ፡ ወይ ሓድሽ ወስኽ።",
     "ui_new_need_subject": "ቅድሚ ምምዝጋብካ ብዛዕባ እንታይ ምዃኑ ግለጽ።",
-    "ui_ticket_no_reply_walk_in": "ምብጻሕ መልሲ ዝወሃበሉ መስመር የብሉን። ነዚ ብኣካል ተኸታተሎ፡ ወይ በቲ ኣብ መዝገቦም ዘሎ ቁጽሪ ደውል — እቲ ደስክ ናብዚ ክሰድድ ኣይክእልን።"
+    "ui_ticket_no_reply_walk_in": "ምብጻሕ መልሲ ዝወሃበሉ መስመር የብሉን። ነዚ ብኣካል ተኸታተሎ፡ ወይ በቲ ኣብ መዝገቦም ዘሎ ቁጽሪ ደውል — እቲ ደስክ ናብዚ ክሰድድ ኣይክእልን።",
+    "ui_attach_file": "ፋይል ኣተሓሒዝ",
+    "ui_attach_record": "ናይ ድምጺ መዘኻኸሪ ቅዳሕ",
+    "ui_attach_stop": "ደው",
+    "ui_attach_remove": "ኣውጽእ",
+    "ui_attach_voice_note": "ናይ ድምጺ መዘኻኸሪ · {d}",
+    "ui_attach_count": "{n} ተታሓሒዞም",
+    "ui_attach_mic_denied": "ማይክሮፎን የለን፡ ወይ ፍቓድ ተኸልኪሉ። ናይ መርበብ ፍቓዳት ኣረጋግጽ እሞ እንደገና ፈትን።",
+    "ui_attach_some_failed": "እቲ ጠለብ ተመዝጊቡ፡ ግን ገለ ፋይላት ኣይተሰቕሉን፦ {list}"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2147,7 +2179,15 @@
     "ui_customer_identity_why": "Lambar taleefan ama iimayl — waa sida qofka isku mid ah loo garto marka xiga ee uu soo xidhiidho.",
     "ui_new_need_customer": "Dooro macmiil, ama mid cusub ku dar.",
     "ui_new_need_subject": "Ka hor inta aadan diiwaan gelin, sheeg waxay ku saabsan tahay.",
-    "ui_ticket_no_reply_walk_in": "Booqasho ma laha kanaal laga jawaabo. Tan si shakhsi ah u raac, ama wac lambarka diiwaankooda ku qoran — miiska ma diri karo."
+    "ui_ticket_no_reply_walk_in": "Booqasho ma laha kanaal laga jawaabo. Tan si shakhsi ah u raac, ama wac lambarka diiwaankooda ku qoran — miiska ma diri karo.",
+    "ui_attach_file": "Ku lifaaq fayl",
+    "ui_attach_record": "Duub cod",
+    "ui_attach_stop": "Jooji",
+    "ui_attach_remove": "Ka saar",
+    "ui_attach_voice_note": "Cod duuban · {d}",
+    "ui_attach_count": "{n} lifaaqan",
+    "ui_attach_mic_denied": "Makarafoon lama helin, ama oggolaanshaha waa la diiday. Hubi oggolaanshaha goobta browser-ka oo mar kale isku day.",
+    "ui_attach_some_failed": "Codsiga waa la diiwaan geliyay, laakiin faylal qaar lama soo gelin: {list}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2577,6 +2617,14 @@
     "ui_customer_identity_why": "Namba ya simu au barua pepe — ndivyo mtu yule yule anavyotambuliwa atakapowasiliana tena.",
     "ui_new_need_customer": "Chagua mteja, au ongeza mpya.",
     "ui_new_need_subject": "Eleza inahusu nini kabla ya kuisajili.",
-    "ui_ticket_no_reply_walk_in": "Ziara haina njia ya kujibia. Fuatilia hii ana kwa ana, au piga namba iliyo kwenye rekodi yao — dawati haliwezi kutuma hapa."
+    "ui_ticket_no_reply_walk_in": "Ziara haina njia ya kujibia. Fuatilia hii ana kwa ana, au piga namba iliyo kwenye rekodi yao — dawati haliwezi kutuma hapa.",
+    "ui_attach_file": "Ambatisha faili",
+    "ui_attach_record": "Rekodi ujumbe wa sauti",
+    "ui_attach_stop": "Simamisha",
+    "ui_attach_remove": "Ondoa",
+    "ui_attach_voice_note": "Ujumbe wa sauti · {d}",
+    "ui_attach_count": "{n} zimeambatishwa",
+    "ui_attach_mic_denied": "Hakuna kipaza sauti, au ruhusa ilikataliwa. Angalia ruhusa za tovuti kwenye kivinjari kisha jaribu tena.",
+    "ui_attach_some_failed": "Tiketi imesajiliwa, lakini baadhi ya faili hazikupakiwa: {list}"
   }
 }

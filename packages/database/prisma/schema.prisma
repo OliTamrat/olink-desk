@@ -78,6 +78,7 @@ model Organization {
   tags             Tag[]
   ticketTags       TicketTag[]
   kbArticles       KbArticle[]
+  attachments      Attachment[]
 }
 
 enum UserRole {
@@ -94,7 +95,7 @@ enum UserStatus {
 }
 
 model User {
-  id             String     @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -114,14 +115,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assignedTickets Ticket[]        @relation("TicketAssignee")
-  messages        TicketMessage[]
-  callLogs        CallLog[]
-  assignedTasks   Task[]          @relation("TaskAssignee")
-  createdTasks    Task[]          @relation("TaskCreator")
-  createdMacros   Macro[]         @relation("MacroCreator")
-  kbArticles      KbArticle[]     @relation("KbAuthor")
-  notifications   Notification[]
+  assignedTickets     Ticket[]        @relation("TicketAssignee")
+  messages            TicketMessage[]
+  callLogs            CallLog[]
+  assignedTasks       Task[]          @relation("TaskAssignee")
+  createdTasks        Task[]          @relation("TaskCreator")
+  createdMacros       Macro[]         @relation("MacroCreator")
+  kbArticles          KbArticle[]     @relation("KbAuthor")
+  notifications       Notification[]
+  uploadedAttachments Attachment[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -130,7 +132,7 @@ model User {
 // Phone-number-first identity: phone is the primary key of Ethiopian
 // customer identity. Email and Telegram are optional attachments.
 model Contact {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -154,6 +156,7 @@ model Contact {
   messages      TicketMessage[]
   callLogs      CallLog[]
   conversations Conversation[]
+  attachments   Attachment[]
 
   @@unique([organizationId, phone])
   @@unique([organizationId, email])
@@ -170,7 +173,7 @@ model Contact {
 // capture. Tickets thread through this row: an inbound message reuses the
 // conversation's newest open ticket, else opens a new one (ADR 0002).
 model Conversation {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -225,7 +228,7 @@ enum TicketPriority {
 }
 
 model Ticket {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -281,6 +284,7 @@ model Ticket {
   tasks         Task[]
   notifications Notification[]
   tags          TicketTag[]
+  attachments   Attachment[]
 
   @@unique([organizationId, number])
   @@index([organizationId, conversationId])
@@ -297,7 +301,7 @@ enum MessageDirection {
 }
 
 model TicketMessage {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -317,7 +321,8 @@ model TicketMessage {
   // for dedup and threading.
   externalId String?
 
-  createdAt DateTime @default(now())
+  createdAt   DateTime     @default(now())
+  attachments Attachment[]
 
   @@index([organizationId, ticketId, createdAt])
   @@index([organizationId, externalId])
@@ -332,7 +337,7 @@ enum CallDirection {
 }
 
 model CallLog {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -367,7 +372,7 @@ model CallLog {
 }
 
 model DispositionCode {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -391,7 +396,7 @@ enum TaskStatus {
 }
 
 model Task {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -422,7 +427,7 @@ model Task {
 // ---------- Routing & SLA ----------
 
 model Queue {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -435,7 +440,7 @@ model Queue {
 }
 
 model SlaPolicy {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -444,9 +449,9 @@ model SlaPolicy {
   resolveMinutes       Int
   // Business-hours definition: work week + hours + Ethiopian public holidays.
   // Structured JSON so tenants configure without schema changes.
-  businessHours Json
-  escalation    Json?
-  isDefault     Boolean @default(false)
+  businessHours        Json
+  escalation           Json?
+  isDefault            Boolean @default(false)
 
   tickets Ticket[]
 
@@ -470,7 +475,7 @@ enum ChannelAccountKind {
 }
 
 model ChannelAccount {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -479,7 +484,7 @@ model ChannelAccount {
   // Provider credentials/config (bot token, sender id, API key reference).
   // Encrypted at the application layer before storage.
   config Json
-  active Boolean @default(true)
+  active Boolean            @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -498,7 +503,7 @@ model ChannelAccount {
 // language, not the agent's (see packages/macros/src/render.ts). The bodies
 // map is what makes that possible.
 model Macro {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -541,7 +546,7 @@ model Macro {
 // English article shown to a Tigrinya customer is the failure this product
 // exists to avoid.
 model KbArticle {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -553,8 +558,8 @@ model KbArticle {
   isPublished Boolean @default(false)
   // How often this article was shown INSTEAD of opening a ticket. The one
   // number that says whether writing it was worth the afternoon.
-  deflections Int @default(0)
-  views       Int @default(0)
+  deflections Int     @default(0)
+  views       Int     @default(0)
 
   createdById String?
   createdBy   User?   @relation("KbAuthor", fields: [createdById], references: [id])
@@ -577,7 +582,7 @@ model KbArticle {
 // and "refund " as three separate tags, and any report built on them is
 // quietly wrong — which is the whole reason tags exist here.
 model Tag {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -596,7 +601,7 @@ model Tag {
 // own organizationId — every tenant-data model does, and the schema guard
 // test enforces it.
 model TicketTag {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -628,14 +633,71 @@ enum NotificationKind {
 //
 // `userId` is nullable: a ticket nobody owns is the workspace's problem, and
 // addressing it to an individual would hide it from everyone else.
+/// A file a customer sent or an agent attached — a screenshot of an error, a
+/// receipt, a signed form, or a voice note recorded at the desk.
+///
+/// **The bytes live in Postgres.** That is a deliberate choice for this stage,
+/// not an oversight: object storage means a bucket, a service-account grant
+/// and a signed-URL path, which is real infrastructure to provision before
+/// anybody can attach a screenshot. A support desk's attachments are small and
+/// few — screenshots, PDFs, a minute of voice — so a capped `Bytes` column
+/// ships the feature today with nothing to configure.
+///
+/// The cost is honest and bounded: database size and backup weight grow with
+/// attachments, and `MAX_ATTACHMENT_BYTES` is what keeps that predictable.
+/// When a desk outgrows it, `data` becomes a storage key and only
+/// `attachments.ts` changes — every caller already goes through it.
+model Attachment {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  /// The message this arrived with, when it arrived with one. Null for a file
+  /// attached to the ticket itself rather than to a particular reply.
+  messageId String?
+  message   TicketMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  /// As the customer or agent named it, sanitised. Never used as a path.
+  filename    String
+  /// Sniffed from the bytes, not trusted from the client — see attachments.ts.
+  contentType String
+  byteSize    Int
+
+  /// A voice note is played rather than downloaded, and is recorded at the
+  /// desk rather than chosen from a disk. Same row, different affordance.
+  kind            AttachmentKind @default(FILE)
+  /// Length in seconds, for a voice note only. Null for a file.
+  durationSeconds Int?
+
+  data Bytes
+
+  uploadedByUserId String?
+  uploadedByUser   User?    @relation(fields: [uploadedByUserId], references: [id])
+  /// Set when the file came FROM the customer rather than from an agent.
+  contactId        String?
+  contact          Contact? @relation(fields: [contactId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, ticketId, createdAt])
+}
+
+enum AttachmentKind {
+  FILE
+  VOICE
+}
+
 model Notification {
-  id             String @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   kind   NotificationKind
   userId String?
-  user   User?   @relation(fields: [userId], references: [id])
+  user   User?            @relation(fields: [userId], references: [id])
 
   ticketId String
   ticket   Ticket @relation(fields: [ticketId], references: [id])
@@ -655,7 +717,7 @@ model Notification {
 // ---------- Audit ----------
 
 model AuditLog {
-  id             BigInt @id @default(autoincrement())
+  id             BigInt       @id @default(autoincrement())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
@@ -663,8 +725,8 @@ model AuditLog {
   action      String
   entityType  String
   // TEXT by fleet convention — always pass String(uuid), never a raw UUID.
-  entityId String
-  metadata Json?
+  entityId    String
+  metadata    Json?
 
   createdAt DateTime @default(now())
 
