@@ -32,6 +32,11 @@ export async function GET(
           direction: true,
           channel: true,
           body: true,
+          // The body of a redacted message is an empty string, which renders
+          // as an empty bubble — indistinguishable from a bug. The flag is
+          // what lets the reader be told, in their own language, that the
+          // words were erased on purpose.
+          redactedAt: true,
           createdAt: true,
           authorUser: { select: { name: true } },
         },

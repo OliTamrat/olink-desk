@@ -1,7 +1,7 @@
 "use client";
-// Settings: the numbers, people and identity the desk runs on. Four sections
-// in a rail — Workspace, SLA & hours, Team, Queues — each writing through
-// routes that refuse incoherent input rather than storing it.
+// Settings: the numbers, people and identity the desk runs on. Five sections
+// in a rail — Workspace, SLA & hours, Team, Queues, Data lifecycle — each
+// writing through routes that refuse incoherent input rather than storing it.
 import {
   humanMinutes,
   LANGUAGE_NAMES,
@@ -30,6 +30,7 @@ const TABS = [
   { key: "sla", label: "ui_tab_sla" },
   { key: "team", label: "ui_tab_team" },
   { key: "queues", label: "ui_tab_queues" },
+  { key: "data", label: "ui_data_lifecycle" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -219,8 +220,8 @@ export default function SettingsPage() {
       onLang={setLang}
       me={me}
       active="settings"
-      // A rail rather than a row of pills. Settings grew a fourth section and
-      // will grow a fifth; a horizontal strip runs out of room and reads as
+      // A rail rather than a row of pills. Settings is on its fifth section
+      // and will grow a sixth; a horizontal strip runs out of room and reads as
       // less important than the page under it. This is the shell's own second
       // layer — the same slot the inbox's views use — so it folds away with
       // them and costs no page width when it is not wanted.
@@ -585,6 +586,9 @@ export default function SettingsPage() {
           </section>
         </div>
       ) : null}
+
+      {/* ---------------------------------------------- Data lifecycle */}
+      {tab === "data" ? <DataLifecyclePanel lang={lang} onSaved={setMessage} /> : null}
     </ConsoleShell>
   );
 }
@@ -853,6 +857,259 @@ function WorkspacePanel({
           </button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * The data-lifecycle panel.
+ *
+ * Two windows and a warning. It is the only settings screen in the product
+ * whose effect cannot be undone by changing it back, so it is built to be
+ * read rather than skimmed: each window says what it destroys and what it
+ * leaves alone, and the second fact matters as much as the first — an
+ * administrator who believes their reports will change will never turn this
+ * on, and the whole compliance story turns on their doing so.
+ */
+function DataLifecyclePanel({
+  lang,
+  onSaved,
+}: {
+  lang: Language;
+  onSaved: (m: { ok: boolean; text: string } | null) => void;
+}): ReactNode {
+  interface Policy {
+    ticketRetentionDays: number | null;
+    auditRetentionDays: number | null;
+    canEdit: boolean;
+    minDays: number;
+    maxDays: number;
+    presets: number[];
+    scheduled: boolean;
+  }
+  const [policy, setPolicy] = useState<Policy | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const resp = await fetch("/api/retention");
+      if (resp.ok) setPolicy((await resp.json()) as Policy);
+    })();
+  }, []);
+
+  if (!policy) {
+    return <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>;
+  }
+
+  // The API answers with machine-readable problem codes rather than
+  // sentences, so the words are chosen here — in the language the admin is
+  // actually reading the page in.
+  const problemText = (problems: string[]): string => {
+    const first = problems[0] ?? "";
+    if (first.endsWith("below_minimum"))
+      return tUi(lang, "ui_retention_err_below_minimum", { n: policy.minDays });
+    if (first.endsWith("above_maximum"))
+      return tUi(lang, "ui_retention_err_above_maximum", { n: policy.maxDays });
+    if (first.endsWith("not_an_integer")) return tUi(lang, "ui_retention_err_not_integer");
+    if (first.endsWith("shorter_than_content"))
+      return tUi(lang, "ui_retention_err_audit_short");
+    return first;
+  };
+
+  async function save(next: Pick<Policy, "ticketRetentionDays" | "auditRetentionDays">) {
+    setSaving(true);
+    onSaved(null);
+    try {
+      const resp = await fetch("/api/retention", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+      const body = (await resp.json().catch(() => null)) as
+        | { problems?: string[]; error?: string }
+        | null;
+      if (resp.ok) {
+        setPolicy((p) => (p ? { ...p, ...next } : p));
+        onSaved({ ok: true, text: tUi(lang, "ui_retention_saved") });
+      } else {
+        onSaved({
+          ok: false,
+          text: body?.problems
+            ? problemText(body.problems)
+            : tUi(lang, "ui_retention_failed", { error: body?.error ?? `HTTP ${resp.status}` }),
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{ ...layout.centred, display: "grid", gap: 16 }} data-retention-panel>
+      <section style={ui.card}>
+        <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 6 }}>
+          <IconTile size={34}>
+            <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+              <ellipse cx="12" cy="6" rx="8" ry="3" />
+              <path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" />
+              <path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
+            </svg>
+          </IconTile>
+          <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_data_lifecycle")}</h2>
+        </div>
+        <p style={{ ...ui.sub, marginBottom: 14 }}>{tUi(lang, "ui_data_lifecycle_blurb")}</p>
+
+        {/* A window set on a deployment with no scheduler is a promise to a
+            customer that nothing keeps. The screen says so rather than
+            letting the saved value imply otherwise. */}
+        {!policy.scheduled ? (
+          <div style={{ ...ui.error, marginBottom: 14 }} data-retention-unscheduled>
+            {tUi(lang, "ui_retention_not_scheduled")}
+          </div>
+        ) : null}
+
+        <div style={{ display: "grid", gap: 18 }}>
+          <WindowField
+            lang={lang}
+            testId="ticket"
+            label="ui_retention_tickets"
+            hint="ui_retention_tickets_hint"
+            value={policy.ticketRetentionDays}
+            presets={policy.presets}
+            disabled={!policy.canEdit || saving}
+            onChange={(v) =>
+              void save({
+                ticketRetentionDays: v,
+                auditRetentionDays: policy.auditRetentionDays,
+              })
+            }
+          />
+          <WindowField
+            lang={lang}
+            testId="audit"
+            label="ui_retention_audit"
+            hint="ui_retention_audit_hint"
+            value={policy.auditRetentionDays}
+            presets={policy.presets}
+            disabled={!policy.canEdit || saving}
+            onChange={(v) =>
+              void save({
+                ticketRetentionDays: policy.ticketRetentionDays,
+                auditRetentionDays: v,
+              })
+            }
+          />
+        </div>
+      </section>
+
+      <section style={ui.card}>
+        <div style={{ display: "flex", gap: 11, alignItems: "center", marginBottom: 6 }}>
+          <IconTile size={34}>
+            <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+              <path d="M12 3l8 4v5c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V7z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </IconTile>
+          <h2 style={{ ...ui.h2, margin: 0 }}>{tUi(lang, "ui_retention_audit")}</h2>
+        </div>
+        <p style={{ ...ui.sub, marginBottom: 14 }}>{tUi(lang, "ui_export_audit_blurb")}</p>
+        {/* A plain link, not a fetch. The response is a file with a
+            Content-Disposition on it, and the browser's own download is the
+            one path that works identically on every device an operator has. */}
+        <a href="/api/audit/export" style={{ ...ui.button, display: "inline-block", textDecoration: "none" }} data-audit-export>
+          {tUi(lang, "ui_export_audit")}
+        </a>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * One retention window: a set of preset lengths plus Keep forever, and a box
+ * for anything else.
+ *
+ * Presets rather than a bare number box because the realistic answers are
+ * few and an administrator typing into an empty field has to already know
+ * what a reasonable window looks like. The box stays for the tenant whose
+ * regulator named a specific figure.
+ */
+function WindowField({
+  lang,
+  testId,
+  label,
+  hint,
+  value,
+  presets,
+  disabled,
+  onChange,
+}: {
+  lang: Language;
+  testId: string;
+  label: string;
+  hint: string;
+  value: number | null;
+  presets: number[];
+  disabled: boolean;
+  onChange: (v: number | null) => void;
+}): ReactNode {
+  const [custom, setCustom] = useState("");
+  const options: Array<number | null> = [null, ...presets];
+
+  return (
+    <div data-retention-field={testId}>
+      <label style={ui.label}>{tUi(lang, label)}</label>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "6px 0" }}>
+        {options.map((option) => {
+          const on = option === value;
+          return (
+            <button
+              key={String(option)}
+              data-retention-option={String(option)}
+              disabled={disabled}
+              onClick={() => onChange(option)}
+              style={{
+                padding: "6px 11px",
+                borderRadius: 999,
+                fontSize: 12.5,
+                fontWeight: on ? 600 : 500,
+                fontFamily: "inherit",
+                cursor: disabled ? "default" : "pointer",
+                border: `1px solid ${on ? colors.accent : colors.border}`,
+                background: on ? colors.accentFaint : colors.surfaceRaised,
+                color: on ? colors.accent : colors.textSecondary,
+              }}
+            >
+              {option === null
+                ? tUi(lang, "ui_retention_forever")
+                : tUi(lang, "ui_retention_days", { n: option })}
+            </button>
+          );
+        })}
+        <input
+          data-retention-custom={testId}
+          type="number"
+          inputMode="numeric"
+          // "… days" rather than a bare ellipsis. Built from the same template
+          // the pills use, so the word lands on the correct side of the number
+          // in every language — which a hand-written placeholder would get
+          // wrong in three of the six.
+          placeholder={tUi(lang, "ui_retention_days", { n: "…" })}
+          value={custom}
+          disabled={disabled}
+          onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const n = Number(custom);
+            if (Number.isFinite(n)) onChange(n);
+          }}
+          onBlur={() => {
+            const n = Number(custom);
+            if (custom !== "" && Number.isFinite(n)) onChange(n);
+          }}
+          style={{ ...control, width: 96 }}
+        />
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: colors.textMuted }}>{tUi(lang, hint)}</p>
     </div>
   );
 }

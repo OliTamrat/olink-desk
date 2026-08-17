@@ -46,6 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       byteSize: true,
       kind: true,
       durationSeconds: true,
+      // So the list can show a tombstone rather than a nameless zero-byte row.
+      redactedAt: true,
       createdAt: true,
       messageId: true,
       uploadedByUser: { select: { name: true } },
@@ -60,6 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       byteSize: a.byteSize,
       kind: a.kind,
       durationSeconds: a.durationSeconds,
+      redactedAt: a.redactedAt,
       createdAt: a.createdAt,
       messageId: a.messageId,
       uploadedBy: a.uploadedByUser?.name ?? null,

@@ -37,3 +37,31 @@ describe("docs/architecture.md", () => {
     expect([...new Set(documented)]).toEqual(onDisk);
   });
 });
+
+describe("README.md", () => {
+  it("states the real number of ADRs", () => {
+    // The README tells a reader to check the decision index before
+    // re-deriving a choice, and names a count while doing it. A stale count
+    // is a small lie that makes the whole sentence read as decoration —
+    // and this one was already stale twice before the test existed.
+    const files = readdirSync(join(REPO, "docs", "decisions")).filter((f) =>
+      /^\d{4}-.+\.md$/.test(f),
+    );
+    const readme = readFileSync(join(REPO, "README.md"), "utf8");
+    const claimed = /holds (\d+) ADRs/.exec(readme);
+    expect(claimed, "README no longer says 'holds N ADRs' — update this test").not.toBeNull();
+    expect(Number(claimed?.[1])).toBe(files.length);
+  });
+
+  it("numbers ADRs consecutively from 0001, with no gaps or duplicates", () => {
+    // A duplicate number means two sessions appended at once and one of them
+    // is about to be overwritten by a merge; a gap means a decision was
+    // deleted rather than superseded, which the index is supposed to prevent.
+    const numbers = readdirSync(join(REPO, "docs", "decisions"))
+      .filter((f) => /^\d{4}-.+\.md$/.test(f))
+      .map((f) => Number(f.slice(0, 4)))
+      .sort((a, b) => a - b);
+    expect(numbers.length).toBeGreaterThan(3);
+    expect(numbers).toEqual(numbers.map((_, i) => i + 1));
+  });
+});

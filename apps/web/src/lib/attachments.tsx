@@ -25,6 +25,8 @@ export interface Attached {
   byteSize: number;
   kind: "FILE" | "VOICE";
   durationSeconds: number | null;
+  /** Set when the bytes were erased. The row survives; the file does not. */
+  redactedAt?: string | null;
 }
 
 /** A file waiting to be uploaded, or one already stored. */
@@ -282,6 +284,31 @@ export function AttachmentList({
     <div style={{ display: "grid", gap: 8 }} data-attach-stored>
       {items.map((a) => {
         const href = `/api/attachments/${a.id}`;
+        // An erased attachment is drawn first, before the kind branches. A
+        // voice note whose bytes are gone would otherwise render an audio
+        // player pointed at a 410 — a control that looks playable and does
+        // nothing, which reads as broken rather than as erased.
+        if (a.redactedAt) {
+          return (
+            <div
+              key={a.id}
+              data-attach-redacted={a.id}
+              style={{
+                ...row,
+                background: "transparent",
+                border: `1px dashed ${colors.border}`,
+                color: colors.textMuted,
+                fontStyle: "italic",
+              }}
+            >
+              <span aria-hidden style={{ display: "flex" }}>{icon.paperclip}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>{t("ui_redacted_file")}</span>
+              <span style={{ flexShrink: 0, fontSize: 12, fontStyle: "normal" }}>
+                {humanSize(a.byteSize)}
+              </span>
+            </div>
+          );
+        }
         if (a.kind === "VOICE") {
           return (
             <div key={a.id} data-attach-voice={a.id} style={row}>

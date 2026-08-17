@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
         messages: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: { body: true, direction: true, createdAt: true },
+          select: { body: true, direction: true, redactedAt: true, createdAt: true },
         },
       },
     }),

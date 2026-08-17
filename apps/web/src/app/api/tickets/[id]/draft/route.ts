@@ -40,8 +40,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const payload = (await req.json().catch(() => ({}))) as { intent?: unknown };
   const intent = typeof payload.intent === "string" ? payload.intent : undefined;
 
+  // Redacted turns are excluded, not passed through empty. Their body is an
+  // empty string, so including them feeds the model a conversation with
+  // blanks in it — and a model handed a blank does not skip it, it fills it
+  // in. On a ticket whose content was erased under a retention window, the
+  // one thing worse than no draft is a confident reconstruction of what the
+  // customer might have said.
   const messages = await prisma.ticketMessage.findMany({
-    where: { organizationId: orgId, ticketId: ticket.id },
+    where: { organizationId: orgId, ticketId: ticket.id, redactedAt: null },
     orderBy: { createdAt: "asc" },
     take: 30,
     select: { direction: true, body: true },

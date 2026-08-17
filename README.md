@@ -119,6 +119,16 @@ satisfaction, what people contacted you about, and the channel and language
 mix — each figure carrying the denominator it rests on, because a median over
 two tickets and over two hundred are different facts wearing the same number.
 
+### Data lifecycle, because the law that shapes the product also constrains it
+
+Per-workspace retention windows — one for ticket content, a separate and never
+shorter one for the audit log — so a desk stops holding what it promised to stop
+holding, and can still prove it did. A customer's right to erasure is an
+administrator action that clears every identifying field and every word and file
+they sent, on every channel, while leaving the ticket **counts** intact so last
+quarter's reports do not silently change. Their whole record downloads as one
+document for a subject-access request.
+
 ### Six languages, everywhere
 
 **English, Amharic, Afaan Oromo, Tigrinya, Somali and Swahili** — in the
@@ -182,7 +192,8 @@ single container to Cloud Run by GitHub Actions with a post-deploy health gate.
 | **Rate limiting** | Token bucket in middleware — new routes are covered by default |
 | **Uploads** | Content type sniffed from bytes; only images and audio ever inline |
 | **AI credentials** | None. The runtime service account is the credential |
-| **Audit** | Every agent action logged with actor, action, entity — never the customer's words |
+| **Audit** | Every agent action logged with actor, action, entity — never the customer's words; exportable as CSV |
+| **Data lifecycle** | Per-workspace retention windows, right-to-erasure, and subject-access export |
 | **Roles** | Admin, Supervisor, Agent, Auditor |
 
 ---
@@ -193,9 +204,6 @@ single container to Cloud Run by GitHub Actions with a post-deploy health gate.
 
 Making one real desk run a real day.
 
-- **Data lifecycle** — retention windows, customer deletion, and audit export.
-  A legal obligation under the same law that shapes the product, and the first
-  question of every security review.
 - **Native language review** for Afaan Oromo, Tigrinya, Somali and Swahili.
 - **Object storage** for attachments, replacing the deliberate interim.
 - **Load characterisation** — replace an estimate with a number.
@@ -265,7 +273,7 @@ secrets, and whether the model actually responds.
 5. **No secrets in the repository**, and no API key for the model.
 6. **Drive the real screen before believing it.** More defects here have been
    found by opening the page than by any test.
-7. **Record the decision.** `docs/decisions/` holds 37 ADRs explaining why each
+7. **Record the decision.** `docs/decisions/` holds 40 ADRs explaining why each
    load-bearing choice was made. Read the index before re-deriving one.
 
 **Project status:** deployed and operating; pilot onboarding in progress.

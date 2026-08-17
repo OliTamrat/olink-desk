@@ -32,6 +32,9 @@ export async function GET(
       language: true,
       notes: true,
       createdAt: true,
+      // So the page can say the record is a bare counter rather than showing
+      // an unexplained blank where a name used to be.
+      erasedAt: true,
       tickets: {
         orderBy: { createdAt: "desc" },
         take: RECENT_TICKETS,
