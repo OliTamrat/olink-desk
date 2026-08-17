@@ -44,6 +44,8 @@ export interface TimelineMessage {
    * place that shows a message must check this first.
    */
   redactedAt: string | null;
+  /** True when the desk sent this by itself, with no agent involved. */
+  autoAnswered?: boolean;
   createdAt: string;
   authorUser: { name: string } | null;
 }

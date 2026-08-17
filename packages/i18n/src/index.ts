@@ -536,6 +536,25 @@ export const UI_NOTES: Record<string, string> = {
   // cannot undo the result by re-reading it. Prefer the plainest everyday verb
   // for "delete" in your language over a technical or legal one; the reader is
   // a desk manager, not a lawyer.
+  // Auto-answer. REVIEWER: this group is about the desk replying to a customer
+  // with NO member of staff involved. The register must stay plain and factual
+  // — never enthusiastic, never "smart"/"AI-powered" marketing language. An
+  // administrator reading this is deciding whether to let software speak in
+  // their organisation's name, and overselling it is how they turn it on
+  // without understanding it.
+  ui_aa_title: "Heading of the auto-answer card on the Knowledge page.",
+  ui_aa_blurb: "What it does. Both halves matter and neither may be dropped: it answers from PUBLISHED articles, and anything uncertain still reaches a person. The second half is what makes the first acceptable.",
+  ui_aa_on: "State label when auto-answering is active. A STATE, not an action — it sits in a badge, never on a button.",
+  ui_aa_turn_on: "The button that switches it on. Must be an ACTION and must read differently from ui_aa_on: the badge and the button sit inches apart, and two identical words made it impossible to tell which was the current state and which was what would happen if you pressed it.",
+  ui_aa_turn_off: "The button that switches it off. Same rule against ui_aa_off.",
+  ui_aa_off: "State label when it is not. This is the DEFAULT and the safe state — it must not read as something being broken or missing.",
+  ui_aa_no_articles: "Shown when nothing is published, so turning it on would change nothing. It must read as 'you have a step left', not as an error.",
+  ui_aa_counts: "Article counts. {published} and {drafts} are numbers; the separator is a middle dot.",
+  ui_aa_answered: "How many customer messages have been answered with no agent. {n} is a number.",
+  ui_aa_no_model: "Shown when the deployment has no AI configured, so the switch would have no effect. A statement of fact about the deployment, not a fault the reader caused.",
+  ui_aa_admin_only: "Shown to a non-admin looking at the switch.",
+  ui_aa_failed: "Error when the setting could not be saved. {error} is the reason.",
+  ui_aa_badge: "Badge on a message in the ticket timeline that the desk sent by itself. An agent scanning a conversation must be able to tell at a glance which words were theirs and which were not.",
   ui_cancel: "A generic Cancel button. Used on the erase-a-customer confirmation, where it is the way out of a destructive action — so it must read as clearly as the destructive button beside it, not as a smaller or softer option.",
   ui_attachments: "Heading over the files on a ticket — screenshots, scanned forms, voice notes.",
   ui_data_lifecycle: "Title of the retention section in Settings — the workspace's policy on how long data is kept.",

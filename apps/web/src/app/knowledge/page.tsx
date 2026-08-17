@@ -186,6 +186,13 @@ export default function KnowledgePage() {
 
         {error ? <div style={ui.error}>{error}</div> : null}
 
+        {/* The switch lives HERE rather than in Settings on purpose: what it
+            turns on is these articles answering customers directly, and a
+            control belongs next to the thing it acts on. Buried under a
+            settings tab it reads as configuration; here it reads as what the
+            page is for. */}
+        {!editing ? <AutoAnswerCard lang={lang} /> : null}
+
         {editing ? (
           <div style={{ ...ui.card, ...layout.centred, display: "grid", gap: 12 }}>
             {/* Language tabs with a filled/empty dot, exactly like the macro
@@ -511,5 +518,131 @@ export default function KnowledgePage() {
         )}
       </div>
     </ConsoleShell>
+  );
+}
+
+/**
+ * The auto-answer switch, and enough context to make it a decision.
+ *
+ * A bare toggle would be worse than none. Turning this on with nothing
+ * published changes nothing at all — retrieval finds no articles and every
+ * message falls through to a person — and an administrator who is not told
+ * that concludes the feature is broken rather than that they have not written
+ * anything yet. So the card carries the article counts, whether the model is
+ * reachable at all, and how many messages it has actually answered.
+ */
+function AutoAnswerCard({ lang }: { lang: Parameters<typeof tUi>[0] }) {
+  interface State {
+    enabled: boolean;
+    canEdit: boolean;
+    publishedArticles: number;
+    draftArticles: number;
+    answeredCount: number;
+    modelReady: boolean;
+  }
+  const [state, setState] = useState<State | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState("");
+
+  useEffect(() => {
+    void (async () => {
+      const resp = await fetch("/api/auto-answer");
+      if (resp.ok) setState((await resp.json()) as State);
+    })();
+  }, []);
+
+  if (!state) return null;
+
+  async function toggle() {
+    if (!state || !state.canEdit) return;
+    setBusy(true);
+    setFailure("");
+    try {
+      const resp = await fetch("/api/auto-answer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !state.enabled }),
+      });
+      const body = (await resp.json().catch(() => null)) as { error?: string } | null;
+      if (!resp.ok) {
+        setFailure(tUi(lang, "ui_aa_failed", { error: body?.error ?? `HTTP ${resp.status}` }));
+        return;
+      }
+      setState({ ...state, enabled: !state.enabled });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const on = state.enabled;
+  // Nothing published means the switch is honest but inert. Said plainly
+  // rather than left for the admin to discover from a silent desk.
+  const inert = state.publishedArticles === 0;
+
+  return (
+    <section
+      style={{
+        ...ui.card,
+        ...layout.centred,
+        display: "grid",
+        gap: 10,
+        borderColor: on ? colors.accent : colors.border,
+      }}
+      data-auto-answer-card
+    >
+      <div style={{ display: "flex", gap: 11, alignItems: "center", flexWrap: "wrap" }}>
+        <IconTile size={34}>
+          <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+            <path d="M12 3a9 9 0 0 0-9 9v5a2 2 0 0 0 2 2h2v-6H5v-1a7 7 0 0 1 14 0v1h-2v6h2a2 2 0 0 0 2-2v-5a9 9 0 0 0-9-9z" />
+          </svg>
+        </IconTile>
+        <h2 style={{ ...ui.h2, margin: 0, flex: 1 }}>{tUi(lang, "ui_aa_title")}</h2>
+        <Badge tone={on ? "success" : "muted"}>
+          {tUi(lang, on ? "ui_aa_on" : "ui_aa_off")}
+        </Badge>
+      </div>
+
+      <p style={{ ...ui.sub, margin: 0, maxWidth: 620 }}>{tUi(lang, "ui_aa_blurb")}</p>
+
+      {failure ? <div style={ui.error}>{failure}</div> : null}
+
+      {!state.modelReady ? (
+        <div style={ui.error} data-aa-no-model>
+          {tUi(lang, "ui_aa_no_model")}
+        </div>
+      ) : inert ? (
+        <div style={{ ...ui.sub, margin: 0, color: colors.warn }} data-aa-no-articles>
+          {tUi(lang, "ui_aa_no_articles")}
+        </div>
+      ) : null}
+
+      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        {state.canEdit ? (
+          <button
+            data-aa-toggle
+            disabled={busy}
+            onClick={() => void toggle()}
+            style={on ? ui.buttonGhost : ui.button}
+          >
+            {tUi(lang, on ? "ui_aa_turn_off" : "ui_aa_turn_on")}
+          </button>
+        ) : (
+          <span style={{ fontSize: 13, color: colors.textMuted }}>
+            {tUi(lang, "ui_aa_admin_only")}
+          </span>
+        )}
+        <span style={{ fontSize: 12.5, color: colors.textMuted }}>
+          {tUi(lang, "ui_aa_counts", {
+            published: state.publishedArticles,
+            drafts: state.draftArticles,
+          })}
+        </span>
+        {state.answeredCount > 0 ? (
+          <span style={{ fontSize: 12.5, color: colors.textMuted }}>
+            {tUi(lang, "ui_aa_answered", { n: state.answeredCount })}
+          </span>
+        ) : null}
+      </div>
+    </section>
   );
 }

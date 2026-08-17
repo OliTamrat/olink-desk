@@ -1332,7 +1332,9 @@ function InboxWorkspace() {
                     >
                       {inbound
                         ? (detail.contact?.name ?? tUi(lang, "ui_customer"))
-                        : (m.authorUser?.name ?? "Olink Desk")}
+                        : m.autoAnswered
+                          ? tUi(lang, "ui_aa_badge")
+                          : (m.authorUser?.name ?? "Olink Desk")}
                       {" · "}
                       {timeAgo(m.createdAt)}
                     </div>

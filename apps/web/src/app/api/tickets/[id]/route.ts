@@ -37,6 +37,7 @@ export async function GET(
           // what lets the reader be told, in their own language, that the
           // words were erased on purpose.
           redactedAt: true,
+          autoAnswered: true,
           createdAt: true,
           authorUser: { select: { name: true } },
         },
