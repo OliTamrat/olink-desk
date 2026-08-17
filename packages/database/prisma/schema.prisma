@@ -58,6 +58,21 @@ model Organization {
   // piece of it that is a stated preference rather than an observation.
   onboardingDismissedAt DateTime?
 
+  // ---- Data lifecycle ----
+  //
+  // Two windows, not one, because they are different obligations pulling in
+  // opposite directions. Ticket content is personal data a tenant must stop
+  // holding; the audit log is the record that it stopped, which a regulator
+  // or an auditor asks for AFTER the content is gone. Collapsing them into
+  // one window means either keeping the words too long or destroying the
+  // proof of their destruction.
+  //
+  // NULL means keep forever, and it is the default: a retention window is a
+  // deliberate act by an administrator who knows their own regulator, never
+  // something a deploy quietly starts doing to a tenant's history.
+  ticketRetentionDays Int?
+  auditRetentionDays  Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -148,6 +163,15 @@ model Contact {
   language   String  @default("am")
   smsConsent Boolean @default(true)
   notes      String?
+
+  /// Set when this person's identifying details were erased on request. The
+  /// ROW survives the erasure deliberately: a ticket has to keep pointing at
+  /// somebody, and last quarter's volume, SLA attainment and satisfaction
+  /// figures must not silently change because a customer exercised a right.
+  /// What is erased is everything that identifies them — name, phone, email,
+  /// Telegram id, notes — after which the row is a bare counter and no longer
+  /// personal data.
+  erasedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -292,6 +316,10 @@ model Ticket {
   @@index([organizationId, assigneeId])
   @@index([organizationId, contactId])
   @@index([organizationId, createdAt])
+  // The retention pass asks one question — "which of this tenant's tickets
+  // closed before the cutoff" — and without this it asks it with a sequential
+  // scan over every ticket the tenant has ever had, nightly, forever.
+  @@index([organizationId, closedAt])
 }
 
 enum MessageDirection {
@@ -311,6 +339,16 @@ model TicketMessage {
   direction MessageDirection
   channel   Channel
   body      String
+
+  /// Set when the body was emptied by a retention pass or an erasure. The row
+  /// stays so the shape of the conversation stays true — who spoke, on which
+  /// channel, in which direction, and when. A deleted row would quietly
+  /// rewrite the first-response time that was computed from it.
+  ///
+  /// The tombstone a reader sees is rendered from the i18n table, not stored:
+  /// the database must not hold one language's sentence for a product that
+  /// serves six.
+  redactedAt DateTime?
 
   authorUserId String?
   authorUser   User?    @relation(fields: [authorUserId], references: [id])
@@ -673,6 +711,12 @@ model Attachment {
   durationSeconds Int?
 
   data Bytes
+
+  /// Set when the bytes were emptied by a retention pass or an erasure.
+  /// `byteSize` is deliberately left at its historical value — it is not
+  /// personal data, and it is what keeps a storage report honest about what
+  /// this desk once held.
+  redactedAt DateTime?
 
   uploadedByUserId String?
   uploadedByUser   User?    @relation(fields: [uploadedByUserId], references: [id])

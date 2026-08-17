@@ -1692,13 +1692,44 @@ export function useMe(): ShellUser | null {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const resp = await fetch("/api/auth/me");
-      if (resp.status === 401) {
-        router.replace("/login");
+      // Retries cover the transient cases only — a rate-limit burst or a
+      // restarting instance. Short and bounded: this runs on every page, and
+      // a long retry loop would turn a dead backend into a console that hangs
+      // rather than one that says so.
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
+        let resp: Response;
+        try {
+          resp = await fetch("/api/auth/me");
+        } catch {
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        if (resp.status === 401) {
+          router.replace("/login");
+          return;
+        }
+        // Only a response that actually CARRIES a user becomes `me`.
+        //
+        // This used to parse any non-401 body straight into state, so a 429
+        // from the rate limiter — or a 500, or a proxy's HTML error page —
+        // made `me` truthy with no `me.user` on it. Every screen in the
+        // console reads `me.user.role` to decide what an agent may do, so a
+        // single throttled request white-screened the whole app with
+        // "Application error: a client-side exception has occurred". A blip
+        // must degrade to "still loading", never to a blank page.
+        if (resp.ok) {
+          const body = (await resp.json().catch(() => null)) as ShellUser | null;
+          if (body?.user && body.organization) {
+            if (!cancelled) setMe(body);
+            return;
+          }
+        }
+        if (resp.status === 429 || resp.status >= 500) {
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
         return;
       }
-      const body = (await resp.json()) as ShellUser;
-      if (!cancelled) setMe(body);
     })();
     return () => {
       cancelled = true;

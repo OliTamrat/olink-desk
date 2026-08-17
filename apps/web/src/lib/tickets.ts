@@ -3,6 +3,8 @@
 export interface TicketMessagePreview {
   body: string;
   direction: "INBOUND" | "OUTBOUND";
+  /** See TimelineMessage.redactedAt — an erased body is "" here too. */
+  redactedAt: string | null;
   createdAt: string;
 }
 
@@ -35,6 +37,13 @@ export interface TimelineMessage {
   direction: "INBOUND" | "OUTBOUND" | "NOTE";
   channel: string;
   body: string;
+  /**
+   * When the words were erased — by a retention window or by a customer's
+   * erasure request. The body is an empty string in that case, so a renderer
+   * that reads only `body` draws an empty bubble that looks like a bug. Every
+   * place that shows a message must check this first.
+   */
+  redactedAt: string | null;
   createdAt: string;
   authorUser: { name: string } | null;
 }

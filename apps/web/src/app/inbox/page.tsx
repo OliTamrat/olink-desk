@@ -35,6 +35,7 @@ import {
   type SlaReading,
   type Tone,
 } from "@olink-desk/tickets/src/urgency";
+import { AttachmentList, type Attached } from "../../lib/attachments";
 import {
   Badge,
   colors,
@@ -176,6 +177,11 @@ function InboxWorkspace() {
   // the ticket rather than dropping the agent on a list to find it again.
   const [selectedId, setSelectedId] = useState<string | null>(params.get("ticket"));
   const [detail, setDetail] = useState<TicketDetail | null>(null);
+  // Attachments are a second request rather than part of the ticket payload:
+  // the list route deliberately omits the bytes, and folding it into the
+  // ticket would either pull those bytes through or add a shape the ticket
+  // endpoint has no other reason to carry.
+  const [attachments, setAttachments] = useState<Attached[]>([]);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [reply, setReply] = useState("");
   // Whether this deployment can draft at all. Discovered from the endpoint's
@@ -368,12 +374,22 @@ function InboxWorkspace() {
   }, [me]);
 
   const loadDetail = useCallback(async (id: string) => {
-    const resp = await fetch(`/api/tickets/${id}`);
+    const [resp, attachResp] = await Promise.all([
+      fetch(`/api/tickets/${id}`),
+      fetch(`/api/tickets/${id}/attachments`),
+    ]);
     if (resp.ok) {
       const body = (await resp.json()) as { ticket: TicketDetail; history: HistoryRow[] };
       setDetail(body.ticket);
       setHistory(body.history ?? []);
     }
+    // Cleared on failure rather than left alone: showing the previous
+    // ticket's files under this one is worse than showing none.
+    setAttachments(
+      attachResp.ok
+        ? ((await attachResp.json()) as { attachments: Attached[] }).attachments
+        : [],
+    );
   }, []);
 
   useEffect(() => {
@@ -381,6 +397,7 @@ function InboxWorkspace() {
     else {
       setDetail(null);
       setHistory([]);
+      setAttachments([]);
     }
   }, [selectedId, loadDetail]);
 
@@ -1261,9 +1278,14 @@ function InboxWorkspace() {
                         </span>
                       </div>
                       <div
-                        style={{ fontSize: 14, color: colors.textBody, whiteSpace: "pre-wrap" }}
+                        style={{
+                          fontSize: 14,
+                          color: m.redactedAt ? colors.textMuted : colors.textBody,
+                          fontStyle: m.redactedAt ? "italic" : undefined,
+                          whiteSpace: "pre-wrap",
+                        }}
                       >
-                        {m.body}
+                        {m.redactedAt ? tUi(lang, "ui_redacted") : m.body}
                       </div>
                     </div>
                   );
@@ -1276,14 +1298,29 @@ function InboxWorkspace() {
                         borderRadius: 12,
                         borderTopLeftRadius: inbound ? 4 : 12,
                         borderBottomRightRadius: inbound ? 12 : 4,
-                        background: inbound ? colors.surfaceRaised : colors.accentSolid,
-                        color: inbound ? colors.textBody : colors.onAccent,
+                        // A redacted bubble drops the side's colour as well
+                        // as its words. Keeping the accent fill would make an
+                        // erased reply look like one that was sent, which is
+                        // the one thing this must never imply.
+                        background: m.redactedAt
+                          ? "transparent"
+                          : inbound
+                            ? colors.surfaceRaised
+                            : colors.accentSolid,
+                        border: m.redactedAt ? `1px dashed ${colors.border}` : undefined,
+                        color: m.redactedAt
+                          ? colors.textMuted
+                          : inbound
+                            ? colors.textBody
+                            : colors.onAccent,
+                        fontStyle: m.redactedAt ? "italic" : undefined,
                         fontSize: 14,
                         whiteSpace: "pre-wrap",
                         overflowWrap: "anywhere",
                       }}
+                      data-message-redacted={m.redactedAt ? "true" : undefined}
                     >
-                      {m.body}
+                      {m.redactedAt ? tUi(lang, "ui_redacted") : m.body}
                     </div>
                     <div
                       style={{
@@ -1303,6 +1340,37 @@ function InboxWorkspace() {
                 );
               })}
             </div>
+
+            {/* The ticket's files. Uploaded on the log-a-ticket form and, until
+                now, visible nowhere afterwards — a customer's screenshot or
+                voicemail went into the database and no agent could ever open
+                it. The list is below the conversation rather than inline
+                because a file often arrives with no message at all. */}
+            {attachments.length > 0 ? (
+              <div
+                style={{
+                  borderTop: `1px solid ${colors.border}`,
+                  paddingTop: 12,
+                  marginBottom: 10,
+                  display: "grid",
+                  gap: 8,
+                }}
+                data-ticket-attachments
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: ".06em",
+                    textTransform: "uppercase",
+                    color: colors.textMuted,
+                  }}
+                >
+                  {tUi(lang, "ui_attachments")}
+                </div>
+                <AttachmentList items={attachments} t={(k, pp) => tUi(lang, k, pp)} />
+              </div>
+            ) : null}
 
             {sendError ? <div style={{ ...ui.error, marginBottom: 10 }}>{sendError}</div> : null}
 
@@ -1914,7 +1982,11 @@ function InboxWorkspace() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {t.subject ?? t.messages[0]?.body ?? ""}
+                        {t.subject ??
+                          (t.messages[0]?.redactedAt
+                            ? tUi(lang, "ui_redacted")
+                            : t.messages[0]?.body) ??
+                          ""}
                       </div>
                       {/* On-track promises stay silent — a badge on every row
                           is a badge on none. At-risk and breached each get

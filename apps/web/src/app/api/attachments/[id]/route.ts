@@ -32,6 +32,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // An erased attachment is 410, not a zero-byte download. The row survives so
+  // the ticket still records that a file was here; the bytes are gone. Serving
+  // an empty file instead would land as a corrupt image on the agent's disk
+  // and read as a bug in the upload rather than as a policy that ran.
+  if (row.redactedAt) {
+    return NextResponse.json(
+      { error: "redacted", redactedAt: row.redactedAt },
+      { status: 410, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const inline = isInlineRenderable(row.contentType) || isAudio(row.contentType);
 
   // The filename goes in twice: ASCII-stripped for old clients, and

@@ -17,6 +17,7 @@
     "@olink-desk/i18n": "workspace:*",
     "@olink-desk/macros": "workspace:*",
     "@olink-desk/reports": "workspace:*",
+    "@olink-desk/retention": "workspace:*",
     "@olink-desk/retrieval": "workspace:*",
     "@olink-desk/sla": "workspace:*",
     "@olink-desk/tickets": "workspace:*",

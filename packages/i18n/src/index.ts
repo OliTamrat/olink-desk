@@ -529,6 +529,45 @@ export const UI_NOTES: Record<string, string> = {
   ui_macro_inserted_in: "Confirmation after a macro fills the composer. {lang} is a language name in its own script.",
   ui_macro_fallback_warning: "Warning when the macro had no body in the customer's language. {want} is the customer's language, {got} the one used. The agent must see this BEFORE sending, which is why it names the customer's language twice.",
   ui_macro_load_failed: "Error when the macro list could not be fetched. {error} is the reason.",
+
+  // Data lifecycle. REVIEWER: this group describes PERMANENT DESTRUCTION of a
+  // customer's data. Nothing here may read as reversible, and nothing may
+  // soften what happens — an administrator who misreads one of these sentences
+  // cannot undo the result by re-reading it. Prefer the plainest everyday verb
+  // for "delete" in your language over a technical or legal one; the reader is
+  // a desk manager, not a lawyer.
+  ui_cancel: "A generic Cancel button. Used on the erase-a-customer confirmation, where it is the way out of a destructive action — so it must read as clearly as the destructive button beside it, not as a smaller or softer option.",
+  ui_attachments: "Heading over the files on a ticket — screenshots, scanned forms, voice notes.",
+  ui_data_lifecycle: "Title of the retention section in Settings — the workspace's policy on how long data is kept.",
+  ui_data_lifecycle_blurb: "Line under that title. The second half is a warning and must stay a warning: erasure is permanent and nothing comes back.",
+  ui_retention_tickets: "Label for the window that governs messages and files on closed tickets.",
+  ui_retention_tickets_hint: "Help text under it. Two facts, both load-bearing: the CONTENT goes, and the ticket record stays so reports are unaffected. An administrator who thinks their statistics will change will never turn this on.",
+  ui_retention_audit: "Label for the window that governs the log of who did what.",
+  ui_retention_audit_hint: "Help text under it. 'At least as long' is the rule the product enforces — keep it as an instruction, not a suggestion.",
+  ui_retention_forever: "The option that keeps data indefinitely. This is the DEFAULT and the safe choice; it must not sound like an omission or an unset value.",
+  ui_retention_days: "A window length. {n} is a number of days. Use your language's natural way of counting days — the number may come before or after the noun.",
+  ui_retention_save: "Button that stores the policy.",
+  ui_retention_saved: "Confirmation after the policy is stored.",
+  ui_retention_not_scheduled: "Warning shown when the deployment has no scheduler configured, so a window is set but nothing acts on it. It must read as 'your policy is not running yet', not as an error the reader caused.",
+  ui_retention_err_below_minimum: "Refusal when the window typed is too short. {n} is the minimum in days. The second sentence gives the reason — keep it, because the number alone reads as an arbitrary limit.",
+  ui_retention_err_above_maximum: "Refusal when the window typed is too long. {n} is the maximum in days. It points at the Keep forever option, which must match ui_retention_forever exactly.",
+  ui_retention_err_not_integer: "Refusal when the value typed is not a whole number.",
+  ui_retention_err_audit_short: "Refusal when the audit window is shorter than the content window. The point: the record of a deletion must outlive the deletion.",
+  ui_retention_failed: "Error when the policy could not be saved. {error} is the reason.",
+  ui_redacted: "Shown IN PLACE OF a message whose words were erased. An agent reads this where the customer's sentence used to be, so it must be recognisable as the system speaking, never as something the customer wrote.",
+  ui_redacted_file: "Shown in place of a file whose contents were erased. The file's name is gone too.",
+  ui_erased_on: "Date stamp next to an erased customer. {date} is already formatted.",
+  ui_erase_customer: "Button that erases one customer's personal data on their request. Admin only.",
+  ui_erase_blurb: "Explanation next to that button. Same two facts as the ticket hint: everything identifying goes, the ticket counts stay.",
+  ui_erase_confirm: "Instruction in the confirmation box. {word} is ui_erase_confirm_word IN THE SAME LANGUAGE — do not write the English word here.",
+  ui_erase_confirm_word: "THE WORD THE ADMINISTRATOR MUST TYPE to confirm an erasure. It is compared against what they type, so it must be a word a person can type on an ordinary keyboard in your language, short, and unmistakably about deleting. Latin-script languages use upper case; Ge'ez has no case, so write it plainly.",
+  ui_erase_done: "Confirmation after an erasure. {messages} and {files} are counts.",
+  ui_erase_failed: "Error when an erasure did not complete. {error} is the reason.",
+  ui_erased_badge: "Badge on a customer record whose personal data has been erased.",
+  ui_export_customer: "Button that downloads everything the desk holds about one customer, for handing to them on request.",
+  ui_export_audit: "Button that downloads the audit log as a spreadsheet file.",
+  ui_export_audit_blurb: "Explanation on the audit-export card. It says what the file CONTAINS and who it is for — an auditor or a board pack — rather than repeating the retention rule stated above it.",
+  ui_export_failed: "Error when a download could not be produced. {error} is the reason.",
 };
 
 /**
