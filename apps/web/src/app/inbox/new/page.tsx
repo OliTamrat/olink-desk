@@ -26,6 +26,7 @@ import { CHANNEL_LABELS, statusKey } from "../../../lib/tickets";
 // Deep import: `@olink-desk/tickets` pulls Prisma through its barrel, and this
 // is a client component. `phone.ts` is pure string work with no imports.
 import { displayPhone, normalizePhone } from "@olink-desk/tickets/src/phone";
+import { AttachmentPicker, uploadPending, type PendingFile } from "../../../lib/attachments";
 
 /**
  * Dialling codes offered beside the number field.
@@ -83,6 +84,9 @@ export default function NewTicketPage() {
   const [newPhone, setNewPhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [cc, setCc] = useState("+251");
+  // Queued, not uploaded: there is no ticket to attach them to until the form
+  // is submitted, so they ride along and go up immediately afterwards.
+  const [files, setFiles] = useState<PendingFile[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -197,6 +201,19 @@ export default function NewTicketPage() {
       });
       const data = (await resp.json()) as { error?: string; ticket?: { id: string; number: number } };
       if (!resp.ok || !data.ticket) throw new Error(data.error ?? String(resp.status));
+
+      // The ticket EXISTS from here on. A file that fails to upload is
+      // reported, but it must never look like the ticket failed — the agent
+      // would log it again and the desk would have two.
+      if (files.length > 0) {
+        const failed = await uploadPending(data.ticket.id, files);
+        if (failed.length > 0) {
+          window.sessionStorage.setItem(
+            "desk_attach_warning",
+            tUi(lang, "ui_attach_some_failed", { list: failed.join("; ") }),
+          );
+        }
+      }
       router.push(`/inbox?ticket=${data.ticket.id}`);
     } catch (e) {
       setError((e as Error).message);
@@ -485,6 +502,16 @@ export default function NewTicketPage() {
               {tUi(lang, "ui_ticket_description_hint")}
             </p>
           </div>
+
+          {/* Under the description, where the agent has just written what
+              happened and is thinking about what else belongs on the record —
+              a photo of the error, or the voicemail they are listening to. */}
+          <AttachmentPicker
+            files={files}
+            onChange={setFiles}
+            disabled={saving}
+            t={(k, params) => tUi(lang, k, params)}
+          />
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 180px" }}>
