@@ -1153,8 +1153,18 @@ export function ConsoleShell({
       }}
     >
       {brand}
-      {/* Search runs from the left, immediately after the brand. */}
-      {me && !isMobile ? <GlobalSearch lang={lang} /> : <div style={{ flex: 1 }} />}
+      {/* Search sits in the CENTRE of the bar, not hard against the brand.
+          Brand left, search centre, actions right is the three-zone bar every
+          desk product settles on, and it is what stops the whole header
+          reading as one clump on the left of a wide window. The centring
+          wrapper takes the slack on both sides, so the search stays put as
+          the brand and the action cluster change width. */}
+      <div
+        data-topbar-search
+        style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 0 }}
+      >
+        {me && !isMobile ? <GlobalSearch lang={lang} /> : null}
+      </div>
       {/* And the actions are pinned to the RIGHT EDGE. They used to follow
           the 480px search with nothing after them, so the whole bar read as a
           cluster floating in the middle of the window with half the header
