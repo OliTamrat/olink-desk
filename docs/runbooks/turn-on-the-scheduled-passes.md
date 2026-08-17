@@ -38,6 +38,14 @@ value is never echoed). The Settings → Data lifecycle panel also shows a banne
 when no schedule is configured, but only an admin already inside a workspace
 sees that; health is what an operator and the deploy pipeline read.
 
+## Windows / PowerShell
+
+The commands below are bash. If you are working from PowerShell, use
+`turn-on-the-scheduled-passes-powershell.md` instead — it is the same five
+steps, but two of them fail in ways that are hard to see on Windows (a UTF-8
+BOM written into the secret, and an empty-string argument PowerShell drops),
+and that file works around both.
+
 ## Fix, in order
 
 The order matters: **step 3 will break every deploy if steps 1–2 have not been
