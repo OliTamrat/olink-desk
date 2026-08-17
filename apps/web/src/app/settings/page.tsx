@@ -1,14 +1,20 @@
 "use client";
-// Settings: the numbers and people the desk runs on. Three tabs —
-// SLA & hours, Team, Queues — each writing through routes that refuse
-// incoherent input rather than storing it (see api/settings/sla).
+// Settings: the numbers, people and identity the desk runs on. Four sections
+// in a rail — Workspace, SLA & hours, Team, Queues — each writing through
+// routes that refuse incoherent input rather than storing it.
+import {
+  humanMinutes,
+  LANGUAGE_NAMES,
+  SUPPORTED_LANGUAGES,
+  TIMEZONES,
+  type Language,
+} from "@olink-desk/i18n";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import {
   Badge,
   colors,
   ConsoleShell,
-
   layout,
   tUi,
   ui,
@@ -18,6 +24,7 @@ import {
 import { priorityKey } from "../../lib/tickets";
 
 const TABS = [
+  { key: "workspace", label: "ui_tab_workspace" },
   { key: "sla", label: "ui_tab_sla" },
   { key: "team", label: "ui_tab_team" },
   { key: "queues", label: "ui_tab_queues" },
@@ -83,7 +90,7 @@ const fromTime = (v: string) => {
 export default function SettingsPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
-  const [tab, setTab] = useState<TabKey>("sla");
+  const [tab, setTab] = useState<TabKey>("workspace");
 
   const [policies, setPolicies] = useState<Policy[] | null>(null);
   const [calendar, setCalendar] = useState<Calendar | null>(null);
@@ -205,32 +212,65 @@ export default function SettingsPage() {
   }
 
   return (
-    <ConsoleShell lang={lang} onLang={setLang} me={me} active="settings">
+    <ConsoleShell
+      lang={lang}
+      onLang={setLang}
+      me={me}
+      active="settings"
+      // A rail rather than a row of pills. Settings grew a fourth section and
+      // will grow a fifth; a horizontal strip runs out of room and reads as
+      // less important than the page under it. This is the shell's own second
+      // layer — the same slot the inbox's views use — so it folds away with
+      // them and costs no page width when it is not wanted.
+      sidePanelLabels={{ show: "ui_sections_show", hide: "ui_sections_hide" }}
+      sidePanel={
+        <nav>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+              color: colors.textMuted,
+              padding: "0 10px 10px",
+            }}
+          >
+            {tUi(lang, "ui_nav_settings")}
+          </div>
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              data-settings-tab={t.key}
+              onClick={() => {
+                setTab(t.key);
+                setMessage(null);
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "start",
+                padding: "8px 10px",
+                marginBottom: 2,
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: tab === t.key ? 600 : 500,
+                color: tab === t.key ? colors.textPrimary : colors.textSecondary,
+                background: tab === t.key ? colors.surfaceHover : "transparent",
+                borderLeft: `2px solid ${tab === t.key ? colors.accent : "transparent"}`,
+              }}
+            >
+              {tUi(lang, t.label)}
+            </button>
+          ))}
+        </nav>
+      }
+    >
       <header style={{ marginBottom: 16 }}>
         <h1 style={ui.h1}>{tUi(lang, "ui_nav_settings")}</h1>
       </header>
-
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => {
-              setTab(t.key);
-              setMessage(null);
-            }}
-            style={{
-              ...ui.buttonGhost,
-              padding: "7px 14px",
-              fontSize: 13,
-              borderColor: tab === t.key ? colors.accent : colors.border,
-              color: tab === t.key ? colors.textPrimary : colors.textSecondary,
-              background: tab === t.key ? colors.surfaceHover : "transparent",
-            }}
-          >
-            {tUi(lang, t.label)}
-          </button>
-        ))}
-      </div>
 
       {message ? (
         <div style={{ ...(message.ok ? ui.ok : ui.error), marginBottom: 16, maxWidth: 700 }}>
@@ -238,11 +278,18 @@ export default function SettingsPage() {
         </div>
       ) : null}
 
+      {/* -------------------------------------------------- Workspace */}
+      {tab === "workspace" ? <WorkspacePanel lang={lang} onSaved={setMessage} /> : null}
+
       {/* ------------------------------------------------- SLA & hours */}
       {tab === "sla" ? (
         <div style={{ ...layout.centred, display: "grid", gap: 16 }}>
           <section style={ui.card}>
-            <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_tab_sla")}</h2>
+            <h2 style={{ ...ui.h2, marginBottom: 6 }}>{tUi(lang, "ui_tab_sla")}</h2>
+            {/* What the two numbers actually promise, and that they are what
+                colours the inbox. Four rows of unexplained minute boxes is a
+                form; this makes it a decision. */}
+            <p style={{ ...ui.sub, marginBottom: 14 }}>{tUi(lang, "ui_sla_explainer")}</p>
             {!policies ? (
               <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>
             ) : (
@@ -264,6 +311,7 @@ export default function SettingsPage() {
                         setPolicies(next);
                       }}
                       unit={tUi(lang, "ui_minutes")}
+                      hint={humanMinutes(p.firstResponseMinutes)}
                     />
                     <NumberField
                       label={tUi(lang, "ui_resolution")}
@@ -274,6 +322,7 @@ export default function SettingsPage() {
                         setPolicies(next);
                       }}
                       unit={tUi(lang, "ui_minutes")}
+                      hint={humanMinutes(p.resolveMinutes)}
                     />
                   </div>
                 ))}
@@ -528,11 +577,14 @@ function NumberField({
   value,
   onChange,
   unit,
+  hint,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   unit: string;
+  /** The same number said the way a person would. */
+  hint?: string;
 }): ReactNode {
   return (
     <label style={{ fontSize: 12, color: colors.textMuted }}>
@@ -546,7 +598,234 @@ function NumberField({
           style={{ ...control, width: 100 }}
         />
         <span>{unit}</span>
+        {/* "1620 minutes" is arithmetic homework. "1d 3h" is an answer, and
+            it is the number an admin is actually deciding about. */}
+        {hint ? (
+          <span data-duration-hint style={{ color: colors.textSecondary, fontWeight: 600 }}>
+            {hint}
+          </span>
+        ) : null}
       </span>
     </label>
+  );
+}
+
+/**
+ * The workspace's own identity.
+ *
+ * Every field here has existed in the schema since the first migration and
+ * none of them had a screen: a workspace could not be renamed after
+ * registration, its time zone was whatever the default said whatever country
+ * it was in, and the language set that decides what a customer is answered in
+ * was unreachable.
+ */
+function WorkspacePanel({
+  lang,
+  onSaved,
+}: {
+  lang: Language;
+  onSaved: (m: { ok: boolean; text: string } | null) => void;
+}): ReactNode {
+  const [profile, setProfile] = useState<{
+    name: string;
+    slug: string;
+    timezone: string;
+    languages: string[];
+    defaultLanguage: string;
+    canRename: boolean;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const resp = await fetch("/api/workspace");
+      if (resp.ok) setProfile((await resp.json()) as typeof profile);
+    })();
+  }, []);
+
+  async function save() {
+    if (!profile) return;
+    setSaving(true);
+    onSaved(null);
+    try {
+      const resp = await fetch("/api/workspace", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: profile.name,
+          timezone: profile.timezone,
+          languages: profile.languages,
+          defaultLanguage: profile.defaultLanguage,
+        }),
+      });
+      const body = (await resp.json().catch(() => null)) as { error?: string } | null;
+      onSaved(
+        resp.ok
+          ? { ok: true, text: tUi(lang, "ui_saved") }
+          : // The API answers with an i18n KEY, not a sentence — this is the
+            // one settings screen an admin may well be reading in Amharic.
+            { ok: false, text: tUi(lang, body?.error ?? "ui_save_failed", { error: "" }) },
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!profile) {
+    return <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>;
+  }
+
+  const toggle = (code: string) => {
+    const has = profile.languages.includes(code);
+    const languages = has
+      ? profile.languages.filter((l) => l !== code)
+      : [...profile.languages, code];
+    setProfile({
+      ...profile,
+      languages,
+      // Turning off the language that WAS the default silently moves the
+      // default rather than leaving an invalid pair the save would reject
+      // with an error the admin cannot act on from here.
+      defaultLanguage: languages.includes(profile.defaultLanguage)
+        ? profile.defaultLanguage
+        : (languages[0] ?? profile.defaultLanguage),
+    });
+  };
+
+  return (
+    <div style={{ ...layout.centred, display: "grid", gap: 16 }} data-workspace-panel>
+      <section style={ui.card}>
+        <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_ws_identity")}</h2>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div>
+            <label style={ui.label} htmlFor="ws-name">
+              {tUi(lang, "ui_ws_name")}
+            </label>
+            <input
+              id="ws-name"
+              style={ui.input}
+              value={profile.name}
+              disabled={!profile.canRename}
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: colors.textMuted }}>
+              {tUi(lang, "ui_ws_name_hint")}
+            </p>
+          </div>
+
+          <div>
+            <label style={ui.label}>{tUi(lang, "ui_ws_address")}</label>
+            <code
+              style={{
+                display: "block",
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: colors.surfaceRaised,
+                border: `1px solid ${colors.border}`,
+                color: colors.textSecondary,
+                fontSize: 13,
+              }}
+            >
+              {profile.slug}
+            </code>
+            {/* Not editable, and the reason is worth saying rather than
+                leaving as a greyed-out box: this slug is inside the widget
+                snippet on the customer's own website and inside every webhook
+                URL a gateway has been pointed at. */}
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: colors.textMuted }}>
+              {tUi(lang, "ui_ws_address_hint")}
+            </p>
+          </div>
+
+          <div>
+            <label style={ui.label} htmlFor="ws-tz">
+              {tUi(lang, "ui_ws_timezone")}
+            </label>
+            <select
+              id="ws-tz"
+              style={{ ...ui.input, maxWidth: 320 }}
+              value={profile.timezone}
+              disabled={!profile.canRename}
+              onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: colors.textMuted }}>
+              {tUi(lang, "ui_ws_timezone_hint")}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section style={ui.card}>
+        <h2 style={{ ...ui.h2, marginBottom: 6 }}>{tUi(lang, "ui_ws_languages")}</h2>
+        <p style={{ ...ui.sub, marginBottom: 14 }}>{tUi(lang, "ui_ws_languages_hint")}</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          {SUPPORTED_LANGUAGES.map((code) => {
+            const on = profile.languages.includes(code);
+            return (
+              <button
+                key={code}
+                data-ws-language={code}
+                aria-pressed={on}
+                disabled={!profile.canRename}
+                onClick={() => toggle(code)}
+                style={{
+                  ...control,
+                  cursor: profile.canRename ? "pointer" : "default",
+                  padding: "7px 12px",
+                  fontSize: 13,
+                  borderColor: on ? colors.accent : colors.border,
+                  color: on ? colors.textPrimary : colors.textMuted,
+                  background: on ? colors.surfaceHover : "transparent",
+                }}
+              >
+                {LANGUAGE_NAMES[code]}
+              </button>
+            );
+          })}
+        </div>
+
+        <label style={ui.label} htmlFor="ws-default">
+          {tUi(lang, "ui_ws_default_language")}
+        </label>
+        <select
+          id="ws-default"
+          style={{ ...ui.input, maxWidth: 260 }}
+          value={profile.defaultLanguage}
+          disabled={!profile.canRename}
+          onChange={(e) => setProfile({ ...profile, defaultLanguage: e.target.value })}
+        >
+          {/* Only languages the desk actually serves. Offering the rest would
+              let an admin pick a fallback nobody on the team staffs, and it
+              would fail silently — every field looks valid on its own. */}
+          {SUPPORTED_LANGUAGES.filter((c) => profile.languages.includes(c)).map((code) => (
+            <option key={code} value={code}>
+              {LANGUAGE_NAMES[code]}
+            </option>
+          ))}
+        </select>
+        <p style={{ margin: "4px 0 0", fontSize: 12, color: colors.textMuted }}>
+          {tUi(lang, "ui_ws_default_hint")}
+        </p>
+      </section>
+
+      {profile.canRename ? (
+        <div>
+          <button
+            data-workspace-save
+            style={ui.button}
+            disabled={saving}
+            onClick={() => void save()}
+          >
+            {saving ? tUi(lang, "ui_saving") : tUi(lang, "ui_save")}
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }

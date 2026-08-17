@@ -956,6 +956,7 @@ export function ConsoleShell({
   sidePanel,
   context,
   fullBleed,
+  sidePanelLabels,
   children,
 }: {
   lang: Language;
@@ -968,6 +969,13 @@ export function ConsoleShell({
    * Screens with no context pass nothing and the layer is not rendered.
    */
   sidePanel?: ReactNode;
+  /**
+   * What the fold control calls the second rail. Defaults to the inbox's
+   * "views", which is precise there and wrong everywhere else — Settings puts
+   * its SECTIONS in this slot, and a button reading "Hide views" on a page
+   * with no views in it is the console describing its own plumbing.
+   */
+  sidePanelLabels?: { show: string; hide: string };
   /**
    * This screen's supporting detail. Supplying it puts the toggle in the top
    * bar; a screen with nothing contextual to say passes nothing and no
@@ -1446,7 +1454,12 @@ export function ConsoleShell({
               onClick={() => setViewsOpen(!viewsOpen)}
               data-views-toggle
               aria-expanded={viewsOpen}
-              aria-label={tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+              aria-label={tUi(
+                lang,
+                viewsOpen
+                  ? (sidePanelLabels?.hide ?? "ui_views_hide")
+                  : (sidePanelLabels?.show ?? "ui_views_show"),
+              )}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -1463,7 +1476,12 @@ export function ConsoleShell({
               }}
             >
               {viewsOpen ? Icons.collapse : Icons.expand}
-              {tUi(lang, viewsOpen ? "ui_views_hide" : "ui_views_show")}
+              {tUi(
+                lang,
+                viewsOpen
+                  ? (sidePanelLabels?.hide ?? "ui_views_hide")
+                  : (sidePanelLabels?.show ?? "ui_views_show"),
+              )}
             </button>
           ) : null}
           {/* The cap and the centring live HERE, once, so a page added later
