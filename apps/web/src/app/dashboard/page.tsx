@@ -3,7 +3,7 @@
 // same tenant-scoped tickets API the inbox reads — one source of truth, so
 // the tiles can never disagree with the list under them.
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import {
   Badge,
@@ -15,6 +15,20 @@ import {
   useMe,
 } from "../../lib/console-ui";
 import { CHANNEL_LABELS, statusKey, timeAgo, type TicketRow } from "../../lib/tickets";
+import {
+  IconTile,
+  StatusDrilldown,
+  StatusOverview,
+} from "../../lib/status-overview";
+import { composition, type LifecycleKey } from "@olink-desk/reports";
+
+const glyph = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
 
 interface SetupStep {
   key: string;
@@ -33,15 +47,27 @@ export default function DashboardPage() {
   const me = useMe();
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
   const [setup, setSetup] = useState<SetupState | null>(null);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [drill, setDrill] = useState<LifecycleKey | null>(null);
 
   useEffect(() => {
     if (!me) return;
     let cancelled = false;
     const load = async () => {
-      const resp = await fetch("/api/tickets");
-      if (resp.ok && !cancelled) {
-        const body = (await resp.json()) as { tickets: TicketRow[] };
+      const [list, counted] = await Promise.all([
+        fetch("/api/tickets"),
+        // The overview counts the WHOLE workspace, not the page of tickets
+        // the list happens to return — a share computed from a truncated list
+        // is a wrong number that looks right.
+        fetch("/api/tickets/counts"),
+      ]);
+      if (list.ok && !cancelled) {
+        const body = (await list.json()) as { tickets: TicketRow[] };
         setTickets(body.tickets);
+      }
+      if (counted.ok && !cancelled) {
+        const body = (await counted.json()) as { byStatus?: Record<string, number> };
+        setCounts(body.byStatus ?? {});
       }
     };
     void load();
@@ -77,23 +103,36 @@ export default function DashboardPage() {
   // Drill-down: a number on a dashboard is a question ("which five?"), and
   // the only useful answer is the list itself. Every tile carries the filter
   // that produced it, so the count and the list can never disagree.
-  const tile = (label: string, value: number | null, accent: string | undefined, href: string) => (
+  // The Onekof tile proportions: an icon tile at the top, then a large
+  // number, then a small label UNDER it. The label used to sit above the
+  // number, which reads as a caption looking for its picture; below, the
+  // number is the thing and the label names it.
+  const tile = (
+    label: string,
+    value: number | null,
+    accent: string | undefined,
+    href: string,
+    icon: ReactNode,
+  ) => (
     <Link
       href={href}
-      style={{ ...ui.card, flex: 1, minWidth: 160, textDecoration: "none", display: "block" }}>
-      <div style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 8 }}>
-        {label}
-      </div>
+      style={{ ...ui.card, textDecoration: "none", display: "block", padding: 18 }}
+    >
+      <IconTile tint={accent}>{icon}</IconTile>
       <div
         style={{
           fontSize: 34,
           fontWeight: 700,
-          color: accent ?? colors.textPrimary,
+          color: colors.textPrimary,
           lineHeight: 1,
+          marginTop: 16,
           fontVariantNumeric: "tabular-nums",
         }}
       >
         {value ?? "—"}
+      </div>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: colors.textSecondary, marginTop: 8 }}>
+        {label}
       </div>
     </Link>
   );
@@ -246,18 +285,43 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+          // 150px, not 210: at 390px minus the page gutters, 210 fits ONE
+          // column, so four glanceable numbers became a scroll. 150 gives the
+          // 2×2 the reference uses on a phone and still reflows to a row of
+          // four on a desk.
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: 16,
           marginBottom: 16,
         }}
       >
-        {tile(tUi(lang, "ui_kpi_open"), tickets ? open.length : null, colors.accent, "/inbox?view=open")}
-        {tile(tUi(lang, "ui_kpi_new_today"), tickets ? newToday.length : null, undefined, "/inbox?view=all&status=NEW")}
+        {tile(
+          tUi(lang, "ui_kpi_open"),
+          tickets ? open.length : null,
+          colors.accent,
+          "/inbox?view=open",
+          <svg width="20" height="20" viewBox="0 0 24 24" {...glyph}>
+            <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+            <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+          </svg>,
+        )}
+        {tile(
+          tUi(lang, "ui_kpi_new_today"),
+          tickets ? newToday.length : null,
+          colors.success,
+          "/inbox?view=all&status=NEW",
+          <svg width="20" height="20" viewBox="0 0 24 24" {...glyph}>
+            <path d="M12 5v14M5 12h14" />
+          </svg>,
+        )}
         {tile(
           tUi(lang, "ui_kpi_awaiting"),
           tickets ? awaiting.length : null,
           awaiting.length > 0 ? colors.warn : colors.success,
           "/inbox?view=open&awaiting=1",
+          <svg width="20" height="20" viewBox="0 0 24 24" {...glyph}>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>,
         )}
       </div>
 
@@ -266,6 +330,38 @@ export default function DashboardPage() {
           cards rather than a row. Stretched, they end level. The 1:1.6 split
           gives the recent-ticket list the room its lines actually need while
           keeping the channel bars wide enough to compare. */}
+      {/* The lifecycle overview, above the two panels: it is the shape of the
+          whole desk, and the panels under it are details of one corner. */}
+      {counts ? (
+        <div style={{ display: "grid", gap: 16, marginBottom: 16 }}>
+          <StatusOverview
+            lang={lang}
+            counts={counts}
+            selected={drill}
+            onSelect={setDrill}
+            t={(k, p) => tUi(lang, k, p)}
+          />
+          {drill
+            ? (() => {
+                const slice = composition(counts).slices.find((s) => s.key === drill);
+                if (!slice) return null;
+                const inSlice = (t: TicketRow) =>
+                  drill === "DONE"
+                    ? ["RESOLVED", "CLOSED"].includes(t.status)
+                    : t.status === drill;
+                return (
+                  <StatusDrilldown
+                    t={(k, p) => tUi(lang, k, p)}
+                    slice={slice}
+                    rows={(tickets ?? []).filter(inSlice).slice(0, 6)}
+                    onClear={() => setDrill(null)}
+                  />
+                );
+              })()
+            : null}
+        </div>
+      ) : null}
+
       <div
         style={{
           display: "grid",
@@ -419,10 +515,24 @@ export default function DashboardPage() {
                         Same bug the inbox list had; this surface was missed. */}
                     {t.subject ?? t.messages[0]?.body ?? ""}
                   </span>
-                  <Badge tone={t.status === "NEW" ? "info" : t.status === "PENDING" ? "warn" : t.status === "OPEN" ? "success" : "muted"}>
-                    {tUi(lang, statusKey(t.status))}
-                  </Badge>
-                  <span style={{ color: colors.textMuted, fontSize: 12, width: 60, textAlign: "right" }}>
+                  {/* `flexShrink: 0` on both, or the flex line squeezes them
+                      to nothing on a phone and the status badge is clipped
+                      mid-word. It produced no document overflow — the text was
+                      cut off INSIDE the row — so only looking at it found it. */}
+                  <span style={{ flexShrink: 0 }}>
+                    <Badge tone={t.status === "NEW" ? "info" : t.status === "PENDING" ? "warn" : t.status === "OPEN" ? "success" : "muted"}>
+                      {tUi(lang, statusKey(t.status))}
+                    </Badge>
+                  </span>
+                  <span
+                    style={{
+                      color: colors.textMuted,
+                      fontSize: 12,
+                      width: 60,
+                      flexShrink: 0,
+                      textAlign: "right",
+                    }}
+                  >
                     {timeAgo(t.updatedAt)}
                   </span>
                 </Link>

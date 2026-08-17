@@ -10,3 +10,10 @@ export {
   type Delta,
   type Measure,
 } from "./stats";
+export {
+  composition,
+  LIFECYCLE,
+  type LifecycleKey,
+  type Slice,
+  type StatusCounts,
+} from "./composition";
