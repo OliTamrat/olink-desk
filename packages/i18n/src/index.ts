@@ -378,6 +378,7 @@ export const UI_NOTES: Record<string, string> = {
   ui_wb_no_queues_hint: "The sentence under that title. Says why the board is empty AND what to do about it, so the empty state is a route rather than a dead end.",
   ui_wb_nothing_yet: "Stands in for a median or a score the desk has not produced yet. Replaces an em-dash: three stacked dashes is what a BROKEN panel looks like, where words say the desk is simply quiet.",
   ui_wb_agents_blurb: "The sentence under the Agents heading. Says what the numbers beside each name mean and that tapping one is a destination — nobody should have to click to find out whether clicking does anything.",
+  ui_customers_none_title: "TITLE of the customers empty state. The existing ui_customers_none is the sentence UNDER it — it was doing both jobs as one muted line at the top-left of a box, which reads as a panel that failed to load.",
   ui_lang_unset: "The empty option of the language picker on the log-a-ticket form — the desk's own default will be used. Was showing 'No name', which is a different field's string entirely.",
   ui_ch_sms: "A third way a ticket reaches the desk, logged by hand: a text message read out. Logging one as a phone call makes the channel report wrong.",
   ui_new_suggested: "Heading of the right-hand rail on the log-a-ticket page. Zendesk shows 'similar resolved tickets' here; this desk shows its own knowledge base, which is the thing that can actually be read out to the customer.",

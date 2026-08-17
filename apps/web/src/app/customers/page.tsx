@@ -8,6 +8,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { EmptyState, stroke } from "../../lib/card";
+
 import {
   colors,
   ConsoleShell,
@@ -196,8 +198,24 @@ export default function CustomersPage() {
         {loading ? (
           <div style={{ ...ui.card, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
         ) : rows.length === 0 ? (
-          <div style={{ ...ui.card, color: colors.textSecondary }}>
-            {tUi(lang, "ui_customers_none")}
+          // One muted line at the top-left of a box, with the rest of the page
+          // empty under it, is the shape of a panel that failed to load. The
+          // same defect ADR 0028 removed from the wallboard — this page still
+          // had it, because the sweep that found those measured CARDS and this
+          // is not one.
+          <div style={ui.card}>
+            <EmptyState
+              data-customers-empty="1"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.9" />
+                </svg>
+              }
+              title={tUi(lang, "ui_customers_none_title")}
+              hint={tUi(lang, "ui_customers_none")}
+            />
           </div>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
