@@ -2,7 +2,7 @@
 // the default the console offers: a macro that has been sent to four hundred
 // customers is part of the record of what this desk told people.
 import { prisma, UserRole, TicketStatus } from "@olink-desk/database";
-import { macroBodiesError, parseBodies } from "@olink-desk/macros";
+import { cleanActions, macroBodiesError, parseBodies } from "@olink-desk/macros";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isDenied, requireUser } from "../../../../lib/session";
@@ -51,11 +51,13 @@ export async function PATCH(
     if (bodiesError) return NextResponse.json({ error: bodiesError }, { status: 400 });
     data.bodies = bodies as object;
   }
-  if (payload.setStatus !== undefined) {
-    data.setStatus = SETTABLE_STATUS.includes(payload.setStatus as TicketStatus)
-      ? payload.setStatus
-      : null;
-  }
+  // The three actions are cleaned together by the shared validator, but each
+  // is only WRITTEN when the caller mentioned it — a PATCH that says nothing
+  // about tags must not silently clear them.
+  const actions = cleanActions(payload);
+  if (payload.setStatus !== undefined) data.setStatus = actions.setStatus;
+  if (payload.setPriority !== undefined) data.setPriority = actions.setPriority;
+  if (payload.addTags !== undefined) data.addTags = actions.addTags;
   if (typeof payload.isActive === "boolean") data.isActive = payload.isActive;
 
   if (Object.keys(data).length === 0) {

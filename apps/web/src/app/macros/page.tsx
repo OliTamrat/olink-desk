@@ -6,15 +6,24 @@
 // customer always receives theirs. So the language tabs are the primary
 // structure of the editor, not a setting hidden behind a toggle, and a
 // language with no body is visibly empty rather than quietly absent.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
-import { renderMacro } from "@olink-desk/macros";
+import type { Language } from "@olink-desk/i18n";
+
+import { font } from "../../lib/theme";
+import { priorityKey, statusKey } from "../../lib/tickets";
+import {
+  cleanActions,
+  describeActions,
+  PRIORITIES,
+  renderMacro,
+  SETTABLE_STATUSES,
+} from "@olink-desk/macros";
 
 import {
   Badge,
   colors,
   ConsoleShell,
-
   layout,
   tUi,
   ui,
@@ -61,6 +70,8 @@ interface Macro {
   category: string | null;
   bodies: Record<string, string>;
   setStatus: string | null;
+  setPriority: string | null;
+  addTags: string[];
   isActive: boolean;
   usageCount: number;
 }
@@ -80,6 +91,8 @@ const blank = (): Macro => ({
   category: null,
   bodies: {},
   setStatus: null,
+  setPriority: null,
+  addTags: [],
   isActive: true,
   usageCount: 0,
 });
@@ -162,6 +175,8 @@ export default function MacrosPage() {
           category: editing.category ?? "",
           bodies: editing.bodies,
           setStatus: editing.setStatus,
+          setPriority: editing.setPriority,
+          addTags: editing.addTags,
         }),
       });
       const data = (await resp.json()) as { error?: string };
@@ -241,12 +256,13 @@ export default function MacrosPage() {
               style={{
                 display: "grid",
                 gap: 12,
-                gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr 1fr",
+                gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
               }}
             >
               <div>
                 <label style={ui.label}>{tUi(lang, "ui_macro_title_label")}</label>
                 <input
+                  data-macro-title
                   style={ui.input}
                   value={editing.title}
                   onChange={(e) => setEditing({ ...editing, title: e.target.value })}
@@ -260,23 +276,9 @@ export default function MacrosPage() {
                   onChange={(e) => setEditing({ ...editing, category: e.target.value })}
                 />
               </div>
-              <div>
-                <label style={ui.label}>{tUi(lang, "ui_macro_then_set")}</label>
-                <select
-                  style={{ ...ui.input, padding: "10px 8px" }}
-                  value={editing.setStatus ?? ""}
-                  onChange={(e) =>
-                    setEditing({ ...editing, setStatus: e.target.value || null })
-                  }
-                >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {tUi(lang, o.key)}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
+
+            <ActionsBuilder lang={lang} macro={editing} onChange={setEditing} />
 
             <div>
               <div
@@ -451,7 +453,7 @@ export default function MacrosPage() {
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button style={ui.button} disabled={saving} onClick={() => void save()}>
+              <button data-macro-save style={ui.button} disabled={saving} onClick={() => void save()}>
                 {saving ? tUi(lang, "ui_saving") : tUi(lang, "ui_save")}
               </button>
               <button style={ui.buttonGhost} onClick={() => setEditing(null)}>
@@ -524,6 +526,58 @@ export default function MacrosPage() {
                           ? tUi(lang, "ui_macro_used", { n: m.usageCount })
                           : tUi(lang, "ui_macro_never_used")}
                       </div>
+                      {/* What it DOES. A list of titles tells an agent
+                          nothing about which macro also resolves the ticket,
+                          and finding that out by sending one is expensive. */}
+                      {(() => {
+                        const does = describeActions(
+                          cleanActions({
+                            setStatus: m.setStatus,
+                            setPriority: m.setPriority,
+                            addTags: m.addTags,
+                          }),
+                        );
+                        if (does.length === 0) return null;
+                        return (
+                          <div
+                            data-macro-does={m.id}
+                            style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}
+                          >
+                            {does.map((d) => (
+                              <span
+                                key={d.key}
+                                style={{
+                                  fontSize: 11.5,
+                                  padding: "2px 8px",
+                                  borderRadius: 999,
+                                  background: colors.surfaceHover,
+                                  color: colors.textSecondary,
+                                }}
+                              >
+                                {/* The value is an ENUM, so it has to be
+                                    translated before it is interpolated —
+                                    otherwise an Amharic reader gets
+                                    "RESOLVED" in the middle of an Amharic
+                                    sentence. Caught by looking at the page,
+                                    not by any test of the model. */}
+                                {tUi(lang, d.key, {
+                                  ...d.params,
+                                  ...(typeof d.params.value === "string"
+                                    ? {
+                                        value: tUi(
+                                          lang,
+                                          d.key === "ui_macro_does_priority"
+                                            ? priorityKey(d.params.value)
+                                            : statusKey(d.params.value),
+                                        ),
+                                      }
+                                    : {}),
+                                })}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                     {canWrite && (
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -581,3 +635,219 @@ export default function MacrosPage() {
     </ConsoleShell>
   );
 }
+
+/**
+ * What this macro does, built the way Zendesk builds it: a LIST of actions
+ * you add to, not a fixed row of fields.
+ *
+ * The difference is not cosmetic. A fixed field says "every macro has a
+ * status" — so the one dropdown sat on every macro reading "Leave unchanged",
+ * which is a control that does nothing on most of them. A list says "this
+ * macro does these three things", which is what an admin is actually
+ * deciding, and it leaves room for a fourth action without a redesign.
+ */
+function ActionsBuilder({
+  lang,
+  macro,
+  onChange,
+}: {
+  lang: Language;
+  macro: Macro;
+  onChange: (m: Macro) => void;
+}) {
+  const [tagDraft, setTagDraft] = useState("");
+  const used = {
+    status: macro.setStatus !== null,
+    priority: macro.setPriority !== null,
+    tags: macro.addTags.length > 0,
+  };
+  // Only offer what is not already there: a second "set status" row would be
+  // two controls fighting over one column.
+  const addable = (
+    [
+      { kind: "status", label: "ui_macro_action_status" },
+      { kind: "priority", label: "ui_macro_action_priority" },
+      { kind: "tags", label: "ui_macro_action_tags" },
+    ] as const
+  ).filter((a) => !used[a.kind]);
+
+  const row = (key: string, label: string, control: ReactNode, onRemove: () => void) => (
+    <div
+      key={key}
+      data-macro-action={key}
+      style={{
+        display: "flex",
+        gap: 10,
+        alignItems: "center",
+        flexWrap: "wrap",
+        padding: "8px 10px",
+        borderRadius: 8,
+        background: colors.surfaceRaised,
+        border: `1px solid ${colors.border}`,
+      }}
+    >
+      <span style={{ fontSize: 13, color: colors.textSecondary, minWidth: 92 }}>
+        {tUi(lang, label)}
+      </span>
+      <div style={{ flex: 1, minWidth: 180 }}>{control}</div>
+      <button
+        onClick={onRemove}
+        aria-label={tUi(lang, "ui_macro_action_remove")}
+        style={{ ...control2, cursor: "pointer" }}
+      >
+        ×
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gap: 8 }} data-macro-actions>
+      <span style={ui.label}>{tUi(lang, "ui_macro_actions")}</span>
+
+      {!used.status && !used.priority && !used.tags ? (
+        <p style={{ margin: 0, fontSize: 12.5, color: colors.textMuted }}>
+          {tUi(lang, "ui_macro_actions_empty")}
+        </p>
+      ) : null}
+
+      {used.status
+        ? row(
+            "status",
+            "ui_macro_action_status",
+            <select
+              aria-label={tUi(lang, "ui_macro_action_status")}
+              style={{ ...ui.input, padding: "8px 8px", fontSize: 14 }}
+              value={macro.setStatus ?? "OPEN"}
+              onChange={(e) => onChange({ ...macro, setStatus: e.target.value })}
+            >
+              {SETTABLE_STATUSES.map((v) => (
+                <option key={v} value={v}>
+                  {tUi(lang, statusKeyFor(v))}
+                </option>
+              ))}
+            </select>,
+            () => onChange({ ...macro, setStatus: null }),
+          )
+        : null}
+
+      {used.priority
+        ? row(
+            "priority",
+            "ui_macro_action_priority",
+            <select
+              aria-label={tUi(lang, "ui_macro_action_priority")}
+              style={{ ...ui.input, padding: "8px 8px", fontSize: 14 }}
+              value={macro.setPriority ?? "NORMAL"}
+              onChange={(e) => onChange({ ...macro, setPriority: e.target.value })}
+            >
+              {PRIORITIES.map((v) => (
+                <option key={v} value={v}>
+                  {tUi(lang, `ui_pr_${v.toLowerCase()}`)}
+                </option>
+              ))}
+            </select>,
+            () => onChange({ ...macro, setPriority: null }),
+          )
+        : null}
+
+      {used.tags
+        ? row(
+            "tags",
+            "ui_macro_action_tags",
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {macro.addTags.filter(Boolean).map((t) => (
+                <span
+                  key={t}
+                  style={{
+                    fontSize: 12,
+                    padding: "3px 8px",
+                    borderRadius: 999,
+                    background: colors.surfaceHover,
+                    color: colors.textBody,
+                    display: "inline-flex",
+                    gap: 6,
+                  }}
+                >
+                  {t}
+                  <button
+                    onClick={() =>
+                      onChange({ ...macro, addTags: macro.addTags.filter((x) => x !== t) })
+                    }
+                    aria-label={`${tUi(lang, "ui_macro_action_remove")} ${t}`}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      color: colors.textMuted,
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                aria-label={tUi(lang, "ui_macro_action_tags")}
+                value={tagDraft}
+                placeholder={tUi(lang, "ui_macro_tag_placeholder")}
+                onChange={(e) => setTagDraft(e.target.value)}
+                // Enter and comma both commit, because both are what people
+                // type when listing things.
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" && e.key !== ",") return;
+                  e.preventDefault();
+                  const next = cleanActions({ addTags: [...macro.addTags, tagDraft] }).addTags;
+                  onChange({ ...macro, addTags: next });
+                  setTagDraft("");
+                }}
+                style={{ ...ui.input, width: 150, padding: "6px 8px", fontSize: 13 }}
+              />
+            </div>,
+            () => onChange({ ...macro, addTags: [] }),
+          )
+        : null}
+
+      {addable.length > 0 ? (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {addable.map((a) => (
+            <button
+              key={a.kind}
+              data-add-action={a.kind}
+              onClick={() =>
+                onChange({
+                  ...macro,
+                  ...(a.kind === "status"
+                    ? { setStatus: "OPEN" }
+                    : a.kind === "priority"
+                      ? { setPriority: "NORMAL" }
+                      : { addTags: [] }),
+                  // An empty tag list is not "the tags action is present", so
+                  // adding it needs a marker the row can see. A single empty
+                  // string is filtered out by cleanActions on save, and the
+                  // row is what puts real tags in it.
+                  ...(a.kind === "tags" ? { addTags: [""] } : {}),
+                })
+              }
+              style={{ ...control2, cursor: "pointer" }}
+            >
+              + {tUi(lang, a.label)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+const control2 = {
+  padding: "6px 10px",
+  borderRadius: 6,
+  border: `1px solid ${colors.border}`,
+  background: "transparent",
+  color: colors.textSecondary,
+  fontSize: 12.5,
+  fontFamily: font,
+} as const;
+
+const statusKeyFor = (s: string) =>
+  s === "OPEN" ? "ui_st_open" : s === "PENDING" ? "ui_st_pending" : "ui_st_resolved";
