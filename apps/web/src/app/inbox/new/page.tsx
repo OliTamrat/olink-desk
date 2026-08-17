@@ -21,12 +21,15 @@ import {
   ui,
   useConsoleLanguage,
   useMe,
+  useViewport,
 } from "../../../lib/console-ui";
-import { CHANNEL_LABELS, statusKey } from "../../../lib/tickets";
+import { CHANNEL_LABELS, priorityKey, statusKey } from "../../../lib/tickets";
 // Deep import: `@olink-desk/tickets` pulls Prisma through its barrel, and this
 // is a client component. `phone.ts` is pure string work with no imports.
 import { displayPhone, normalizePhone } from "@olink-desk/tickets/src/phone";
 import { AttachmentPicker, uploadPending, type PendingFile } from "../../../lib/attachments";
+import { CardHead, stroke } from "../../../lib/card";
+import { renderMacro } from "@olink-desk/macros";
 
 /**
  * Dialling codes offered beside the number field.
@@ -69,8 +72,9 @@ export default function NewTicketPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
   const router = useRouter();
+  const { roomy: wide } = useViewport();
 
-  const [channel, setChannel] = useState<"PHONE" | "WALK_IN">("PHONE");
+  const [channel, setChannel] = useState<"PHONE" | "SMS" | "WALK_IN">("PHONE");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("NORMAL");
@@ -87,6 +91,20 @@ export default function NewTicketPage() {
   // Queued, not uploaded: there is no ticket to attach them to until the form
   // is submitted, so they ride along and go up immediately afterwards.
   const [files, setFiles] = useState<PendingFile[]>([]);
+
+  // The properties rail. Every one of these was already accepted by
+  // POST /api/tickets and simply never sent by this form — assignment and
+  // routing existed server-side and were unreachable from the browser.
+  const [assigneeId, setAssigneeId] = useState("");
+  const [queueId, setQueueId] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagDraft, setTagDraft] = useState("");
+  const [team, setTeam] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  const [queues, setQueues] = useState<Array<{ id: string; name: string }>>([]);
+  const [macros, setMacros] = useState<
+    Array<{ id: string; title: string; bodies: Record<string, string> }>
+  >([]);
+  const [suggested, setSuggested] = useState<Array<{ id: string; title: string }>>([]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -127,6 +145,58 @@ export default function NewTicketPage() {
       setTicketLang(found.language);
     })();
   }, []);
+
+  // Loaded once. Three small lists that turn a form into a routing decision.
+  useEffect(() => {
+    if (!me) return;
+    void (async () => {
+      const [u, q, m] = await Promise.all([
+        fetch("/api/users").then((r) => (r.ok ? r.json() : { users: [] })),
+        fetch("/api/queues").then((r) => (r.ok ? r.json() : { queues: [] })),
+        fetch("/api/macros").then((r) => (r.ok ? r.json() : { macros: [] })),
+      ]);
+      setTeam((u.users ?? []).filter((x: { status: string }) => x.status === "ACTIVE"));
+      setQueues(q.queues ?? []);
+      setMacros(m.macros ?? []);
+    })();
+  }, [me]);
+
+  // Zendesk shows "similar resolved tickets" beside a new one. The equivalent
+  // worth having here is the KNOWLEDGE BASE: if an article already answers
+  // this, the agent can read it while the customer is still on the line
+  // instead of researching after hanging up. Matched on the subject, debounced,
+  // and never automatic — it offers, it does not fill anything in.
+  useEffect(() => {
+    const term = subject.trim();
+    if (term.length < 4) {
+      setSuggested([]);
+      return;
+    }
+    const id = setTimeout(() => {
+      void (async () => {
+        const resp = await fetch("/api/kb");
+        if (!resp.ok) return;
+        const { articles } = (await resp.json()) as {
+          articles: Array<{ id: string; titles: Record<string, string>; isPublished: boolean }>;
+        };
+        const needle = term.toLowerCase();
+        const words = needle.split(/\s+/).filter((w) => w.length > 3);
+        setSuggested(
+          articles
+            .map((a) => {
+              const title = a.titles[ticketLang] || a.titles.en || Object.values(a.titles)[0] || "";
+              const hay = title.toLowerCase();
+              const score = words.filter((w) => hay.includes(w)).length;
+              return { id: a.id, title, score };
+            })
+            .filter((a) => a.title && a.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 4),
+        );
+      })();
+    }, 400);
+    return () => clearTimeout(id);
+  }, [subject, ticketLang]);
 
   const search = useCallback(async (term: string) => {
     if (!term.trim()) {
@@ -186,6 +256,8 @@ export default function NewTicketPage() {
           description,
           priority,
           language: ticketLang,
+          ...(assigneeId ? { assigneeId } : {}),
+          ...(queueId ? { queueId } : {}),
           // Either an existing customer, or enough to find-or-create one from
           // what the agent typed. Making them go and create the person first
           // is how a call ends before the ticket is written.
@@ -205,6 +277,17 @@ export default function NewTicketPage() {
       // The ticket EXISTS from here on. A file that fails to upload is
       // reported, but it must never look like the ticket failed — the agent
       // would log it again and the desk would have two.
+      // Tags are applied after the fact because they are a separate
+      // relation. A tag that fails must not fail the ticket, for the same
+      // reason a file that fails must not.
+      for (const tag of tags) {
+        await fetch(`/api/tickets/${data.ticket.id}/tags`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: tag }),
+        }).catch(() => undefined);
+      }
+
       if (files.length > 0) {
         const failed = await uploadPending(data.ticket.id, files);
         if (failed.length > 0) {
@@ -221,63 +304,12 @@ export default function NewTicketPage() {
     }
   }
 
-  return (
-    <ConsoleShell
-      lang={lang}
-      onLang={setLang}
-      me={me}
-      active="inbox"
-      context={<PriorContacts history={history} lang={lang} />}
-    >
-      <div style={{ display: "grid", gap: 16 }}>
-        <div>
-          <h1 style={ui.h1}>{tUi(lang, "ui_new_ticket_title")}</h1>
-          <p style={{ ...ui.sub, maxWidth: 620 }}>{tUi(lang, "ui_new_ticket_subtitle")}</p>
-        </div>
-
-        {error ? <div style={ui.error}>{error}</div> : null}
-
-        <div style={{ ...ui.card, display: "grid", gap: 14 }}>
-          <div>
-            <label style={ui.label}>{tUi(lang, "ui_ticket_how")}</label>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {(
-                [
-                  { value: "PHONE", label: tUi(lang, "ui_channel_phone_call") },
-                  { value: "WALK_IN", label: tUi(lang, "ui_channel_walk_in") },
-                ] as const
-              ).map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setChannel(opt.value)}
-                  style={{
-                    ...ui.buttonGhost,
-                    borderColor: channel === opt.value ? colors.accent : colors.border,
-                    color: channel === opt.value ? colors.textPrimary : colors.textSecondary,
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Stated up front, not discovered later. A ticket with no channel
-              behind it cannot be answered by the desk, and an agent needs to
-              know that while deciding what to promise the customer. */}
-          {/* Was shown on both channels with one wording about calling back.
-              A walk-in is not answered by phoning them, and a customer at the
-              counter may have left no number at all. */}
-          <div style={{ ...ui.warn, fontSize: 12 }}>
-            {tUi(
-              lang,
-              channel === "PHONE" ? "ui_ticket_no_reply_warning" : "ui_ticket_no_reply_walk_in",
-            )}
-          </div>
-
-          <div>
-            <label style={ui.label}>{tUi(lang, "ui_ticket_customer")}</label>
-            {picked ? (
+  // Lifted out so the properties rail can render it. It is the same markup —
+  // the customer belongs beside the assignee and the priority, not above the
+  // subject, because all four are decisions about WHERE this goes.
+  const customerBlock = (
+    <>
+{picked ? (
               <div
                 style={{
                   display: "flex",
@@ -471,6 +503,222 @@ export default function NewTicketPage() {
                 )}
               </>
             )}
+    </>
+  );
+
+  return (
+    <ConsoleShell
+      lang={lang}
+      onLang={setLang}
+      me={me}
+      active="inbox"
+      context={<PriorContacts history={history} lang={lang} />}
+    >
+      <div style={{ display: "grid", gap: 16 }}>
+        <div>
+          <h1 style={ui.h1}>{tUi(lang, "ui_new_ticket_title")}</h1>
+          <p style={{ ...ui.sub, maxWidth: 620 }}>{tUi(lang, "ui_new_ticket_subtitle")}</p>
+        </div>
+
+        {error ? <div style={ui.error}>{error}</div> : null}
+
+        {/* The Zendesk shape: properties on the left, the composer in the
+            middle, what the desk already knows on the right. On a narrow
+            window it stacks — properties first, because routing a call is
+            decided before it is typed up. */}
+        <div
+          data-new-layout
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: wide ? "280px minmax(0, 1fr) 260px" : "1fr",
+            alignItems: "start",
+          }}
+        >
+          {/* ------------------------------------------------ properties */}
+          <aside style={{ ...ui.card, display: "grid", gap: 14 }} data-new-properties>
+            <div>
+              <label style={ui.label}>{tUi(lang, "ui_ticket_customer")}</label>
+              {customerBlock}
+            </div>
+
+            <div>
+              <label style={ui.label}>{tUi(lang, "ui_assignee")}</label>
+              <div style={{ display: "flex", gap: 6 }}>
+                <select
+                  data-assignee
+                  style={{ ...ui.input, flex: 1, minWidth: 0 }}
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  aria-label={tUi(lang, "ui_assignee")}
+                >
+                  <option value="">{tUi(lang, "ui_unassigned")}</option>
+                  {team.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+                {/* Zendesk's "take it", and worth copying exactly: the agent
+                    typing up the call is usually the one who will own it, and
+                    hunting for their own name in a list of forty is friction
+                    on every single ticket. */}
+                {me && assigneeId !== me.user.id ? (
+                  <button
+                    type="button"
+                    data-take-it
+                    onClick={() => setAssigneeId(me.user.id)}
+                    style={{ ...ui.buttonGhost, fontSize: 12, padding: "6px 10px", flexShrink: 0 }}
+                  >
+                    {tUi(lang, "ui_take_it")}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            {queues.length > 0 ? (
+              <div>
+                <label style={ui.label}>{tUi(lang, "ui_queue")}</label>
+                <select
+                  data-queue
+                  style={ui.input}
+                  value={queueId}
+                  onChange={(e) => setQueueId(e.target.value)}
+                  aria-label={tUi(lang, "ui_queue")}
+                >
+                  <option value="">{tUi(lang, "ui_no_queue")}</option>
+                  {queues.map((q) => (
+                    <option key={q.id} value={q.id}>
+                      {q.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ flex: "1 1 120px" }}>
+                <label style={ui.label}>{tUi(lang, "ui_priority")}</label>
+                <select
+                  style={ui.input}
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  aria-label={tUi(lang, "ui_priority")}
+                >
+                  {["LOW", "NORMAL", "HIGH", "URGENT"].map((p) => (
+                    <option key={p} value={p}>
+                      {tUi(lang, priorityKey(p))}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ flex: "1 1 120px" }}>
+                <label style={ui.label}>{tUi(lang, "ui_customer_language")}</label>
+                <select
+                  style={ui.input}
+                  value={ticketLang}
+                  onChange={(e) => setTicketLang(e.target.value)}
+                  aria-label={tUi(lang, "ui_customer_language")}
+                >
+                  <option value="">{tUi(lang, "ui_lang_unset")}</option>
+                  {LANGS.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label style={ui.label}>{tUi(lang, "ui_tags")}</label>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" }}>
+                {tags.map((t) => (
+                  <span
+                    key={t}
+                    data-tag={t}
+                    style={{
+                      fontSize: 12,
+                      padding: "3px 8px",
+                      borderRadius: 999,
+                      background: colors.surfaceHover,
+                      color: colors.textBody,
+                      display: "inline-flex",
+                      gap: 6,
+                    }}
+                  >
+                    {t}
+                    <button
+                      type="button"
+                      onClick={() => setTags(tags.filter((x) => x !== t))}
+                      aria-label={`${tUi(lang, "ui_attach_remove")} ${t}`}
+                      style={{ border: "none", background: "none", color: colors.textMuted, cursor: "pointer", padding: 0 }}
+                    >
+                      x
+                    </button>
+                  </span>
+                ))}
+                <input
+                  data-tag-input
+                  value={tagDraft}
+                  onChange={(e) => setTagDraft(e.target.value)}
+                  placeholder={tUi(lang, "ui_macro_tag_placeholder")}
+                  aria-label={tUi(lang, "ui_tags")}
+                  // Enter and comma both commit, because both are what people
+                  // type when listing things.
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" && e.key !== ",") return;
+                    e.preventDefault();
+                    const next = tagDraft.trim().toLowerCase();
+                    if (next && !tags.includes(next)) setTags([...tags, next]);
+                    setTagDraft("");
+                  }}
+                  style={{ ...ui.input, width: 130, padding: "6px 8px", fontSize: 13 }}
+                />
+              </div>
+            </div>
+          </aside>
+
+          {/* -------------------------------------------------- composer */}
+          <div style={{ ...ui.card, display: "grid", gap: 14 }}>
+          <div>
+            <label style={ui.label}>{tUi(lang, "ui_ticket_how")}</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {(
+                [
+                  { value: "PHONE", label: tUi(lang, "ui_channel_phone_call") },
+                  // A desk gets texts read out as often as calls, and logging
+                  // one as "phone call" makes the channel report wrong.
+                  { value: "SMS", label: tUi(lang, "ui_ch_sms") },
+                  { value: "WALK_IN", label: tUi(lang, "ui_channel_walk_in") },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setChannel(opt.value)}
+                  style={{
+                    ...ui.buttonGhost,
+                    borderColor: channel === opt.value ? colors.accent : colors.border,
+                    color: channel === opt.value ? colors.textPrimary : colors.textSecondary,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stated up front, not discovered later. A ticket with no channel
+              behind it cannot be answered by the desk, and an agent needs to
+              know that while deciding what to promise the customer. */}
+          {/* Was shown on both channels with one wording about calling back.
+              A walk-in is not answered by phoning them, and a customer at the
+              counter may have left no number at all. */}
+          <div style={{ ...ui.warn, fontSize: 12 }}>
+            {tUi(
+              lang,
+              channel === "WALK_IN" ? "ui_ticket_no_reply_walk_in" : "ui_ticket_no_reply_warning",
+            )}
           </div>
 
           <div>
@@ -513,39 +761,52 @@ export default function NewTicketPage() {
             t={(k, params) => tUi(lang, k, params)}
           />
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 180px" }}>
-              <label style={ui.label}>{tUi(lang, "ui_priority")}</label>
+          {/* Apply a macro — Zendesk's own control, and the reason to have it
+              here rather than only in the reply composer: the commonest thing
+              an agent types into a call log is the same sentence they typed
+              yesterday. It FILLS the box rather than sending anything, so it
+              is still editable before the ticket exists. */}
+          {macros.length > 0 ? (
+            <div>
+              <label style={ui.label}>{tUi(lang, "ui_macro_apply")}</label>
               <select
+                data-apply-macro
+                value=""
+                aria-label={tUi(lang, "ui_macro_apply")}
+                onChange={(e) => {
+                  const m = macros.find((x) => x.id === e.target.value);
+                  if (!m) return;
+                  // Rendered, not pasted. The raw body carries
+                  // {{customer.name}} and friends, and applying it verbatim
+                  // leaves those in the ticket description for a human to
+                  // notice later — or not. renderMacro is the SAME function a
+                  // real send uses, so what lands here is what would be sent.
+                  const body =
+                    renderMacro(
+                      m.bodies,
+                      ticketLang || "en",
+                      {
+                        customerName: picked?.name || newName || tUi(lang, "ui_no_name"),
+                        ticketNumber: 0,
+                        agentName: me?.user.name ?? "",
+                        organizationName: me?.organization.name ?? "",
+                      },
+                      ticketLang || "en",
+                    )?.text ?? "";
+                  setDescription(description ? `${description}\n\n${body}` : body);
+                  if (!subject.trim()) setSubject(m.title);
+                }}
                 style={ui.input}
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                aria-label={tUi(lang, "ui_priority")}
               >
-                {["LOW", "NORMAL", "HIGH", "URGENT"].map((p) => (
-                  <option key={p} value={p}>
-                    {p}
+                <option value="">{tUi(lang, "ui_macro_apply")}…</option>
+                {macros.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
                   </option>
                 ))}
               </select>
             </div>
-            <div style={{ flex: "1 1 180px" }}>
-              <label style={ui.label}>{tUi(lang, "ui_customer_language")}</label>
-              <select
-                style={ui.input}
-                value={ticketLang}
-                onChange={(e) => setTicketLang(e.target.value)}
-                aria-label={tUi(lang, "ui_customer_language")}
-              >
-                <option value="">—</option>
-                {LANGS.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ) : null}
 
           {/* The button says what is still missing rather than being an
               inert grey rectangle. A disabled control with no reason attached
@@ -571,6 +832,51 @@ export default function NewTicketPage() {
               {tUi(lang, "ui_macro_cancel")}
             </button>
           </div>
+          </div>
+
+          {/* ----------------------------------------------- suggestions */}
+          {/* Zendesk puts "similar resolved tickets" here. The equivalent
+              worth having is the knowledge base: if an article already
+              answers this, the agent reads it while the customer is still on
+              the line rather than researching after hanging up. */}
+          <aside style={{ ...ui.card, display: "grid", gap: 10 }} data-new-suggestions>
+            <CardHead
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+                </svg>
+              }
+              title={tUi(lang, "ui_new_suggested")}
+              blurb={tUi(lang, "ui_new_suggested_blurb")}
+            />
+            {suggested.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 12.5, color: colors.textMuted, lineHeight: 1.5 }}>
+                {tUi(lang, "ui_new_suggested_none")}
+              </p>
+            ) : (
+              <div style={{ display: "grid", gap: 2 }}>
+                {suggested.map((a) => (
+                  <a
+                    key={a.id}
+                    data-suggested-article={a.id}
+                    href="/knowledge"
+                    style={{
+                      display: "block",
+                      padding: "8px 0",
+                      borderTop: `1px solid ${colors.border}`,
+                      color: colors.textBody,
+                      textDecoration: "none",
+                      fontSize: 13.5,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {a.title}
+                  </a>
+                ))}
+              </div>
+            )}
+          </aside>
         </div>
       </div>
     </ConsoleShell>
