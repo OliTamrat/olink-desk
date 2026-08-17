@@ -73,6 +73,17 @@ model Organization {
   ticketRetentionDays Int?
   auditRetentionDays  Int?
 
+  /// Whether the desk may answer a customer's question itself, with no agent
+  /// in the loop.
+  ///
+  /// Default FALSE and it stays false until an administrator turns it on,
+  /// for the same reason retention windows do: this changes what a customer
+  /// receives in the organisation's name, and nothing about a deploy should
+  /// start doing that on a tenant's behalf. A desk that has written no
+  /// knowledge articles yet would answer nothing anyway — but the decision
+  /// is theirs to make explicitly rather than to discover.
+  autoAnswerEnabled Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -339,6 +350,14 @@ model TicketMessage {
   direction MessageDirection
   channel   Channel
   body      String
+
+  /// Set on an OUTBOUND row the desk sent by itself, with no agent involved.
+  ///
+  /// This is the only way deflection can be counted. Without it "how many
+  /// tickets did we answer without a person" is unanswerable, and a
+  /// deflection rate that cannot be computed is a claim rather than a
+  /// number — which is exactly what this feature must not be.
+  autoAnswered Boolean @default(false)
 
   /// Set when the body was emptied by a retention pass or an erasure. The row
   /// stays so the shape of the conversation stays true — who spoke, on which

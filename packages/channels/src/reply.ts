@@ -17,6 +17,9 @@ import { awaitingRating, parseRating } from "@olink-desk/csat";
 import { detectLanguage, t } from "@olink-desk/i18n";
 import { cleanContact, findOrCreateContact, openTicket } from "@olink-desk/tickets";
 
+import { publishedArticleLoader, tryAutoAnswer } from "./auto-answer";
+import type { Doc } from "@olink-desk/retrieval";
+
 export interface ChannelReplyInput {
   db: PrismaClient;
   organization: Organization;
@@ -56,6 +59,19 @@ export interface ChannelReplyInput {
    * outage must never 500 the webhook (the channel would retry the update).
    */
   send: (body: string, ticket?: { number: number; subject: string | null }) => Promise<boolean>;
+  /**
+   * Published knowledge articles for this tenant in one language.
+   *
+   * OPTIONAL, and its absence is the off switch: an adapter that does not
+   * supply it gets exactly the behaviour this spine had before deflection
+   * existed. That is deliberate — a new channel is safe by default and opts
+   * IN to answering, rather than shipping able to talk to customers because
+   * somebody forgot a flag.
+   *
+   * Published only. A draft article is one nobody has approved, and this is
+   * the one path where its words would reach a customer unread.
+   */
+  loadArticles?: (language: string) => Promise<Doc[]>;
 }
 
 export interface ChannelReplyResult {
@@ -64,6 +80,8 @@ export interface ChannelReplyResult {
   ticketId: string;
   ticketNumber: number;
   ticketCreated: boolean;
+  /** True when the desk answered this message itself, with no agent. */
+  autoAnswered?: boolean;
   /** Present only when the inbound message was read as a satisfaction score
    *  rather than a new message — the caller can then skip its own ack. */
   csatScore?: number;
@@ -81,7 +99,7 @@ const OPEN_STATUSES: TicketStatus[] = [
 export async function channelReply(
   input: ChannelReplyInput,
 ): Promise<ChannelReplyResult | { duplicate: true }> {
-  const { db, organization, channel, externalUserId, text, send } = input;
+  const { db, organization, channel, externalUserId, text, send, loadArticles } = input;
 
   // Idempotency first: a redelivered update must do nothing at all — no
   // second message, no second ticket, no second ack.
@@ -311,7 +329,61 @@ export async function channelReply(
     },
   });
 
-  if (ticketCreated) {
+  // ---- The deflection loop ----
+  //
+  // Attempted on EVERY inbound message, not only the first, because a
+  // follow-up question is still a question — and answering only the opening
+  // message would make the desk look like it stopped listening.
+  //
+  // Every gate inside can only refuse. If any does, `answer` stays null and
+  // the code below is exactly what it was before this existed.
+  const answer = await tryAutoAnswer(organization, text, conversation.language, {
+    // Defaulted rather than required. `loadArticles` stays overridable so a
+    // test can supply a fixture, but no adapter has to remember to pass it —
+    // forgetting would mean that channel silently never answers.
+    loadArticles: loadArticles ?? publishedArticleLoader(db, organization.id),
+  });
+
+  if (answer?.answered) {
+    let sent = false;
+    try {
+      sent = await send(answer.text, { number: ticket.number, subject: ticket.subject });
+    } catch {
+      sent = false;
+    }
+    if (sent) {
+      await db.ticketMessage.create({
+        data: {
+          organizationId: organization.id,
+          ticketId: ticket.id,
+          direction: "OUTBOUND",
+          channel,
+          body: answer.text,
+          // The flag that makes deflection countable. Without it, an answer
+          // the machine sent is indistinguishable from one an agent typed,
+          // and the whole point of the feature becomes unmeasurable.
+          autoAnswered: true,
+        },
+      });
+      // The event, never the words — chat content stays out of logs. The
+      // article ids are here because "which article deflected this" is the
+      // question that tells a desk which content is earning its keep.
+      await db.auditLog.create({
+        data: {
+          organizationId: organization.id,
+          action: "ticket.auto_answered",
+          entityType: "ticket",
+          entityId: String(ticket.id),
+          metadata: { channel, articleIds: answer.articleIds },
+        },
+      });
+    }
+  }
+
+  // The acknowledgement is suppressed when an answer went out: telling a
+  // customer "we have opened ticket #42 and will reply here" immediately
+  // after replying is the tell that nobody joined the two halves up.
+  if (ticketCreated && !answer?.answered) {
     const ack = t(conversation.language, "ticket_opened", {
       org: organization.name,
       number: ticket.number,
@@ -349,6 +421,7 @@ export async function channelReply(
     ticketId: ticket.id,
     ticketNumber: ticket.number,
     ticketCreated,
+    autoAnswered: answer?.answered === true,
   };
 }
 
