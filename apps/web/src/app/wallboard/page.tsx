@@ -4,7 +4,7 @@
 // from the stored SLA due dates on every poll (10s), so what the room sees
 // is never stale.
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import {
   Badge,
@@ -15,7 +15,9 @@ import {
   useConsoleLanguage,
   useMe,
 } from "../../lib/console-ui";
+import { CardHead, EmptyState, Figure, IconTile, stroke } from "../../lib/card";
 import { duration } from "../../lib/tickets";
+import { radius } from "../../lib/theme";
 
 interface QueueRow {
   queueId: string | null;
@@ -75,36 +77,50 @@ export default function WallboardPage() {
     display: "block",
   } as const;
 
+  // The same tile proportions as the dashboard: an icon tile, then the number,
+  // then a small label UNDER it. The label used to sit above a centred figure,
+  // which reads as a caption looking for its picture — and made four tiles in a
+  // row look like four unrelated boxes rather than one instrument panel.
   const big = (
     label: string,
     value: number | string | null,
     color: string,
     href: string,
+    icon: ReactNode,
   ) => (
     <Link
       href={href}
       style={{
         ...ui.card,
-        flex: 1,
-        minWidth: 150,
-        textAlign: "center",
+        padding: 18,
         textDecoration: "none",
         display: "block",
       }}
     >
-      <div style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 10 }}>
-        {label}
-      </div>
+      <IconTile tint={color}>{icon}</IconTile>
       <div
         style={{
-          fontSize: 52,
+          fontSize: 46,
           fontWeight: 800,
           lineHeight: 1,
+          marginTop: 14,
           color,
           fontVariantNumeric: "tabular-nums",
         }}
       >
         {value ?? "—"}
+      </div>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: ".07em",
+          textTransform: "uppercase",
+          color: colors.textSecondary,
+          marginTop: 8,
+        }}
+      >
+        {label}
       </div>
     </Link>
   );
@@ -120,26 +136,115 @@ export default function WallboardPage() {
       ) : !data ? (
         <p style={{ color: colors.textSecondary }}>{tUi(lang, "ui_loading")}</p>
       ) : (
-        <div style={{ display: "grid", gap: 16 }}>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {big(tUi(lang, "ui_wb_open"), data.totals.open, colors.accent, "/inbox?view=open")}
-            {big(tUi(lang, "ui_wb_new_today"), data.totals.newToday, colors.textPrimary, "/inbox?view=all&status=NEW")}
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            // Sections size to their CONTENT. The previous version stretched
+            // the queue row to `1fr` so the board would fill a television —
+            // which on a quiet desk inflated a one-line panel into a 300px
+            // void, and made the screen look emptier than leaving it short
+            // ever did. A wallboard earns its size with type scale and
+            // spacing, not by pulling empty boxes taller.
+            alignContent: "start",
+          }}
+        >
+          {/* The headline, when there is one. Four zeros in a row is not a
+              status, it is the absence of one — and on a black screen it
+              reads as a broken panel rather than as a calm desk. This says
+              the good news in words, once, above the numbers. */}
+          {data.totals.breached === 0 && data.totals.atRisk === 0 ? (
+            <div
+              data-wallboard-calm
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "14px 18px",
+                borderRadius: radius.lg,
+                background: colors.successBg,
+                border: `1px solid ${colors.successFaint}`,
+                color: colors.success,
+                fontSize: 17,
+                fontWeight: 600,
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              {data.totals.open === 0
+                ? tUi(lang, "ui_wb_all_clear")
+                : tUi(lang, "ui_wb_on_time", { n: data.totals.open })}
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {big(
+              tUi(lang, "ui_wb_open"),
+              data.totals.open,
+              colors.accent,
+              "/inbox?view=open",
+              <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+              </svg>,
+            )}
+            {big(
+              tUi(lang, "ui_wb_new_today"),
+              data.totals.newToday,
+              colors.textPrimary,
+              "/inbox?view=all&status=NEW",
+              <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                <path d="M12 5v14M5 12h14" />
+              </svg>,
+            )}
             {big(
               tUi(lang, "ui_wb_at_risk"),
               data.totals.atRisk,
               data.totals.atRisk > 0 ? colors.warn : colors.success,
               "/inbox?view=open&sla=at_risk",
+              <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>,
             )}
             {big(
               tUi(lang, "ui_wb_breached"),
               data.totals.breached,
               data.totals.breached > 0 ? colors.danger : colors.success,
               "/inbox?view=open&sla=breached",
+              <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+                <path d="M12 9v4M12 17h.01" />
+              </svg>,
             )}
           </div>
 
           {/* ------------------------------------------------- queues */}
-          <section style={{ ...ui.card, overflowX: "auto" }}>
+          <section style={{ ...ui.card, overflowX: "auto", padding: 0 }}>
+            {data.perQueue.filter((q) => q.queueId !== null || q.open > 0).length === 0 ? (
+              // A header row with nothing beneath it is the shape of a broken
+              // table — and one muted line at the top-left of a tall box is the
+              // shape of a panel that failed to load. Centred, with a glyph and
+              // room around it, the same emptiness reads as a choice.
+              <EmptyState
+                data-wallboard-noqueues="1"
+                icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                    <path d="M3 6h18M3 12h18M3 18h18" />
+                  </svg>
+                }
+                title={tUi(lang, "ui_wb_no_queues")}
+                hint={tUi(lang, "ui_wb_no_queues_hint")}
+              />
+            ) : (
+              <div style={{ padding: 8 }}>
+
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
               <thead>
                 <tr>
@@ -219,55 +324,79 @@ export default function WallboardPage() {
                   ))}
               </tbody>
             </table>
+              </div>
+            )}
           </section>
 
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+          {/* `stretch`, not `flex-start`. Two cards of different heights
+              sitting side by side is the "cards are not aligned" the founder
+              pointed at — and it is invisible to every check that reads their
+              contents rather than their boxes. */}
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "stretch" }}>
             {/* ------------------------------------------- today medians */}
-            <section style={{ ...ui.card, flex: "1 1 240px" }}>
-              <h2 style={{ ...ui.h2, marginBottom: 14 }}>
-                {tUi(lang, "ui_kpi_new_today")}
-              </h2>
-              <div style={{ display: "grid", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                    {tUi(lang, "ui_wb_median_fr")}
-                  </div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: colors.textPrimary }}>
-                    {data.today.firstResponseMedianMinutes !== null
+            <section style={{ ...ui.card, flex: "1 1 260px" }}>
+              <CardHead
+                icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                }
+                title={tUi(lang, "ui_wb_today")}
+                blurb={tUi(lang, "ui_wb_today_blurb")}
+              />
+              {/* Three stacked em-dashes is what a broken panel looks like. A
+                  quiet desk has produced no medians yet, which is a different
+                  fact and deserves the words for it — `Figure` is where that
+                  distinction lives so no screen has to remember it. */}
+              <div style={{ display: "grid", gap: 14 }}>
+                <Figure
+                  label={tUi(lang, "ui_wb_median_fr")}
+                  empty={tUi(lang, "ui_wb_nothing_yet")}
+                  value={
+                    data.today.firstResponseMedianMinutes !== null
                       ? duration(data.today.firstResponseMedianMinutes * 60_000)
-                      : "—"}
-                  </div>
-                </div>
+                      : null
+                  }
+                />
                 {/* Satisfaction always carries its denominator: "4.0" from
                     one reply and from ninety are different facts. */}
-                <div>
-                  <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                    {tUi(lang, "ui_wb_csat")}
-                  </div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: colors.textPrimary }}>
-                    {data.today.csatAverage !== null ? `${data.today.csatAverage}/5` : "—"}
-                  </div>
-                  <div style={{ fontSize: 12, color: colors.textMuted }}>
-                    {tUi(lang, "ui_csat_responses", { n: data.today.csatResponses ?? 0 })}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                    {tUi(lang, "ui_wb_median_res")}
-                  </div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: colors.textPrimary }}>
-                    {data.today.resolveMedianMinutes !== null
+                <Figure
+                  label={tUi(lang, "ui_wb_csat")}
+                  empty={tUi(lang, "ui_wb_nothing_yet")}
+                  value={data.today.csatAverage !== null ? `${data.today.csatAverage}/5` : null}
+                  note={
+                    data.today.csatAverage !== null
+                      ? tUi(lang, "ui_csat_responses", { n: data.today.csatResponses ?? 0 })
+                      : undefined
+                  }
+                />
+                <Figure
+                  label={tUi(lang, "ui_wb_median_res")}
+                  empty={tUi(lang, "ui_wb_nothing_yet")}
+                  value={
+                    data.today.resolveMedianMinutes !== null
                       ? duration(data.today.resolveMedianMinutes * 60_000)
-                      : "—"}
-                  </div>
-                </div>
+                      : null
+                  }
+                />
               </div>
             </section>
 
             {/* --------------------------------------------------- agents */}
             <section style={{ ...ui.card, flex: "2 1 320px" }}>
-              <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_wb_agents")}</h2>
-              <div style={{ display: "grid", gap: 8 }}>
+              <CardHead
+                icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.9" />
+                  </svg>
+                }
+                title={tUi(lang, "ui_wb_agents")}
+                blurb={tUi(lang, "ui_wb_agents_blurb")}
+              />
+              <div style={{ display: "grid", gap: 2 }}>
                 {data.agents.map((a) => (
                   // Drills to that person's open work — the question a
                   // supervisor is asking when they read this list.
@@ -280,6 +409,8 @@ export default function WallboardPage() {
                       gap: 10,
                       textDecoration: "none",
                       color: "inherit",
+                      padding: "7px 0",
+                      borderTop: `1px solid ${colors.border}`,
                     }}
                   >
                     <span

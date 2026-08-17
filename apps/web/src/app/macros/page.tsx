@@ -10,10 +10,12 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { Language } from "@olink-desk/i18n";
 
+import { cardColumn, cardFooter, EmptyState, IconTile, stroke } from "../../lib/card";
 import { font } from "../../lib/theme";
 import { priorityKey, statusKey } from "../../lib/tickets";
 import {
   cleanActions,
+  coverage,
   describeActions,
   PRIORITIES,
   renderMacro,
@@ -106,6 +108,9 @@ export default function MacrosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<Macro | null>(null);
   const [bodyLang, setBodyLang] = useState<string>("en");
@@ -217,6 +222,24 @@ export default function MacrosPage() {
   const written = editing
     ? LANGS.filter((l) => (editing.bodies[l.code] ?? "").trim()).length
     : 0;
+
+  // Filtering is client-side on purpose: the whole macro list is already in
+  // memory (a workspace has tens of these, not thousands), so a round trip
+  // per keystroke would make the control feel worse than no control.
+  const categories = [...new Set(macros.map((m) => m.category).filter(Boolean))].sort() as string[];
+  const needle = query.trim().toLowerCase();
+  const shown = macros.filter((m) => {
+    if (category !== null && m.category !== category) return false;
+    if (!needle) return true;
+    // Bodies too, not only titles. An agent looking for "the one that mentions
+    // the refund window" is searching the text, and a title-only search would
+    // report nothing while the macro sits two cards away.
+    return (
+      m.title.toLowerCase().includes(needle) ||
+      (m.category ?? "").toLowerCase().includes(needle) ||
+      Object.values(m.bodies).some((b) => (b ?? "").toLowerCase().includes(needle))
+    );
+  });
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="macros">
@@ -463,11 +486,92 @@ export default function MacrosPage() {
           </div>
         )}
 
+        {/* A desk with sixty macros cannot use a page that is only a grid of
+            them, and a desk with three was looking at three cards and six
+            hundred pixels of nothing. Search and the category pills come from
+            the DATA — a workspace that never categorised anything sees no
+            pills rather than an empty control. */}
+        {!loading && macros.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              <input
+                data-macro-search
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={tUi(lang, "ui_macro_search")}
+                style={{ ...ui.input, width: 220, padding: "8px 10px", fontSize: 13.5 }}
+              />
+              {categories.length > 0 &&
+                [null, ...categories].map((cat) => {
+                  const on = category === cat;
+                  return (
+                    <button
+                      key={cat ?? "__all"}
+                      data-macro-filter={cat ?? "all"}
+                      onClick={() => setCategory(cat)}
+                      style={{
+                        ...control,
+                        cursor: "pointer",
+                        borderColor: on ? colors.accent : colors.border,
+                        color: on ? colors.textPrimary : colors.textSecondary,
+                        background: on ? colors.surfaceHover : "transparent",
+                      }}
+                    >
+                      {cat ?? tUi(lang, "ui_macro_filter_all")}
+                    </button>
+                  );
+                })}
+            </div>
+            {/* Two numbers, and the second is the one being managed: how many
+                of these a customer can actually receive in their own language. */}
+            <span data-macro-summary style={{ fontSize: 12.5, color: colors.textMuted }}>
+              {/* A count noun needs a singular. "1 macros" is what a filter
+                  that matched once produced, and it is the kind of thing that
+                  gets screenshotted. Every language carries its own singular
+                  rather than interpolating into a translated plural. */}
+              {tUi(lang, shown.length === 1 ? "ui_macro_summary_one" : "ui_macro_summary", {
+                n: shown.length,
+                ready: shown.filter((m) => coverage(m.bodies).complete).length,
+              })}
+            </span>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ ...ui.card, ...layout.centred, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
         ) : macros.length === 0 ? (
-          <div style={{ ...ui.card, ...layout.centred, color: colors.textSecondary }}>
-            {tUi(lang, "ui_macro_none")}
+          <div style={ui.card}>
+            <EmptyState
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
+                </svg>
+              }
+              title={tUi(lang, "ui_macro_none")}
+              hint={tUi(lang, "ui_macros_subtitle")}
+            />
+          </div>
+        ) : shown.length === 0 ? (
+          <div style={ui.card}>
+            <EmptyState
+              data-macro-nomatch="1"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              }
+              title={tUi(lang, "ui_macro_no_match")}
+              hint={tUi(lang, "ui_macro_no_match_hint")}
+            />
           </div>
         ) : (
           <div
@@ -479,153 +583,214 @@ export default function MacrosPage() {
               // than by stretching one card over it; it falls to one column on
               // a narrow window without a media query.
               gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-              alignItems: "start",
+              // Stretch, not start. `start` sizes each card to its own content,
+              // so a two-line title made one card taller than the two beside it
+              // and the row came out ragged. Stretch plus a footer pinned with
+              // `marginTop: auto` is what makes a grid of cards read as a grid.
+              alignItems: "stretch",
             }}
           >
-            {macros.map((m) => {
+            {shown.map((m) => {
               const langsWritten = LANGS.filter((l) => (m.bodies[l.code] ?? "").trim());
+              const c = coverage(m.bodies);
+              const does = describeActions(
+                cleanActions({
+                  setStatus: m.setStatus,
+                  setPriority: m.setPriority,
+                  addTags: m.addTags,
+                }),
+              );
               return (
                 <div
                   key={m.id}
                   style={{
                     ...ui.card,
+                    ...cardColumn,
                     padding: 16,
-                    opacity: m.isActive ? 1 : 0.6,
-                    display: "grid",
                     gap: 10,
+                    opacity: m.isActive ? 1 : 0.62,
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 10,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
+                  {/* Icon, title, and the one line of metadata — the same head
+                      every other card in the console wears. */}
+                  <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+                    <IconTile size={34} tint={m.isActive ? colors.accent : colors.textMuted}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
+                      </svg>
+                    </IconTile>
+                    <div style={{ minWidth: 0, flex: 1 }}>
                       <div
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          flexWrap: "wrap",
+                          color: colors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: 700,
+                          lineHeight: 1.35,
                         }}
                       >
-                        <strong style={{ color: colors.textPrimary, fontSize: 15 }}>
-                          {m.title}
-                        </strong>
-                        {m.category && <Badge tone="muted">{m.category}</Badge>}
+                        {m.title}
+                      </div>
+                      {/* Category and usage were two stacked scraps — a badge
+                          on the title line and an orphan "Never used" under
+                          it. One muted line separated by middots reads as a
+                          caption instead of as debris. */}
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: colors.textMuted,
+                          marginTop: 3,
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
+                        {m.category ? <span>{m.category}</span> : null}
+                        {m.category ? <span aria-hidden>·</span> : null}
+                        <span>
+                          {m.usageCount > 0
+                            ? tUi(lang, "ui_macro_used", { n: m.usageCount })
+                            : tUi(lang, "ui_macro_never_used")}
+                        </span>
                         {!m.isActive && (
                           <Badge tone="warn">{tUi(lang, "ui_macro_retired")}</Badge>
                         )}
                       </div>
-                      <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
-                        {m.usageCount > 0
-                          ? tUi(lang, "ui_macro_used", { n: m.usageCount })
-                          : tUi(lang, "ui_macro_never_used")}
-                      </div>
-                      {/* What it DOES. A list of titles tells an agent
-                          nothing about which macro also resolves the ticket,
-                          and finding that out by sending one is expensive. */}
-                      {(() => {
-                        const does = describeActions(
-                          cleanActions({
-                            setStatus: m.setStatus,
-                            setPriority: m.setPriority,
-                            addTags: m.addTags,
-                          }),
-                        );
-                        if (does.length === 0) return null;
-                        return (
-                          <div
-                            data-macro-does={m.id}
-                            style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}
-                          >
-                            {does.map((d) => (
-                              <span
-                                key={d.key}
-                                style={{
-                                  fontSize: 11.5,
-                                  padding: "2px 8px",
-                                  borderRadius: 999,
-                                  background: colors.surfaceHover,
-                                  color: colors.textSecondary,
-                                }}
-                              >
-                                {/* The value is an ENUM, so it has to be
-                                    translated before it is interpolated —
-                                    otherwise an Amharic reader gets
-                                    "RESOLVED" in the middle of an Amharic
-                                    sentence. Caught by looking at the page,
-                                    not by any test of the model. */}
-                                {tUi(lang, d.key, {
-                                  ...d.params,
-                                  ...(typeof d.params.value === "string"
-                                    ? {
-                                        value: tUi(
-                                          lang,
-                                          d.key === "ui_macro_does_priority"
-                                            ? priorityKey(d.params.value)
-                                            : statusKey(d.params.value),
-                                        ),
-                                      }
-                                    : {}),
-                                })}
-                              </span>
-                            ))}
-                          </div>
-                        );
-                      })()}
                     </div>
-                    {canWrite && (
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        <button
-                          style={{ ...control, cursor: "pointer" }}
-                          onClick={() => {
-                            setEditing(m);
-                            setBodyLang(langsWritten[0]?.code ?? "en");
-                          }}
-                        >
-                          {tUi(lang, "ui_macro_edit")}
-                        </button>
-                        <button
-                          style={{ ...control, cursor: "pointer" }}
-                          onClick={() => void setActive(m, !m.isActive)}
-                        >
-                          {tUi(lang, m.isActive ? "ui_macro_retire" : "ui_macro_restore")}
-                        </button>
-                        <button
-                          style={{ ...control, cursor: "pointer", color: colors.danger }}
-                          onClick={() => void remove(m)}
-                        >
-                          {tUi(lang, "ui_macro_delete")}
-                        </button>
-                      </div>
-                    )}
                   </div>
-                  {/* Coverage at a glance across the whole list: which
-                      languages this macro can actually answer in. */}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                    {LANGS.map((l) => {
-                      const filled = (m.bodies[l.code] ?? "").trim().length > 0;
-                      return (
+
+                  {/* What it DOES. A list of titles tells an agent nothing
+                      about which macro also resolves the ticket, and finding
+                      that out by sending one is expensive. */}
+                  {does.length > 0 ? (
+                    <div
+                      data-macro-does={m.id}
+                      style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
+                    >
+                      {does.map((d) => (
                         <span
-                          key={l.code}
+                          key={d.key}
                           style={{
-                            fontSize: 11,
-                            padding: "2px 7px",
+                            fontSize: 11.5,
+                            padding: "3px 9px",
                             borderRadius: 999,
-                            border: `1px solid ${filled ? colors.successFaint : colors.border}`,
-                            color: filled ? colors.success : colors.textMuted,
+                            background: colors.surfaceHover,
+                            color: colors.textSecondary,
                           }}
                         >
-                          {l.name}
+                          {/* The value is an ENUM, so it has to be translated
+                              before it is interpolated — otherwise an Amharic
+                              reader gets "RESOLVED" in the middle of an
+                              Amharic sentence. Caught by looking at the page,
+                              not by any test of the model. */}
+                          {tUi(lang, d.key, {
+                            ...d.params,
+                            ...(typeof d.params.value === "string"
+                              ? {
+                                  value: tUi(
+                                    lang,
+                                    d.key === "ui_macro_does_priority"
+                                      ? priorityKey(d.params.value)
+                                      : statusKey(d.params.value),
+                                  ),
+                                }
+                              : {}),
+                          })}
                         </span>
-                      );
-                    })}
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {/* Coverage as a SENTENCE, not six coloured pills. The pills
+                      were the loudest thing on every card and the least
+                      important information on it — and the reader still had to
+                      count them to learn anything. The question is "is this
+                      finished, and if not what is missing", which names the gap
+                      where it is asked. */}
+                  <div
+                    data-macro-coverage={m.id}
+                    style={{
+                      fontSize: 12.5,
+                      color: c.complete ? colors.textMuted : colors.warn,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: c.complete ? colors.success : colors.warn,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {c.empty
+                      ? tUi(lang, "ui_macro_cov_empty")
+                      : c.complete
+                        ? tUi(lang, "ui_macro_cov_all", { n: c.total })
+                        : tUi(lang, "ui_macro_cov_missing", {
+                            n: c.written,
+                            total: c.total,
+                            list: c.missing
+                              .map((code) => LANGS.find((l) => l.code === code)?.name ?? code)
+                              .join(", "),
+                          })}
                   </div>
+
+                  {canWrite && (
+                    // Pinned to the bottom of the card, so a longer title on
+                    // one card cannot push its buttons out of line with its
+                    // neighbour's. That misalignment was the whole reason a
+                    // row of three cards looked like three different designs.
+                    <div style={cardFooter}>
+                      <button
+                        data-macro-edit={m.id}
+                        style={{
+                          ...control,
+                          cursor: "pointer",
+                          borderColor: colors.borderStrong,
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                        onClick={() => {
+                          setEditing(m);
+                          setBodyLang(langsWritten[0]?.code ?? "en");
+                        }}
+                      >
+                        {tUi(lang, "ui_macro_edit")}
+                      </button>
+                      <button
+                        style={{ ...control, cursor: "pointer" }}
+                        onClick={() => void setActive(m, !m.isActive)}
+                      >
+                        {tUi(lang, m.isActive ? "ui_macro_retire" : "ui_macro_restore")}
+                      </button>
+                      {/* Not red, and not bordered like the other two. A
+                          destructive action rendered at the same weight as the
+                          safe one beside it is a design that treats "edit
+                          this" and "destroy this" as equivalent choices. It
+                          still confirms; the colour was only drawing the eye
+                          toward the one thing nobody should be drawn toward.
+                          Pushed to the far end for the same reason. */}
+                      <button
+                        data-macro-delete={m.id}
+                        style={{
+                          ...control,
+                          cursor: "pointer",
+                          border: "none",
+                          background: "transparent",
+                          color: colors.textMuted,
+                          marginInlineStart: "auto",
+                        }}
+                        onClick={() => void remove(m)}
+                      >
+                        {tUi(lang, "ui_macro_delete")}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
