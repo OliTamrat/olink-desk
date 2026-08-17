@@ -21,3 +21,14 @@ export {
   type AuthenticateResult,
   type RegisterResult,
 } from "./service";
+export {
+  clientKey,
+  consume,
+  limitFor,
+  LIMITS,
+  MemoryBuckets,
+  type Bucket,
+  type Decision,
+  type Limit,
+  type LimitName,
+} from "./rate-limit";
