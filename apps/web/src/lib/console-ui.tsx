@@ -12,7 +12,10 @@ import {
 } from "@olink-desk/i18n";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+
+import { CHANNEL_NAV, channelHref } from "./channel-nav";
 import {
+  Fragment,
   useCallback,
   useEffect,
   useState,
@@ -1019,7 +1022,7 @@ export function ConsoleShell({
   children: ReactNode;
 }) {
   const router = useRouter();
-  usePathname(); // keeps the shell client-routed
+  const pathname = usePathname(); // keeps the shell client-routed
   const [contextOpen, setContextOpen] = useContextPanel();
   const [railOpen, setRailOpen] = useRail();
   const [viewsOpen, setViewsOpen] = useViewsRail();
@@ -1028,6 +1031,12 @@ export function ConsoleShell({
     await fetch("/api/auth/logout", { method: "POST" });
     router.replace("/login");
   }
+
+  // Which channel page is open, read from the URL rather than threaded
+  // through every screen as a prop.
+  const activeChannel = pathname?.startsWith("/channels/")
+    ? pathname.split("/")[2]
+    : null;
 
   const nav: Array<{
     key: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
@@ -1423,6 +1432,7 @@ export function ConsoleShell({
             }}
           >
             {nav.map((item) => (
+              <Fragment key={item.key}>
               <Link
                 key={item.key}
                 href={item.href}
@@ -1455,6 +1465,47 @@ export function ConsoleShell({
                     full-width labels inside a 56px rail for one frame. */}
                 <span style={{ display: "var(--rail-label)" }}>{item.label}</span>
               </Link>
+              {/* Channels open into a list of channels — the Bank Assist
+                  shape. Each is a destination, because connecting WhatsApp
+                  and connecting SMS are separate jobs done on separate days,
+                  and a URL per channel is one that can be sent to whoever
+                  holds that provider's account.
+
+                  Shown only when Channels is the section in view: nine extra
+                  rows permanently in a nine-row rail is the crowding this
+                  console has been removing, not adding. Hidden entirely when
+                  the rail is folded — indented sub-items inside 56px are
+                  unreadable and unreachable. */}
+              {item.key === "channels" && active === "channels" ? (
+                <div style={{ display: "var(--rail-sub)", gap: 1, marginTop: 2 }} data-channel-subnav>
+                  {CHANNEL_NAV.map((c) => {
+                    const on = activeChannel === c.key;
+                    return (
+                      <Link
+                        key={c.key}
+                        href={channelHref(c.key)}
+                        data-subnav={c.key}
+                        style={{
+                          display: "block",
+                          padding: "6px 10px 6px 40px",
+                          borderRadius: radius.sm,
+                          textDecoration: "none",
+                          fontSize: 13,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          color: on ? colors.textPrimary : colors.textMuted,
+                          background: on ? colors.surfaceHover : "transparent",
+                          fontWeight: on ? 600 : 400,
+                        }}
+                      >
+                        {tUi(lang, c.labelKey)}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+              </Fragment>
             ))}
           </nav>
           {/* ------------------------------------------- the rail's footer
