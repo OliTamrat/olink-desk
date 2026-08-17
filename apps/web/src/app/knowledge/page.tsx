@@ -7,6 +7,10 @@
 // article visible at a glance rather than at the moment it fails to match.
 import { useCallback, useEffect, useState } from "react";
 
+import { coverage } from "@olink-desk/macros";
+
+import { cardColumn, cardFooter, EmptyState, IconTile, stroke } from "../../lib/card";
+
 import {
   Badge,
   colors,
@@ -58,6 +62,8 @@ const control = {
 
 export default function KnowledgePage() {
   const [lang, setLang] = useConsoleLanguage();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"all" | "published" | "draft">("all");
   const me = useMe();
   const { isMobile } = useViewport();
   const [articles, setArticles] = useState<Article[]>([]);
@@ -123,6 +129,31 @@ export default function KnowledgePage() {
     await fetch(`/api/kb?id=${encodeURIComponent(a.id)}`, { method: "DELETE" });
     await load();
   }
+
+  // An article counts as written in a language only when BOTH its title and
+  // its body exist there — a body with no title is unreachable, and a title
+  // with no body answers nothing. Collapsed into the one-map shape
+  // `coverage()` takes, so the macros list and this page cannot drift on what
+  // "written in six languages" means.
+  const writtenMap = (a: Article): Record<string, string> =>
+    Object.fromEntries(
+      LANGS.filter((l) => (a.titles[l.code] ?? "").trim() && (a.bodies[l.code] ?? "").trim())
+        .map((l) => [l.code, a.bodies[l.code] ?? ""]),
+    );
+
+  const needle = query.trim().toLowerCase();
+  const shown = articles.filter((a) => {
+    if (status === "published" && !a.isPublished) return false;
+    if (status === "draft" && a.isPublished) return false;
+    if (!needle) return true;
+    // Titles AND bodies, in every language — somebody searching for an
+    // article they wrote in Amharic must find it while the console is in
+    // English.
+    return (
+      Object.values(a.titles).some((t) => (t ?? "").toLowerCase().includes(needle)) ||
+      Object.values(a.bodies).some((b) => (b ?? "").toLowerCase().includes(needle))
+    );
+  });
 
   return (
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="knowledge">
@@ -242,100 +273,237 @@ export default function KnowledgePage() {
           </div>
         ) : null}
 
+        {/* The same toolbar the macros list carries, for the same reason: a
+            knowledge base grows to hundreds of articles, and a page that is
+            only a grid of them stops being usable long before that. */}
+        {!loading && articles.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              <input
+                data-kb-search
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={tUi(lang, "ui_kb_search")}
+                style={{ ...ui.input, width: 220, padding: "8px 10px", fontSize: 13.5 }}
+              />
+              {(
+                [
+                  ["all", "ui_macro_filter_all"],
+                  ["published", "ui_kb_published"],
+                  ["draft", "ui_kb_draft"],
+                ] as const
+              ).map(([key, labelKey]) => {
+                const on = status === key;
+                return (
+                  <button
+                    key={key}
+                    data-kb-filter={key}
+                    onClick={() => setStatus(key)}
+                    style={{
+                      ...control,
+                      cursor: "pointer",
+                      borderColor: on ? colors.accent : colors.border,
+                      color: on ? colors.textPrimary : colors.textSecondary,
+                      background: on ? colors.surfaceHover : "transparent",
+                    }}
+                  >
+                    {tUi(lang, labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+            {/* The second number is the one being managed: how many of these
+                a customer can actually read in their own language. */}
+            <span data-kb-summary style={{ fontSize: 12.5, color: colors.textMuted }}>
+              {tUi(lang, shown.length === 1 ? "ui_kb_summary_one" : "ui_kb_summary", {
+                n: shown.length,
+                ready: shown.filter((a) => coverage(writtenMap(a)).complete).length,
+              })}
+            </span>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ ...ui.card, ...layout.centred, color: colors.textMuted }}>{tUi(lang, "ui_loading")}</div>
         ) : articles.length === 0 ? (
-          <div style={{ ...ui.card, ...layout.centred, color: colors.textSecondary }}>
-            {tUi(lang, "ui_kb_none")}
+          <div style={ui.card}>
+            <EmptyState
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+                </svg>
+              }
+              title={tUi(lang, "ui_kb_none")}
+              hint={tUi(lang, "ui_kb_subtitle")}
+            />
+          </div>
+        ) : shown.length === 0 ? (
+          <div style={ui.card}>
+            <EmptyState
+              data-kb-nomatch="1"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              }
+              title={tUi(lang, "ui_kb_no_match")}
+              hint={tUi(lang, "ui_macro_no_match_hint")}
+            />
           </div>
         ) : (
           <div
             style={{
               display: "grid",
               gap: 10,
-              // A card of a title, a badge and a few chips does not need 1300px.
-              // Two or three across is the width being used by CONTENT rather
-              // than by stretching one card over it; it falls to one column on
-              // a narrow window without a media query.
               gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-              alignItems: "start",
+              // Stretch, so a two-line title cannot make one card taller than
+              // the two beside it. Paired with the pinned footer below, this
+              // is what makes a row of cards read as a row.
+              alignItems: "stretch",
             }}
           >
-            {articles.map((a) => {
+            {shown.map((a) => {
               const written = LANGS.filter(
                 (l) => (a.titles[l.code] ?? "").trim() && (a.bodies[l.code] ?? "").trim(),
               );
+              const c = coverage(writtenMap(a));
+              const title =
+                a.titles[written[0]?.code ?? "en"] || a.titles.en || tUi(lang, "ui_kb_untitled");
               return (
-                <div key={a.id} style={{ ...ui.card, padding: 16, display: "grid", gap: 10 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <strong style={{ color: colors.textPrimary, fontSize: 15 }}>
-                          {a.titles.en || written[0] ? a.titles[written[0]?.code ?? "en"] : "—"}
-                        </strong>
+                <div key={a.id} style={{ ...ui.card, ...cardColumn, padding: 16, gap: 10 }}>
+                  <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+                    <IconTile size={34} tint={a.isPublished ? colors.success : colors.textMuted}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" {...stroke}>
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+                      </svg>
+                    </IconTile>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          color: colors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: 700,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {title}
+                      </div>
+                      {/* One muted caption line, not a badge on the title and
+                          an orphan sentence beneath it.
+                          Deflections, not views: the number that says whether
+                          writing this was worth the afternoon. */}
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: colors.textMuted,
+                          marginTop: 3,
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
                         <Badge tone={a.isPublished ? "success" : "muted"}>
                           {tUi(lang, a.isPublished ? "ui_kb_published" : "ui_kb_draft")}
                         </Badge>
-                      </div>
-                      {/* Deflections, not views: the number that says whether
-                          writing this was worth the afternoon. */}
-                      <div style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
-                        {tUi(lang, "ui_kb_deflections", { n: a.deflections })}
+                        <span>{tUi(lang, "ui_kb_deflections", { n: a.deflections })}</span>
                       </div>
                     </div>
-                    {canWrite ? (
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        <button
-                          style={{ ...control, cursor: "pointer" }}
-                          onClick={() => {
-                            setEditing(a);
-                            setBodyLang(written[0]?.code ?? "en");
-                          }}
-                        >
-                          {tUi(lang, "ui_macro_edit")}
-                        </button>
-                        <button
-                          style={{ ...control, cursor: "pointer" }}
-                          onClick={() => void setPublished(a, !a.isPublished)}
-                        >
-                          {tUi(lang, a.isPublished ? "ui_kb_unpublish" : "ui_kb_publish")}
-                        </button>
-                        <button
-                          style={{ ...control, cursor: "pointer", color: colors.danger }}
-                          onClick={() => void remove(a)}
-                        >
-                          {tUi(lang, "ui_macro_delete")}
-                        </button>
-                      </div>
-                    ) : null}
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                    {LANGS.map((l) => {
-                      const filled = written.some((w) => w.code === l.code);
-                      return (
-                        <span
-                          key={l.code}
-                          style={{
-                            fontSize: 11,
-                            padding: "2px 7px",
-                            borderRadius: 999,
-                            border: `1px solid ${filled ? colors.successFaint : colors.border}`,
-                            color: filled ? colors.success : colors.textMuted,
-                          }}
-                        >
-                          {l.name}
-                        </span>
-                      );
-                    })}
+
+                  {/* Coverage as a SENTENCE. Six bordered language pills per
+                      card were the loudest thing on this page and its least
+                      important information — and the reader still had to
+                      count them. Removed from the macros list first; this
+                      page had kept them. */}
+                  <div
+                    data-kb-coverage={a.id}
+                    style={{
+                      fontSize: 12.5,
+                      color: c.complete ? colors.textMuted : colors.warn,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: c.complete ? colors.success : colors.warn,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {c.empty
+                      ? tUi(lang, "ui_macro_cov_empty")
+                      : c.complete
+                        ? tUi(lang, "ui_macro_cov_all", { n: c.total })
+                        : tUi(lang, "ui_macro_cov_missing", {
+                            n: c.written,
+                            total: c.total,
+                            list: c.missing
+                              .map((code) => LANGS.find((l) => l.code === code)?.name ?? code)
+                              .join(", "),
+                          })}
                   </div>
+
+                  {canWrite ? (
+                    <div style={cardFooter}>
+                      <button
+                        data-kb-edit={a.id}
+                        style={{
+                          ...control,
+                          cursor: "pointer",
+                          borderColor: colors.borderStrong,
+                          color: colors.textPrimary,
+                          fontWeight: 600,
+                        }}
+                        onClick={() => {
+                          setEditing(a);
+                          setBodyLang(written[0]?.code ?? "en");
+                        }}
+                      >
+                        {tUi(lang, "ui_macro_edit")}
+                      </button>
+                      <button
+                        style={{ ...control, cursor: "pointer" }}
+                        onClick={() => void setPublished(a, !a.isPublished)}
+                      >
+                        {tUi(lang, a.isPublished ? "ui_kb_unpublish" : "ui_kb_publish")}
+                      </button>
+                      {/* Not red, and not bordered like the other two. Red at
+                          the same weight as Edit makes "destroy this" the
+                          loudest control on the card. Pushed to the far end
+                          for the same reason. */}
+                      <button
+                        data-kb-delete={a.id}
+                        style={{
+                          ...control,
+                          cursor: "pointer",
+                          border: "none",
+                          background: "transparent",
+                          color: colors.textMuted,
+                          marginInlineStart: "auto",
+                        }}
+                        onClick={() => void remove(a)}
+                      >
+                        {tUi(lang, "ui_macro_delete")}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

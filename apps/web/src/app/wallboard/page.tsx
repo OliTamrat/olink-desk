@@ -15,7 +15,7 @@ import {
   useConsoleLanguage,
   useMe,
 } from "../../lib/console-ui";
-import { CardHead, EmptyState, Figure, IconTile, stroke } from "../../lib/card";
+import { cardColumn, cardFooter, CardHead, EmptyState, Figure, IconTile, stroke } from "../../lib/card";
 import { duration } from "../../lib/tickets";
 import { radius } from "../../lib/theme";
 
@@ -384,7 +384,7 @@ export default function WallboardPage() {
             </section>
 
             {/* --------------------------------------------------- agents */}
-            <section style={{ ...ui.card, flex: "2 1 320px" }}>
+            <section style={{ ...ui.card, ...cardColumn, flex: "2 1 320px" }}>
               <CardHead
                 icon={
                   <svg width="20" height="20" viewBox="0 0 24 24" {...stroke}>
@@ -440,6 +440,24 @@ export default function WallboardPage() {
                   </Link>
                 ))}
               </div>
+              {/* Pinned to the bottom, which is what fills the card once it is
+                  stretched to match its neighbour — and it is the action a
+                  supervisor looking at a one-name list actually wants. */}
+              {me && ["ADMIN", "SUPERVISOR"].includes(me.user.role) ? (
+                <div style={cardFooter}>
+                  <Link
+                    href="/settings"
+                    style={{
+                      color: colors.accent,
+                      textDecoration: "none",
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tUi(lang, "ui_invite_teammate")} →
+                  </Link>
+                </div>
+              ) : null}
             </section>
           </div>
         </div>

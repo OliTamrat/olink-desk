@@ -298,6 +298,12 @@ export const Icons = {
       <path d="M9 6l6 6-6 6" />
     </svg>
   ),
+  globe: (
+    <svg width="15" height="15" viewBox="0 0 24 24" {...stroke}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18" />
+    </svg>
+  ),
 } as const;
 
 /**
@@ -749,6 +755,28 @@ function GlobalSearch({ lang }: { lang: Language }) {
   );
 }
 
+/**
+ * One row in the rail's footer. Deliberately the nav item's own geometry —
+ * same padding variable, same justify variable, same hide-the-label variable
+ * — so language, sign-out and collapse fold with the rail rather than turning
+ * into three unlabelled glyphs at 56px.
+ */
+const railFooterRow: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "var(--rail-justify)",
+  gap: 10,
+  padding: "var(--rail-pad)",
+  borderRadius: radius.sm,
+  background: "transparent",
+  color: colors.textMuted,
+  fontFamily: font,
+  fontSize: 13,
+  whiteSpace: "nowrap",
+  textAlign: "start",
+  boxSizing: "border-box",
+};
+
 // Who may create work. An auditor reads; a ticket they logged would be a
 // record of a call they are not on the rota to take.
 const CAN_CREATE = ["AGENT", "SUPERVISOR", "ADMIN"];
@@ -1125,18 +1153,45 @@ export function ConsoleShell({
       }}
     >
       {brand}
-      {me && !isMobile ? <GlobalSearch lang={lang} /> : <div style={{ flex: 1 }} />}
-      {me && CAN_CREATE.includes(me.user.role) ? <QuickAdd lang={lang} /> : null}
-      {me && context ? (
-        <ContextToggle lang={lang} open={contextOpen} onToggle={() => setContextOpen(!contextOpen)} />
-      ) : null}
-      {me ? <AlertBell lang={lang} /> : null}
-      <AppearanceToggle lang={lang} />
-      {me ? (
-        <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
-      ) : (
-        <LanguagePicker lang={lang} onChange={onLang} />
-      )}
+      {/* Search sits in the CENTRE of the bar, not hard against the brand.
+          Brand left, search centre, actions right is the three-zone bar every
+          desk product settles on, and it is what stops the whole header
+          reading as one clump on the left of a wide window. The centring
+          wrapper takes the slack on both sides, so the search stays put as
+          the brand and the action cluster change width. */}
+      <div
+        data-topbar-search
+        style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 0 }}
+      >
+        {me && !isMobile ? <GlobalSearch lang={lang} /> : null}
+      </div>
+      {/* And the actions are pinned to the RIGHT EDGE. They used to follow
+          the 480px search with nothing after them, so the whole bar read as a
+          cluster floating in the middle of the window with half the header
+          empty beside it. Every element is now anchored to an edge; nothing
+          sits in the middle. */}
+      <div
+        data-topbar-actions
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginInlineStart: "auto",
+          flexShrink: 0,
+        }}
+      >
+        {me && CAN_CREATE.includes(me.user.role) ? <QuickAdd lang={lang} /> : null}
+        {me && context ? (
+          <ContextToggle lang={lang} open={contextOpen} onToggle={() => setContextOpen(!contextOpen)} />
+        ) : null}
+        {me ? <AlertBell lang={lang} /> : null}
+        <AppearanceToggle lang={lang} />
+        {me ? (
+          <AccountMenu lang={lang} onLang={onLang} me={me} onSignOut={signOut} />
+        ) : (
+          <LanguagePicker lang={lang} onChange={onLang} />
+        )}
+      </div>
     </header>
   );
 
@@ -1344,12 +1399,29 @@ export function ConsoleShell({
             top: 56,
             height: "calc(100vh - 56px)",
             boxSizing: "border-box",
-            overflowY: "auto",
+            // A column, so the footer below can be pinned to the BOTTOM of
+            // the rail. Only the destination list scrolls; the language, the
+            // sign-out and the collapse stay where they were put.
+            display: "flex",
+            flexDirection: "column",
             overflowX: "hidden",
             transition: "width .16s ease",
           }}
         >
-          <nav style={{ display: "grid", gap: 4 }}>
+          {/* `alignContent: start` is load-bearing, not tidiness. A grid told
+              to fill its parent distributes the SPARE HEIGHT into its rows, so
+              giving this `flex: 1` to push the footer down silently
+              double-spaced all nine destinations. */}
+          <nav
+            style={{
+              display: "grid",
+              gap: 4,
+              alignContent: "start",
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+            }}
+          >
             {nav.map((item) => (
               <Link
                 key={item.key}
@@ -1385,37 +1457,91 @@ export function ConsoleShell({
               </Link>
             ))}
           </nav>
-          <button
-            onClick={() => setRailOpen(!railOpen)}
-            data-rail-toggle
-            aria-label={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
-            aria-expanded={railOpen}
-            title={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+          {/* ------------------------------------------- the rail's footer
+
+              Language, sign-out and collapse belong together at the BOTTOM of
+              the rail, not scattered: they are the three things you reach for
+              about the session rather than about the work. The collapse
+              control in particular was sitting directly under Settings, where
+              it read as a tenth destination.
+
+              Every row is the nav item's own shape — icon, then a label that
+              CSS hides at 56px — so the footer folds with the rail instead of
+              becoming three mystery glyphs. */}
+          <div
+            data-rail-footer
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "var(--rail-justify)",
-              gap: 10,
-              width: "100%",
               marginTop: 10,
-              padding: "var(--rail-pad)",
-              borderRadius: radius.sm,
-              border: "none",
-              background: "transparent",
-              color: colors.textMuted,
-              cursor: "pointer",
-              fontFamily: font,
-              fontSize: 13,
-              whiteSpace: "nowrap",
+              paddingTop: 10,
+              borderTop: `1px solid ${colors.border}`,
+              display: "grid",
+              gap: 2,
+              flexShrink: 0,
             }}
           >
-            {/* Both chevrons exist; CSS picks. Same reason as the labels. */}
-            <span style={{ display: "var(--rail-open)" }}>{Icons.collapse}</span>
-            <span style={{ display: "var(--rail-shut)" }}>{Icons.expand}</span>
-            <span style={{ display: "var(--rail-label)" }}>
-              {tUi(lang, "ui_rail_collapse")}
-            </span>
-          </button>
+            {/* A native picker, so it works with a keyboard and on a phone —
+                laid invisibly over a row that looks like the rest of the
+                rail. A styled <select> cannot hide its own text when the rail
+                folds to 56px, and a custom popover would be the fourth
+                language control in this shell. */}
+            <label
+              data-rail-language
+              title={LANGUAGE_NAMES[lang]}
+              style={{ ...railFooterRow, position: "relative", cursor: "pointer" }}
+            >
+              {Icons.globe}
+              <span style={{ display: "var(--rail-label)" }}>{LANGUAGE_NAMES[lang]}</span>
+              <select
+                aria-label="Language"
+                value={lang}
+                onChange={(e) => onLang(e.target.value as Language)}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  opacity: 0,
+                  cursor: "pointer",
+                  fontFamily: font,
+                }}
+              >
+                {SUPPORTED_LANGUAGES.map((l) => (
+                  <option key={l} value={l}>
+                    {LANGUAGE_NAMES[l]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {me ? (
+              <button
+                data-rail-signout
+                onClick={signOut}
+                title={tUi(lang, "ui_sign_out")}
+                aria-label={tUi(lang, "ui_sign_out")}
+                style={{ ...railFooterRow, border: "none", cursor: "pointer", width: "100%" }}
+              >
+                {Icons.signOut}
+                <span style={{ display: "var(--rail-label)" }}>{tUi(lang, "ui_sign_out")}</span>
+              </button>
+            ) : null}
+
+            <button
+              onClick={() => setRailOpen(!railOpen)}
+              data-rail-toggle
+              aria-label={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+              aria-expanded={railOpen}
+              title={tUi(lang, railOpen ? "ui_rail_collapse" : "ui_rail_expand")}
+              style={{ ...railFooterRow, border: "none", cursor: "pointer", width: "100%" }}
+            >
+              {/* Both chevrons exist; CSS picks. Same reason as the labels. */}
+              <span style={{ display: "var(--rail-open)" }}>{Icons.collapse}</span>
+              <span style={{ display: "var(--rail-shut)" }}>{Icons.expand}</span>
+              <span style={{ display: "var(--rail-label)" }}>
+                {tUi(lang, "ui_rail_collapse")}
+              </span>
+            </button>
+          </div>
         </aside>
 
         {sidePanel ? (
