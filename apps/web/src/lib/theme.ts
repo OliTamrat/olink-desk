@@ -83,6 +83,31 @@ export const qr = {
   dark: "#0b1220",
 } as const;
 
+/**
+ * The sign-in stage's own palette — dark in both themes, on purpose.
+ *
+ * The stage is a hero pane, not a surface: it is always a dark field with
+ * light blooms across it, exactly as a cinema poster is dark whatever colour
+ * the wall is. Wiring it to `--bg` would turn it white for a light-theme
+ * reader and destroy the one screen whose job is to look like something.
+ *
+ * Two of the blooms sit near the accent and the third is rotated off it —
+ * that rotation is what stops the pane reading as a flat tint of one colour,
+ * so the third is deliberately NOT derived from the accent.
+ *
+ * Here rather than as literals in `gate.tsx` for the same reason as `qr`:
+ * colour belongs in the token file whether or not it varies, and being here
+ * is what makes "these do not follow the theme" a decision on the record
+ * instead of something that looks forgotten.
+ */
+export const stage = {
+  field: "#0b0d13",
+  bloomA: "#5b9dff",
+  bloomB: "#7c5cff",
+  bloomC: "#ff8ab5",
+  ink: "#ffffff",
+} as const;
+
 export type ColorToken = keyof typeof colors;
 
 /**
@@ -247,8 +272,44 @@ export const LIFECYCLE_INK = {
   DONE: "#9333ea",
 } as const;
 
+/**
+ * The interface stack — and it says two different things for the two scripts,
+ * deliberately (ported from Bank Assist's ADR-0028).
+ *
+ * **Latin is OURS, and Inter must lead.** CSS fallback is per CHARACTER, so
+ * putting Inter first costs Amharic nothing: a Ge'ez codepoint simply is not
+ * in Inter and moves on down the list. Ethiopic used to lead this stack, which
+ * meant every Latin character in the product — labels, metrics, English
+ * answers — was drawn with a Ge'ez face's Latin glyphs.
+ *
+ * **Ge'ez is the READER'S, and our copy stays LAST.** Nyala is what Windows
+ * supplies and what an Amharic reader recognises as properly set; Abyssinica
+ * SIL and the OS Noto follow. Our vendored Noto is the last resort only.
+ * Promoting it up the list looks like a tidy-up and costs every Ethiopian
+ * reader both the right face and 198 KB — a webfont is fetched only when it
+ * wins the fallback, so on a machine with any Ethiopic font ours never
+ * downloads at all.
+ */
 export const font =
-  "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Ethiopic', sans-serif";
+  "'Inter Variable', Inter, " +
+  "Nyala, 'Abyssinica SIL', 'Noto Sans Ethiopic', Ebrima, " +
+  "'Noto Sans Ethiopic Variable', " +
+  "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+
+/**
+ * The display serif, and it reaches exactly as far as the sign-in gate.
+ *
+ * A page set entirely in one neutral sans has no voice — the first build of
+ * Bank Assist's gate read as a template for exactly that reason. The serif is
+ * for display sizes and numerals only.
+ *
+ * **Playfair has no Ethiopic at all**, so a Ge'ez headline in it falls through
+ * to a system face while KEEPING the serif's tracking and leading. Anything
+ * using this must switch family as well as spacing under `:lang(am|ti)` — see
+ * `geezDisplayCss`.
+ */
+export const displayFont =
+  "'Playfair Display', " + font;
 
 export const radius = { sm: 6, md: 10, lg: 14 } as const;
 
@@ -295,3 +356,117 @@ export const themeBootScript = `try{var d=document.documentElement,t=localStorag
 )})==="0")d.setAttribute("data-rail","0");if(localStorage.getItem(${JSON.stringify(
   VIEWS_KEY,
 )})==="0")d.setAttribute("data-views","0")}catch(e){}`;
+
+/**
+ * The vendored faces.
+ *
+ * In the repo and served from our own origin — never Google Fonts. The console
+ * shows customer conversations and the widget runs on a bank's own production
+ * pages, so a third-party font origin is a CSP entry and a security-review
+ * question in exchange for nothing. Both families are SIL OFL 1.1 with the
+ * licences committed beside them.
+ *
+ * They are VARIABLE (one file covers 100–900) and split by script, so
+ * `unicode-range` decides what downloads: an English session fetches 71 KB of
+ * Latin and never touches the 198 KB of Ge'ez. Dropping the ranges would put
+ * all of it on every Ethiopian mobile connection.
+ *
+ * Inter is the build WITH the `opsz` axis (14–32), not the weight-only one.
+ * With `font-optical-sizing: auto` a display-size heading moves onto the
+ * display cut; the weight-only file renders the text cut blown up, which is
+ * visibly not the same typeface. It costs 23 KB.
+ */
+export const fontFaceCss = `
+  @font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+      U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+      U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+      U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+      U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+      U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Playfair Display';
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url('/fonts/playfair-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+      U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+      U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Playfair Display';
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url('/fonts/playfair-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+      U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+      U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  /* Last in the Ge'ez fallback by NAME — see \`font\`. Declared so a machine
+     with no Ethiopic face at all still renders Amharic, and fetched only in
+     that case. */
+  @font-face {
+    font-family: 'Noto Sans Ethiopic Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/noto-sans-ethiopic.woff2') format('woff2');
+    unicode-range: U+1200-1399, U+2D80-2DDE, U+AB01-AB2E, U+1E7E0-1E7E6,
+      U+1E7E8-1E7EB, U+1E7ED-1E7EE, U+1E7F0-1E7FE;
+  }
+  html { font-optical-sizing: auto; }
+`;
+
+/**
+ * Ge'ez is not Latin. Do not set it like Latin.
+ *
+ * Four values tuned for a Latin display face are all wrong for Ethiopic, and
+ * each was found the hard way in Bank Assist:
+ *
+ *  - **Negative tracking CROWDS it.** A Ge'ez character is a whole syllable
+ *    with dense internal structure and sidebearings already at the minimum
+ *    that keeps the strokes apart. Pulling a pixel from each gap at 46px is
+ *    what turned the Amharic hero into a grey block.
+ *  - **1.1 leading is too tight** — Ethiopic has almost no descenders but tall
+ *    busy forms, so two lines nearly touch.
+ *  - **700 fills the counters in.** 600 reads better, and the difference is
+ *    invisible beside the Latin because the script is denser anyway. On
+ *    Windows this is binary: Nyala has only Regular and Bold, so 600 resolves
+ *    to Bold and 500 to Regular with nothing between.
+ *  - **PLAYFAIR HAS NO ETHIOPIC**, so the family must switch too, or the
+ *    headline falls to a system face while keeping the serif's spacing.
+ *
+ * And a fifth, which is a SIZE problem rather than a spacing one: a Ge'ez
+ * syllable fills its em box where Latin lowercase fills about half, so the two
+ * scripts at the same px do not read as the same size — Ge'ez reads about a
+ * third larger. The display size is capped for it rather than left to tower
+ * over the Latin beside it.
+ *
+ * Keyed on `:lang()` so it follows the TEXT, not the panel — the sign-in mock
+ * cycles languages independently of the interface.
+ */
+export const geezDisplayCss = `
+  .display:lang(am), .display:lang(ti) {
+    font-family: ${font};
+    letter-spacing: normal;
+    line-height: 1.28;
+    font-weight: 600;
+    font-size: clamp(26px, 3.4vw, 44px);
+  }
+`;

@@ -532,7 +532,16 @@
     "ui_mfa_password_confirm": "Enter your password to confirm",
     "ui_mfa_bad_password": "That password was not accepted.",
     "ui_mfa_recovery_hint": "You can also enter a recovery code here.",
-    "ui_account": "Account"
+    "ui_account": "Account",
+    "ui_mock_question": "How do I open an account?",
+    "ui_mock_answer": "Bring a valid ID and a passport photo to any branch, and we will open it the same day.",
+    "ui_mock_assistant": "Support",
+    "ui_mock_online": "online",
+    "ui_mock_sources": "{n} sources",
+    "ui_gate_line": "Your front door for customers — in the language they already speak.",
+    "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD and the web — every conversation on one desk, answered in six languages.",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "Encrypted in transit · Sessions expire · Every action is audited"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -1067,7 +1076,16 @@
     "ui_mfa_password_confirm": "ለማረጋገጥ የይለፍ ቃልዎን ያስገቡ",
     "ui_mfa_bad_password": "ያ የይለፍ ቃል አልተቀበለም።",
     "ui_mfa_recovery_hint": "እዚህ የመልሶ ማግኛ ኮድም ማስገባት ይችላሉ።",
-    "ui_account": "መለያ"
+    "ui_account": "መለያ",
+    "ui_mock_question": "ሂሳብ እንዴት እከፍታለሁ?",
+    "ui_mock_answer": "የሚሰራ መታወቂያና የፓስፖርት ፎቶ ይዘው ወደ ማንኛውም ቅርንጫፍ ይምጡ፤ በዚያኑ ቀን እንከፍትልዎታለን።",
+    "ui_mock_assistant": "ድጋፍ",
+    "ui_mock_online": "በመስመር ላይ",
+    "ui_mock_sources": "{n} ምንጮች",
+    "ui_gate_line": "ደንበኞችዎ በሚናገሩት ቋንቋ የሚደርሱብዎት መንገድ።",
+    "ui_gate_sub": "ቴሌግራም፣ ዋትስአፕ፣ ኤስኤምኤስ፣ USSD እና ድር — ሁሉም ውይይት በአንድ ዴስክ፣ በስድስት ቋንቋዎች ይመለሳል።",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "በመተላለፍ ላይ የተመሰጠረ · ክፍለ ጊዜዎች ያበቃሉ · እያንዳንዱ እርምጃ ይመዘገባል"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1602,7 +1620,16 @@
     "ui_mfa_password_confirm": "Mirkaneessuuf jecha darbii kee galchi",
     "ui_mfa_bad_password": "Jechi darbii sun hin fudhatamne.",
     "ui_mfa_recovery_hint": "Asittis koodii deebisanii argachuu galchuu dandeessa.",
-    "ui_account": "Herrega"
+    "ui_account": "Herrega",
+    "ui_mock_question": "Herrega akkamittin banadha?",
+    "ui_mock_answer": "Waraqaa eenyummaa hojjetuu fi suuraa paaspoortii qabattee gara damee kamiyyuu kottu; guyyuma sana siif banna.",
+    "ui_mock_assistant": "Deeggarsa",
+    "ui_mock_online": "sarara irra",
+    "ui_mock_sources": "Maddeen {n}",
+    "ui_gate_line": "Karaa maamiltoonni kee afaan isaanaan si qunnamanii.",
+    "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD fi weeb — marii hunda deeskii tokko irratti, afaan ja'aan deebi'a.",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "Yeroo darbu iccitiin qabame · Yeroon ni dhuma · Tarkaanfiin hundi ni galmaa'a"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -2137,7 +2164,16 @@
     "ui_mfa_password_confirm": "ንምርግጋጽ መሕለፊ ቃልካ ኣእቱ",
     "ui_mfa_bad_password": "እቲ መሕለፊ ቃል ኣይተቐበለን።",
     "ui_mfa_recovery_hint": "ኣብዚ ናይ ምምላስ ኮድ እውን ከተእቱ ትኽእል ኢኻ።",
-    "ui_account": "ሕሳብ"
+    "ui_account": "ሕሳብ",
+    "ui_mock_question": "ሕሳብ ብኸመይ እኸፍት?",
+    "ui_mock_answer": "ዝሰርሕ መንነትን ናይ ፓስፖርት ስእልን ሒዝካ ናብ ዝኾነ ጨንፈር ምጻእ፤ በታ መዓልቲ ንኸፍተልካ።",
+    "ui_mock_assistant": "ደገፍ",
+    "ui_mock_online": "ኣብ መስመር",
+    "ui_mock_sources": "{n} ምንጭታት",
+    "ui_gate_line": "ዓማዊልካ ብቋንቋኦም ዝረኽቡኻ መገዲ።",
+    "ui_gate_sub": "ቴሌግራም፡ ዋትስኣፕ፡ ኤስኤምኤስ፡ USSD ከምኡውን ወብ — ኩሉ ዝርርብ ኣብ ሓደ ዴስክ፡ ብሽዱሽተ ቋንቋታት ይምለስ።",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "ኣብ መተሓላለፊ እተመስጠረ · ክፍለ-ግዜታት ይውዳእ · ኩሉ ስጉምቲ ይምዝገብ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2672,7 +2708,16 @@
     "ui_mfa_password_confirm": "Geli eraygaaga sirta ah si aad u xaqiijiso",
     "ui_mfa_bad_password": "Eraygaas sirta ah lama aqbalin.",
     "ui_mfa_recovery_hint": "Halkan sidoo kale waxaad geli kartaa koodh soo kabasho ah.",
-    "ui_account": "Akoon"
+    "ui_account": "Akoon",
+    "ui_mock_question": "Sidee baan xisaab u furaa?",
+    "ui_mock_answer": "U keen aqoonsi shaqeeya iyo sawir baasaboor lain kasta oo laanta ah, maalintaas ayaan kuu furaynaa.",
+    "ui_mock_assistant": "Taageero",
+    "ui_mock_online": "khadka tooska",
+    "ui_mock_sources": "{n} ilo",
+    "ui_gate_line": "Jidka macaamiishaadu kugu soo gaaraan afkooda.",
+    "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD iyo shabakadda — wada hadal kastaa hal miis, lagaga jawaabo lix luqadood.",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "Sir ah marka la gudbinayo · Fadhiyadu way dhacaan · Tallaabo kastaa waa la duubaa"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -3207,6 +3252,15 @@
     "ui_mfa_password_confirm": "Weka nenosiri lako ili kuthibitisha",
     "ui_mfa_bad_password": "Nenosiri hilo halikukubaliwa.",
     "ui_mfa_recovery_hint": "Unaweza pia kuweka msimbo wa kurejesha hapa.",
-    "ui_account": "Akaunti"
+    "ui_account": "Akaunti",
+    "ui_mock_question": "Ninawezaje kufungua akaunti?",
+    "ui_mock_answer": "Leta kitambulisho halali na picha ya pasipoti katika tawi lolote, nasi tutaifungua siku hiyo hiyo.",
+    "ui_mock_assistant": "Msaada",
+    "ui_mock_online": "mtandaoni",
+    "ui_mock_sources": "Vyanzo {n}",
+    "ui_gate_line": "Njia ambayo wateja wako wanakufikia kwa lugha yao.",
+    "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD na wavuti — kila mazungumzo kwenye dawati moja, yakijibiwa kwa lugha sita.",
+    "ui_gate_eyebrow": "Olink Desk",
+    "ui_gate_trust": "Imesimbwa wakati wa usafirishaji · Vipindi huisha · Kila hatua hurekodiwa"
   }
 }

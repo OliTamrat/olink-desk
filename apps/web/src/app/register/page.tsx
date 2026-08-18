@@ -12,6 +12,7 @@ import {
   ui,
   useConsoleLanguage,
 } from "../../lib/console-ui";
+import { Gate } from "../../lib/gate";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -80,8 +81,8 @@ export default function RegisterPage() {
   );
 
   return (
-    <main style={{ ...ui.page, display: "grid", placeItems: "center", padding: 16 }}>
-      <div style={{ width: "100%", maxWidth: 420 }}>
+    <Gate lang={lang}>
+      <div>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
           <LanguagePicker lang={lang} onChange={setLang} />
         </div>
@@ -124,6 +125,6 @@ export default function RegisterPage() {
           </p>
         </form>
       </div>
-    </main>
+    </Gate>
   );
 }
