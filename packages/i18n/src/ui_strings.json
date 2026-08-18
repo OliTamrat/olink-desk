@@ -541,7 +541,10 @@
     "ui_gate_line": "Your front door for customers — in the language they already speak.",
     "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD and the web — every conversation on one desk, answered in six languages.",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "Encrypted in transit · Sessions expire · Every action is audited"
+    "ui_gate_trust": "Encrypted in transit · Sessions expire · Every action is audited",
+    "ui_gate_proof_grounded": "Replies drafted from your own knowledge base — never invented.",
+    "ui_gate_proof_sla": "An SLA clock on every ticket, with an alert before it breaches.",
+    "ui_gate_proof_tenancy": "Separate by design — one workspace never sees another's data."
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -1085,7 +1088,10 @@
     "ui_gate_line": "ደንበኞችዎ በሚናገሩት ቋንቋ የሚደርሱብዎት መንገድ።",
     "ui_gate_sub": "ቴሌግራም፣ ዋትስአፕ፣ ኤስኤምኤስ፣ USSD እና ድር — ሁሉም ውይይት በአንድ ዴስክ፣ በስድስት ቋንቋዎች ይመለሳል።",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "በመተላለፍ ላይ የተመሰጠረ · ክፍለ ጊዜዎች ያበቃሉ · እያንዳንዱ እርምጃ ይመዘገባል"
+    "ui_gate_trust": "በመተላለፍ ላይ የተመሰጠረ · ክፍለ ጊዜዎች ያበቃሉ · እያንዳንዱ እርምጃ ይመዘገባል",
+    "ui_gate_proof_grounded": "መልሶች ከራስዎ የእውቀት ቋት ይዘጋጃሉ — በፍጹም አይፈጠሩም።",
+    "ui_gate_proof_sla": "በእያንዳንዱ ትኬት ላይ የSLA ሰዓት፣ ከመጣሱ በፊት ማስጠንቀቂያ ይላካል።",
+    "ui_gate_proof_tenancy": "በንድፍ የተለያዩ — አንድ የሥራ ቦታ የሌላውን መረጃ አያይም።"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1629,7 +1635,10 @@
     "ui_gate_line": "Karaa maamiltoonni kee afaan isaanaan si qunnamanii.",
     "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD fi weeb — marii hunda deeskii tokko irratti, afaan ja'aan deebi'a.",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "Yeroo darbu iccitiin qabame · Yeroon ni dhuma · Tarkaanfiin hundi ni galmaa'a"
+    "ui_gate_trust": "Yeroo darbu iccitiin qabame · Yeroon ni dhuma · Tarkaanfiin hundi ni galmaa'a",
+    "ui_gate_proof_grounded": "Deebiin kuusaa beekumsa keessan irraa qophaa'a — gonkumaa hin uumamu.",
+    "ui_gate_proof_sla": "Tikeetii hunda irratti sa'aatii SLA, utuu hin cabin dura akeekkachiisni ni ergama.",
+    "ui_gate_proof_tenancy": "Bifa dizaayiniin adda ba'an — iddoon hojii tokko kan biraa hin argu."
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -2173,7 +2182,10 @@
     "ui_gate_line": "ዓማዊልካ ብቋንቋኦም ዝረኽቡኻ መገዲ።",
     "ui_gate_sub": "ቴሌግራም፡ ዋትስኣፕ፡ ኤስኤምኤስ፡ USSD ከምኡውን ወብ — ኩሉ ዝርርብ ኣብ ሓደ ዴስክ፡ ብሽዱሽተ ቋንቋታት ይምለስ።",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "ኣብ መተሓላለፊ እተመስጠረ · ክፍለ-ግዜታት ይውዳእ · ኩሉ ስጉምቲ ይምዝገብ"
+    "ui_gate_trust": "ኣብ መተሓላለፊ እተመስጠረ · ክፍለ-ግዜታት ይውዳእ · ኩሉ ስጉምቲ ይምዝገብ",
+    "ui_gate_proof_grounded": "መልስታት ካብ ናትካ መኽዘን ፍልጠት ይዳለዉ — ፈጺሙ ኣይፍጠሩን።",
+    "ui_gate_proof_sla": "ኣብ ነፍሲ ወከፍ ቲኬት ሰዓት SLA፡ ቅድሚ ምጥሓሱ መጠንቀቕታ ይለኣኽ።",
+    "ui_gate_proof_tenancy": "ብንድፊ ዝተፈላለዩ — ሓደ ናይ ስራሕ ቦታ ናይ ካልእ ሓበሬታ ኣይርእን።"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2717,7 +2729,10 @@
     "ui_gate_line": "Jidka macaamiishaadu kugu soo gaaraan afkooda.",
     "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD iyo shabakadda — wada hadal kastaa hal miis, lagaga jawaabo lix luqadood.",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "Sir ah marka la gudbinayo · Fadhiyadu way dhacaan · Tallaabo kastaa waa la duubaa"
+    "ui_gate_trust": "Sir ah marka la gudbinayo · Fadhiyadu way dhacaan · Tallaabo kastaa waa la duubaa",
+    "ui_gate_proof_grounded": "Jawaabaha waxaa laga sameeyaa kaydkaaga aqoonta — waligood lama abuuro.",
+    "ui_gate_proof_sla": "Saacad SLA tikit kasta, digniin ka hor inta aan la jabin.",
+    "ui_gate_proof_tenancy": "Kala go'an naqshadeed ahaan — meel shaqo mid ahi ma arko xogta mid kale."
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -3261,6 +3276,9 @@
     "ui_gate_line": "Njia ambayo wateja wako wanakufikia kwa lugha yao.",
     "ui_gate_sub": "Telegram, WhatsApp, SMS, USSD na wavuti — kila mazungumzo kwenye dawati moja, yakijibiwa kwa lugha sita.",
     "ui_gate_eyebrow": "Olink Desk",
-    "ui_gate_trust": "Imesimbwa wakati wa usafirishaji · Vipindi huisha · Kila hatua hurekodiwa"
+    "ui_gate_trust": "Imesimbwa wakati wa usafirishaji · Vipindi huisha · Kila hatua hurekodiwa",
+    "ui_gate_proof_grounded": "Majibu huandaliwa kutoka hifadhi yako ya maarifa — hayabuniwi kamwe.",
+    "ui_gate_proof_sla": "Saa ya SLA kwa kila tikiti, na tahadhari kabla haijavunjwa.",
+    "ui_gate_proof_tenancy": "Zimetenganishwa kwa muundo — eneo moja la kazi haliwezi kuona data ya lingine."
   }
 }

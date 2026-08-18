@@ -84,28 +84,40 @@ export const qr = {
 } as const;
 
 /**
- * The sign-in stage's own palette — dark in both themes, on purpose.
+ * The promotional pane's own palette — dark in both themes, on purpose.
  *
- * The stage is a hero pane, not a surface: it is always a dark field with
- * light blooms across it, exactly as a cinema poster is dark whatever colour
- * the wall is. Wiring it to `--bg` would turn it white for a light-theme
- * reader and destroy the one screen whose job is to look like something.
+ * It is a hero surface, not a page surface: always a dark field with light
+ * blooms across it, the way a cinema poster is dark whatever colour the wall
+ * is. Wiring it to `--bg` would turn it white for a light-theme reader and
+ * destroy the one screen whose job is to look like something.
  *
- * Two of the blooms sit near the accent and the third is rotated off it —
- * that rotation is what stops the pane reading as a flat tint of one colour,
- * so the third is deliberately NOT derived from the accent.
+ * **No pink, and that is the point of this revision.** The first version ran
+ * blue → violet → pink, which is the palette of a consumer app and read as
+ * candy on a product sold to banks. These three sit in one cool quadrant — the
+ * brand blue, a cyan a few degrees off it, and a deep indigo carrying almost no
+ * saturation — so the pane reads as depth and light rather than as three
+ * colours. The indigo is there for shadow, not for hue.
  *
  * Here rather than as literals in `gate.tsx` for the same reason as `qr`:
- * colour belongs in the token file whether or not it varies, and being here
- * is what makes "these do not follow the theme" a decision on the record
- * instead of something that looks forgotten.
+ * colour belongs in the token file whether or not it varies, and being here is
+ * what makes "these do not follow the theme" a decision on the record.
  */
 export const stage = {
-  field: "#0b0d13",
+  field: "#070a12",
   bloomA: "#5b9dff",
-  bloomB: "#7c5cff",
-  bloomC: "#ff8ab5",
+  bloomB: "#22d3ee",
+  bloomC: "#4338ca",
   ink: "#ffffff",
+  /* The mock card, which carries this field as its OWN background now that it
+     sits on the sign-in pane rather than on the promo pane. It has to read as
+     a device on BOTH themes, and dark-on-dark is the hard one: against the
+     light pane a flat rectangle is already obviously a screen, while against
+     the dark pane it landed within a few points of the page behind it and
+     read as an empty outline. `lift` is a top-lit wash, `sheen` the hairline
+     of light along its top edge, `hairline` the ring that draws it. */
+  lift: "#141b2e",
+  sheen: "#ffffff1f",
+  hairline: "#242c40",
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -273,43 +285,45 @@ export const LIFECYCLE_INK = {
 } as const;
 
 /**
- * The interface stack — and it says two different things for the two scripts,
- * deliberately (ported from Bank Assist's ADR-0028).
+ * The interface stack — the reader's OWN system font, on purpose.
  *
- * **Latin is OURS, and Inter must lead.** CSS fallback is per CHARACTER, so
- * putting Inter first costs Amharic nothing: a Ge'ez codepoint simply is not
- * in Inter and moves on down the list. Ethiopic used to lead this stack, which
- * meant every Latin character in the product — labels, metrics, English
- * answers — was drawn with a Ge'ez face's Latin glyphs.
+ * `system-ui` resolves to Segoe UI on Windows, SF on macOS, Roboto on Android:
+ * the face every other application on that machine is already set in, so the
+ * console looks like it belongs there rather than like a web app that brought
+ * its own typeface. That is a deliberate choice for a tool staff sit in front
+ * of all day, and it is not the same question as what the SIGN-IN page does.
  *
- * **Ge'ez is the READER'S, and our copy stays LAST.** Nyala is what Windows
- * supplies and what an Amharic reader recognises as properly set; Abyssinica
- * SIL and the OS Noto follow. Our vendored Noto is the last resort only.
- * Promoting it up the list looks like a tidy-up and costs every Ethiopian
- * reader both the right face and 198 KB — a webfont is fetched only when it
- * wins the fallback, so on a machine with any Ethiopic font ours never
- * downloads at all.
+ * A previous pass replaced this with Inter across the whole product, ported
+ * from Bank Assist on the reasoning that "Ethiopic leading the stack means
+ * Latin is drawn with a Ge'ez face's glyphs". That is true of THEIR stack. It
+ * was never true here — Ethiopic sat fifth, after system-ui, so Latin was
+ * already resolving to the OS face. The port fixed a bug this codebase did not
+ * have and cost every screen its native look. Do not reintroduce it without a
+ * reason that survives reading this stack.
+ *
+ * Ethiopic stays where it was: after the Latin faces, unnamed by any
+ * @font-face, so it falls through to whatever the OS supplies — Nyala on
+ * Windows, which is the face an Amharic reader recognises as properly set.
  */
 export const font =
-  "'Inter Variable', Inter, " +
-  "Nyala, 'Abyssinica SIL', 'Noto Sans Ethiopic', Ebrima, " +
-  "'Noto Sans Ethiopic Variable', " +
-  "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Ethiopic', sans-serif";
 
 /**
- * The display serif, and it reaches exactly as far as the sign-in gate.
+ * The display face, and it reaches exactly as far as the sign-in screen.
  *
- * A page set entirely in one neutral sans has no voice — the first build of
- * Bank Assist's gate read as a template for exactly that reason. The serif is
- * for display sizes and numerals only.
+ * A page set entirely in one neutral sans has no voice. The first attempt used
+ * Playfair Display — a high-contrast editorial serif — and it read as a
+ * magazine masthead on a product built for bank operations staff. Space
+ * Grotesk is a grotesque with real character in its terminals and a slightly
+ * narrow set: confident and technical rather than literary, which is what a
+ * support desk sold to banks should sound like. It sits happily above
+ * system-ui body text because it is a sans too, so the pairing is a change of
+ * VOICE rather than a change of species.
  *
- * **Playfair has no Ethiopic at all**, so a Ge'ez headline in it falls through
- * to a system face while KEEPING the serif's tracking and leading. Anything
- * using this must switch family as well as spacing under `:lang(am|ti)` — see
- * `geezDisplayCss`.
+ * Latin only, so the Ge'ez rule is unchanged: an Ethiopic headline falls
+ * through to the OS face and must switch spacing along with it.
  */
-export const displayFont =
-  "'Playfair Display', " + font;
+export const displayFont = "'Space Grotesk Variable', " + font;
 
 export const radius = { sm: 6, md: 10, lg: 14 } as const;
 
@@ -366,61 +380,45 @@ export const themeBootScript = `try{var d=document.documentElement,t=localStorag
  * question in exchange for nothing. Both families are SIL OFL 1.1 with the
  * licences committed beside them.
  *
- * They are VARIABLE (one file covers 100–900) and split by script, so
- * `unicode-range` decides what downloads: an English session fetches 71 KB of
- * Latin and never touches the 198 KB of Ge'ez. Dropping the ranges would put
- * all of it on every Ethiopian mobile connection.
+ * They are VARIABLE (one file covers a whole weight range) and split by
+ * script, so `unicode-range` decides what downloads: an English session
+ * fetches 41 KB of Latin and never touches the 198 KB of Ge'ez. Dropping the
+ * ranges would put all of it on every Ethiopian mobile connection.
  *
- * Inter is the build WITH the `opsz` axis (14–32), not the weight-only one.
- * With `font-optical-sizing: auto` a display-size heading moves onto the
- * display cut; the weight-only file renders the text cut blown up, which is
- * visibly not the same typeface. It costs 23 KB.
+ * Only TWO families are declared here, and that is the whole list on purpose.
+ * Body text is `system-ui` — unvendored, already on the machine, and the face
+ * every other screen in this console was designed against. Space Grotesk
+ * reaches the sign-in headline and stops. A third @font-face here means
+ * somebody has started restyling the product again.
  */
 export const fontFaceCss = `
+  /* Space Grotesk carries the sign-in headline and nothing else. Split by
+     script so unicode-range decides what downloads, and Latin-only by nature:
+     a Ge'ez headline falls through to the reader's own Ethiopic face, which is
+     the rule everywhere in this product. */
   @font-face {
-    font-family: 'Inter Variable';
+    font-family: 'Space Grotesk Variable';
     font-style: normal;
-    font-weight: 100 900;
+    font-weight: 300 700;
     font-display: swap;
-    src: url('/fonts/inter-latin.woff2') format('woff2');
+    src: url('/fonts/space-grotesk-latin.woff2') format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
       U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
       U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
   @font-face {
-    font-family: 'Inter Variable';
+    font-family: 'Space Grotesk Variable';
     font-style: normal;
-    font-weight: 100 900;
+    font-weight: 300 700;
     font-display: swap;
-    src: url('/fonts/inter-latin-ext.woff2') format('woff2');
-    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
-      U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
-      U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
-      U+A720-A7FF;
-  }
-  @font-face {
-    font-family: 'Playfair Display';
-    font-style: normal;
-    font-weight: 400 900;
-    font-display: swap;
-    src: url('/fonts/playfair-latin.woff2') format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-      U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
-      U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-  }
-  @font-face {
-    font-family: 'Playfair Display';
-    font-style: normal;
-    font-weight: 400 900;
-    font-display: swap;
-    src: url('/fonts/playfair-latin-ext.woff2') format('woff2');
+    src: url('/fonts/space-grotesk-latin-ext.woff2') format('woff2');
     unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
       U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
       U+2113, U+2C60-2C7F, U+A720-A7FF;
   }
-  /* Last in the Ge'ez fallback by NAME — see \`font\`. Declared so a machine
-     with no Ethiopic face at all still renders Amharic, and fetched only in
-     that case. */
+  /* Declared so a machine with NO Ethiopic face at all still renders Amharic,
+     and fetched only in that case — it is last in the Ge'ez fallback by name,
+     so any OS-supplied Ethiopic wins and this never downloads. */
   @font-face {
     font-family: 'Noto Sans Ethiopic Variable';
     font-style: normal;
@@ -430,7 +428,6 @@ export const fontFaceCss = `
     unicode-range: U+1200-1399, U+2D80-2DDE, U+AB01-AB2E, U+1E7E0-1E7E6,
       U+1E7E8-1E7EB, U+1E7ED-1E7EE, U+1E7F0-1E7FE;
   }
-  html { font-optical-sizing: auto; }
 `;
 
 /**
@@ -449,8 +446,10 @@ export const fontFaceCss = `
  *    invisible beside the Latin because the script is denser anyway. On
  *    Windows this is binary: Nyala has only Regular and Bold, so 600 resolves
  *    to Bold and 500 to Regular with nothing between.
- *  - **PLAYFAIR HAS NO ETHIOPIC**, so the family must switch too, or the
- *    headline falls to a system face while keeping the serif's spacing.
+ *  - **SPACE GROTESK HAS NO ETHIOPIC**, so the family must switch too, or
+ *    the headline falls to a system face while keeping the display face's
+ *    spacing. This is true of any Latin display face we would pick, which is
+ *    why the rule is written against the script rather than against a name.
  *
  * And a fifth, which is a SIZE problem rather than a spacing one: a Ge'ez
  * syllable fills its em box where Latin lowercase fills about half, so the two

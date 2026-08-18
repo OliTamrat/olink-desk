@@ -99,11 +99,8 @@ export default function LoginPage() {
 
   if (needsCode) {
     return (
-      <Gate lang={lang}>
+      <Gate lang={lang} picker={<LanguagePicker lang={lang} onChange={setLang} />}>
         <div>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-            <LanguagePicker lang={lang} onChange={setLang} />
-          </div>
           <form onSubmit={submitCode} style={ui.card}>
             <h1 style={ui.h1}>{tUi(lang, "ui_mfa_challenge_title")}</h1>
             <p style={{ margin: "4px 0 20px", color: colors.textSecondary, fontSize: 14, lineHeight: 1.55 }}>
@@ -170,11 +167,8 @@ export default function LoginPage() {
   }
 
   return (
-    <Gate lang={lang}>
+    <Gate lang={lang} picker={<LanguagePicker lang={lang} onChange={setLang} />}>
       <div>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-          <LanguagePicker lang={lang} onChange={setLang} />
-        </div>
         <form onSubmit={submit} style={ui.card}>
           <h1 style={ui.h1}>{tUi(lang, "ui_login_title")}</h1>
           <p style={{ margin: "4px 0 20px", color: colors.textSecondary, fontSize: 14 }}>

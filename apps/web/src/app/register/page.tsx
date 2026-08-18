@@ -81,11 +81,8 @@ export default function RegisterPage() {
   );
 
   return (
-    <Gate lang={lang}>
+    <Gate lang={lang} picker={<LanguagePicker lang={lang} onChange={setLang} />}>
       <div>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-          <LanguagePicker lang={lang} onChange={setLang} />
-        </div>
         <form onSubmit={submit} style={ui.card}>
           <h1 style={ui.h1}>
             {tUi(lang, "ui_register_title")}
