@@ -1,7 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { colors, font, PALETTES, railCss, themeBootScript, themeCss } from "../lib/theme";
+import {
+  colors,
+  font,
+  fontFaceCss,
+  geezDisplayCss,
+  PALETTES,
+  railCss,
+  themeBootScript,
+  themeCss,
+} from "../lib/theme";
 
 export const metadata: Metadata = {
   title: "Olink Desk",
@@ -61,7 +70,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: themeCss + railCss + reset }} />
+        <style dangerouslySetInnerHTML={{ __html: fontFaceCss + themeCss + railCss + reset + geezDisplayCss }} />
         {/* Before first paint, so a dark-theme user never sees a white flash.
             `suppressHydrationWarning` on <html> above is required: this
             script legitimately changes an attribute the server did not

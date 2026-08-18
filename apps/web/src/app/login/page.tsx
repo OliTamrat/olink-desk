@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Gate } from "../../lib/gate";
 import {
   colors,
   LanguagePicker,
@@ -98,8 +99,8 @@ export default function LoginPage() {
 
   if (needsCode) {
     return (
-      <main style={{ ...ui.page, display: "grid", placeItems: "center", padding: 16 }}>
-        <div style={{ width: "100%", maxWidth: 380 }}>
+      <Gate lang={lang}>
+        <div>
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
             <LanguagePicker lang={lang} onChange={setLang} />
           </div>
@@ -164,13 +165,13 @@ export default function LoginPage() {
             </p>
           </form>
         </div>
-      </main>
+      </Gate>
     );
   }
 
   return (
-    <main style={{ ...ui.page, display: "grid", placeItems: "center", padding: 16 }}>
-      <div style={{ width: "100%", maxWidth: 380 }}>
+    <Gate lang={lang}>
+      <div>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
           <LanguagePicker lang={lang} onChange={setLang} />
         </div>
@@ -231,6 +232,6 @@ export default function LoginPage() {
           </p>
         </form>
       </div>
-    </main>
+    </Gate>
   );
 }
