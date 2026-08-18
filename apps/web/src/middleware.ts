@@ -12,7 +12,15 @@
 // of addresses — that needs Cloud Armor in front, which is infrastructure
 // rather than code. Stated so nobody reads this file and concludes the problem
 // is solved.
-import { clientKey, limitFor, LIMITS, MemoryBuckets } from "@olink-desk/auth";
+// The narrow entry point, NOT the package barrel — and that is load-bearing
+// rather than tidiness. Middleware runs on the EDGE runtime, which has no
+// `node:` scheme at all, and the barrel re-exports the TOTP module's
+// `node:crypto` import. Pulling the barrel in here fails the production build
+// outright ("Reading from node:crypto is not handled by plugins") while `next
+// dev` carries on working, so it is exactly the kind of break that reaches CI
+// rather than the person who caused it. `rate-limit` is pure arithmetic with
+// no platform dependency, which is why it can have its own door.
+import { clientKey, limitFor, LIMITS, MemoryBuckets } from "@olink-desk/auth/rate-limit";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Per instance. Cloud Run runs several under load, so the effective ceiling is

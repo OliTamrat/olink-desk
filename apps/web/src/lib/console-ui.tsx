@@ -262,6 +262,11 @@ export const Icons = {
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   ),
+  shield: (
+    <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
   signOut: (
     <svg width="16" height="16" viewBox="0 0 24 24" {...stroke}>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -952,6 +957,30 @@ function AccountMenu({
             </div>
           </div>
           <LanguagePicker lang={lang} onChange={onLang} />
+          {/* Your OWN settings — password, second factor — and deliberately
+              here rather than under workspace Settings. Those are behind admin
+              permissions, which would mean an agent could not turn on their
+              own two-factor: a permission check standing between somebody and
+              the security of their own account. */}
+          <Link
+            href="/account"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 10px",
+              borderRadius: radius.sm,
+              border: `1px solid ${colors.border}`,
+              background: "transparent",
+              color: colors.textSecondary,
+              fontSize: 13,
+              textDecoration: "none",
+              fontFamily: font,
+            }}
+          >
+            {Icons.shield}
+            {tUi(lang, "ui_account")}
+          </Link>
           <button
             onClick={onSignOut}
             style={{
@@ -993,7 +1022,11 @@ export function ConsoleShell({
   lang: Language;
   onLang: (l: Language) => void;
   me: ShellUser | null;
-  active: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings";
+  // "account" is a real page with no sidebar entry — it is reached from the
+  // user menu, because it is yours rather than the workspace's. Naming it here
+  // rather than allowing "" keeps every caller a known page instead of an
+  // empty string that could equally be a typo.
+  active: "dashboard" | "inbox" | "customers" | "channels" | "macros" | "knowledge" | "reports" | "wallboard" | "settings" | "account";
   /**
    * The second sidebar layer: a screen's own contextual navigation, docked
    * beside the app nav (the standard console shape — product rail, then Views).

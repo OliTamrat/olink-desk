@@ -57,10 +57,52 @@ describe("sessions", () => {
       role: "AGENT",
     });
     const payload = await verifySession(token);
-    expect(payload).toEqual({ userId: "u1", organizationId: "o1", role: "AGENT" });
+    expect(payload).toEqual({
+      userId: "u1",
+      organizationId: "o1",
+      role: "AGENT",
+      // An ordinary session is explicitly NOT half-finished. Reported as false
+      // rather than left undefined so a caller reading it cannot mistake
+      // "absent" for "unknown" and decide to be lenient.
+      pendingMfa: false,
+    });
     expect(await verifySession(token.slice(0, -2) + "xx")).toBeNull();
     expect(await verifySession("garbage")).toBeNull();
     expect(await verifySession(null)).toBeNull();
+  });
+
+  it("carries the pending-MFA state through a round trip", async () => {
+    const pending = await signSession({
+      userId: "u1",
+      organizationId: "o1",
+      role: "AGENT",
+      pendingMfa: true,
+    });
+    const payload = await verifySession(pending);
+    expect(payload?.pendingMfa).toBe(true);
+  });
+
+  // The claim is what the whole gate reads. A token that lost it in transit
+  // would resolve to a fully signed-in user on a password alone.
+  it("a pending token cannot be stripped back to an ordinary one", async () => {
+    const pending = await signSession({
+      userId: "u1",
+      organizationId: "o1",
+      role: "AGENT",
+      pendingMfa: true,
+    });
+    // Editing the payload breaks the signature; there is no way to drop the
+    // claim and keep a token that verifies.
+    const [header, body, sig] = pending.split(".");
+    const decoded = JSON.parse(Buffer.from(body, "base64url").toString()) as Record<
+      string,
+      unknown
+    >;
+    delete decoded.pendingMfa;
+    const forged = `${header}.${Buffer.from(JSON.stringify(decoded)).toString(
+      "base64url",
+    )}.${sig}`;
+    expect(await verifySession(forged)).toBeNull();
   });
 
   it("fails closed with no secret", async () => {

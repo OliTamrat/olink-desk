@@ -22,11 +22,13 @@
     "@olink-desk/sla": "workspace:*",
     "@olink-desk/tickets": "workspace:*",
     "next": "^14.1.4",
+    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.2.73",
     "@types/react-dom": "^18.2.23",
     "typescript": "^5.3.3"
