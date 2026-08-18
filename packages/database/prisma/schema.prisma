@@ -105,6 +105,7 @@ model Organization {
   ticketTags       TicketTag[]
   kbArticles       KbArticle[]
   attachments      Attachment[]
+  recoveryCodes    MfaRecoveryCode[]
 }
 
 enum UserRole {
@@ -137,6 +138,30 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
+
+  /// The shared TOTP secret, base32. Present the moment enrolment STARTS.
+  mfaSecret String?
+
+  /// When a code was first proved against that secret — and the only thing
+  /// that means two-factor is on.
+  ///
+  /// A secret alone is not a second factor: between showing the QR and the
+  /// first correct code, nobody has demonstrated they can produce one. Gating
+  /// on the secret would make closing the tab at that moment a lockout by a
+  /// credential no human holds. So enrolment does not count until it is
+  /// proved, and abandoning it costs nothing.
+  mfaVerifiedAt DateTime?
+
+  /// The highest 30-second step this credential has already spent.
+  ///
+  /// This is what makes the code one-TIME. Without it a code read over a
+  /// shoulder, or off a lock-screen notification, stays usable for the rest of
+  /// its window and for the drift allowance either side of it. Storing the
+  /// step also retires the previous one, so spending the current code closes
+  /// the backward half of the window too.
+  mfaLastUsedStep Int?
+
+  recoveryCodes MfaRecoveryCode[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -765,6 +790,39 @@ model Attachment {
 enum AttachmentKind {
   FILE
   VOICE
+}
+
+/// One single-use way back in when the phone is gone.
+///
+/// A row per code rather than an array on User, because each is spent
+/// independently and "which ones are left" has to survive a concurrent
+/// redemption. Deleting the row is what spends it — a `usedAt` column would
+/// leave the hash of a live-looking credential in the table forever.
+///
+/// The hash is SHA-256, not Argon2, and that is considered rather than lazy:
+/// a recovery code is 50 bits of machine randomness with no guessable
+/// structure, so a slow hash buys nothing, while paying it ten times per
+/// attempt would make this the one endpoint that amplifies a flood.
+/// Carries organizationId even though it hangs off a User who already has
+/// one. The duplication is deliberate: the tenancy guard is a SCHEMA
+/// invariant, and "this one is reached through a scoped parent" is exactly the
+/// reasoning that erodes it one model at a time. The relation also makes a row
+/// with a fabricated tenant impossible to insert, which a transitive argument
+/// does not.
+model MfaRecoveryCode {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  codeHash  String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, codeHash])
+  @@index([organizationId])
+  @@index([userId])
 }
 
 model Notification {

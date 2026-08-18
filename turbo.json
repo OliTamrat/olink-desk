@@ -12,6 +12,15 @@
     },
     "lint": {},
     "typecheck": {},
-    "test": {}
+    "test": {
+      // Some guards read files OUTSIDE their own package — the palette rule
+      // and the i18n call-site check both walk `apps/web/src`, because that is
+      // where the thing they guard lives and `apps/web` has no test script by
+      // design. Turbo hashes a package's own files by default, so those
+      // guards were served from cache whenever only web changed: they passed
+      // locally and failed in CI, which is precisely the local-gate-weaker-
+      // than-CI's failure this repo has already paid for twice.
+      "inputs": ["$TURBO_DEFAULT$", "../../apps/web/src/**"]
+    }
   }
 }

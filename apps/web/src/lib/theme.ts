@@ -61,6 +61,28 @@ export const colors = {
   shadowStrong: "var(--shadow-strong)",
 } as const;
 
+/**
+ * The two colours a QR code is allowed to be — and the only values in this
+ * file that must NOT follow the theme.
+ *
+ * A QR symbol is defined dark-on-light: the finder patterns a camera looks for
+ * are specified that way, and an inverted code is out of spec. Some phones
+ * cope; "some phones" is not a property to ship on the screen that turns on
+ * two-factor. So the plate stays white and the modules stay near-black in dark
+ * mode as much as light, which is exactly what a `var(--surface)` token would
+ * break the moment somebody switched theme.
+ *
+ * They live here rather than as literals at the call site because that is what
+ * the rule is FOR: colour belongs in the token file, whether or not it varies.
+ * Being here is also what makes the exception visible — a reader wondering why
+ * these are frozen finds the reason, instead of finding a hex in a route and
+ * assuming somebody forgot.
+ */
+export const qr = {
+  light: "#ffffff",
+  dark: "#0b1220",
+} as const;
+
 export type ColorToken = keyof typeof colors;
 
 /**

@@ -12,10 +12,25 @@ import type { UserRole } from "@olink-desk/database";
 const SESSION_HOURS = 12;
 const MIN_SECRET_LENGTH = 32;
 
+// How long a half-finished login stays open. Minutes, not hours: the only
+// thing that has to happen inside it is reading six digits off a phone, and a
+// password already accepted is a credential sitting in the open until the
+// second factor lands.
+const PENDING_MFA_MINUTES = 5;
+
 export interface SessionPayload {
   userId: string;
   organizationId: string;
   role: UserRole;
+  /**
+   * The password was accepted and the second factor has NOT been given yet.
+   *
+   * A session in this state resolves to nobody. It is one claim rather than a
+   * separate challenge store on purpose: a second thing that grants access
+   * would have its own expiry, its own revocation and its own way to be
+   * forgotten by whoever writes the next route.
+   */
+  pendingMfa?: boolean;
 }
 
 function key(): Uint8Array {
@@ -32,11 +47,18 @@ export async function signSession(payload: SessionPayload): Promise<string> {
   return new SignJWT({
     organizationId: payload.organizationId,
     role: payload.role,
+    // Omitted entirely when false, so an ordinary session's token is byte-for
+    // byte what it was before MFA existed.
+    ...(payload.pendingMfa ? { pendingMfa: true } : {}),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.userId)
     .setIssuedAt()
-    .setExpirationTime(`${SESSION_HOURS}h`)
+    // A pending session expires in minutes. Inheriting the full lifetime would
+    // leave a password-only credential valid for twelve hours.
+    .setExpirationTime(
+      payload.pendingMfa ? `${PENDING_MFA_MINUTES}m` : `${SESSION_HOURS}h`,
+    )
     .sign(key());
 }
 
@@ -58,7 +80,12 @@ export async function verifySession(
     ) {
       return null;
     }
-    return { userId, organizationId, role: role as UserRole };
+    return {
+      userId,
+      organizationId,
+      role: role as UserRole,
+      pendingMfa: payload.pendingMfa === true,
+    };
   } catch {
     return null;
   }

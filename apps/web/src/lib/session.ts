@@ -8,8 +8,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export const SESSION_COOKIE = "desk_session";
 const SESSION_MAX_AGE_SECONDS = 12 * 60 * 60;
+// Matches the pending token's own expiry. The cookie outliving the JWT would
+// only mean the browser keeps sending something already dead — harmless, but
+// it turns "your code took too long" into a silent 401 with no session at all,
+// which reads as a bug rather than a timeout.
+const PENDING_MFA_MAX_AGE_SECONDS = 5 * 60;
 
-export function sessionCookie(token: string) {
+export function sessionCookie(token: string, opts?: { pendingMfa?: boolean }) {
   return {
     name: SESSION_COOKIE,
     value: token,
@@ -17,7 +22,7 @@ export function sessionCookie(token: string) {
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    maxAge: opts?.pendingMfa ? PENDING_MFA_MAX_AGE_SECONDS : SESSION_MAX_AGE_SECONDS,
   };
 }
 
@@ -42,6 +47,13 @@ export async function currentPrincipal(
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await verifySession(token);
   if (!session) return null;
+  // The password was right; the second factor was not given. THIS IS THE ONLY
+  // PLACE THAT DECIDES, deliberately: every staff route in the product reaches
+  // its caller through here, so a route written before MFA existed — or after,
+  // by somebody who did not think about it — is still unreachable with a
+  // half-finished login. Fail closed, in one place. Never add a second path
+  // that resolves a pending session to a user.
+  if (session.pendingMfa) return null;
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (
     !user ||
@@ -56,6 +68,31 @@ export async function currentPrincipal(
   if (!organization) return null;
   // Role comes from the database, not the token, for the same reason.
   return { session: { ...session, role: user.role }, user, organization };
+}
+
+/**
+ * The half-authenticated user a token names, for the MFA step ONLY.
+ *
+ * Deliberately separate from `currentPrincipal` and deliberately not returning
+ * a Principal: this is the one caller that must see past the pending flag, and
+ * handing it a bare user keeps it obvious at the call site that nobody is
+ * signed in yet. Two callers may use it — proving a code, and abandoning the
+ * attempt — and nothing else in the product should ever import it.
+ */
+export async function pendingMfaUser(
+  request: NextRequest,
+): Promise<{ session: SessionPayload; user: User } | null> {
+  const session = await verifySession(request.cookies.get(SESSION_COOKIE)?.value);
+  if (!session || !session.pendingMfa) return null;
+  const user = await prisma.user.findUnique({ where: { id: session.userId } });
+  if (
+    !user ||
+    user.organizationId !== session.organizationId ||
+    user.status !== UserStatus.ACTIVE
+  ) {
+    return null;
+  }
+  return { session, user };
 }
 
 /** Guard for API routes: a Principal, or the 401/403 response to return. */
