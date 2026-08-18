@@ -19,6 +19,7 @@ import {
   useConsoleLanguage,
   useMe,
 } from "../../lib/console-ui";
+import { qr as qrColours } from "../../lib/theme";
 
 type State = "off" | "pending" | "on";
 
@@ -163,7 +164,7 @@ export default function AccountPage() {
                   property to ship on the screen that turns on two-factor. */}
               <div
                 style={{
-                  background: "#ffffff",
+                  background: qrColours.light,
                   borderRadius: 12,
                   padding: 12,
                   width: "fit-content",

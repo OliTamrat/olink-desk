@@ -18,6 +18,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import QRCode from "qrcode";
 
 import { isDenied, requireUser } from "../../../../lib/session";
+import { qr as qrColours } from "../../../../lib/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,8 @@ async function qrSvg(uri: string): Promise<string> {
     // size keeps every module boundary on a whole pixel; the stylesheet must
     // not force it smaller.
     width: 264,
-    color: { dark: "#0b1220", light: "#ffffff" },
+    // Frozen against the theme on purpose — see the `qr` token.
+    color: { dark: qrColours.dark, light: qrColours.light },
   });
 }
 
