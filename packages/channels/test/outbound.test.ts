@@ -221,6 +221,11 @@ describe("logOffChannelReply", () => {
   async function phoneTicket(org: Awaited<ReturnType<typeof createOrg>>) {
     return openTicket(prisma, {
       organizationId: org.id,
+      // Null on purpose, and stated rather than defaulted: no conversation is
+      // exactly what makes this ticket unreplyable, which is the whole
+      // precondition these tests exercise.
+      conversationId: null,
+      contactId: null,
       channel: "PHONE",
       language: "en",
       subject: "Customer called about a failed transfer",
