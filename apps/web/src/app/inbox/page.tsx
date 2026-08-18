@@ -214,6 +214,12 @@ function InboxWorkspace() {
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  // A rail change (status, priority, assignee, queue, customer) that the
+  // server refuses — an AUDITOR's read-only account, most often — used to
+  // fail with NOTHING shown: the select just snaps back to the server's
+  // value on the next reload, and an agent staring at a dropdown that
+  // "won't take" has no way to tell a permission wall from a stuck click.
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
   const [queues, setQueues] = useState<Array<{ id: string; name: string }>>([]);
   const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const [meId, setMeId] = useState<string | null>(null);
@@ -466,12 +472,25 @@ function InboxWorkspace() {
 
   async function patchTicket(change: Record<string, unknown>) {
     if (!selectedId) return;
+    setPropertiesError(null);
     const resp = await fetch(`/api/tickets/${selectedId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(change),
     });
-    if (resp.ok) await Promise.all([loadDetail(selectedId), loadList()]);
+    if (resp.ok) {
+      await Promise.all([loadDetail(selectedId), loadList()]);
+      return;
+    }
+    // loadDetail is what makes every select snap back to the server's
+    // value — without an error next to it, that snap-back is the ONLY
+    // signal a denied change produces, and it looks identical to a click
+    // that never registered.
+    const body = (await resp.json().catch(() => null)) as { error?: string } | null;
+    setPropertiesError(
+      tUi(lang, "ui_ticket_update_failed", { error: body?.error ?? `HTTP ${resp.status}` }),
+    );
+    await loadDetail(selectedId);
   }
 
   async function bulk(change: Record<string, unknown>) {
@@ -657,10 +676,16 @@ function InboxWorkspace() {
     setSending(true);
     setSendError(null);
     try {
+      // A ticket with no conversation has no transport, so an outward-facing
+      // message on it is a RECORD of a reply the agent made themselves, not
+      // a send. The server refuses `logged` on a ticket that does have a
+      // transport, so this cannot become a way to stop a live SLA clock
+      // without actually answering anybody.
+      const logged = !internal && !detail?.conversation;
       const resp = await fetch(`/api/tickets/${selectedId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: reply.trim(), internal }),
+        body: JSON.stringify({ body: reply.trim(), internal, logged }),
       });
       if (resp.ok) {
         setReply("");
@@ -883,6 +908,11 @@ function InboxWorkspace() {
   // --------------------------------------------------------- ticket view
   if (selectedId && detail) {
     const sla = slaState(detail);
+    // The outward-facing composer mode on a ticket the desk cannot send on:
+    // recording a reply the agent delivered themselves. Derived once so the
+    // tab label, the hint, the placeholder and the button cannot disagree
+    // about which mode the composer is in.
+    const logging = !internal && !detail.conversation;
 
     const properties = (
       <div
@@ -895,6 +925,9 @@ function InboxWorkspace() {
         }}
       >
         <RailHeading>{tUi(lang, "ui_properties")}</RailHeading>
+        {propertiesError ? (
+          <div style={{ ...ui.error, marginBottom: 10, fontSize: 12.5 }}>{propertiesError}</div>
+        ) : null}
         <div style={{ display: "grid", gap: 12 }}>
           <Labelled label={tUi(lang, "ui_assignee")}>
             <select
@@ -1335,6 +1368,10 @@ function InboxWorkspace() {
                         : m.autoAnswered
                           ? tUi(lang, "ui_aa_badge")
                           : (m.authorUser?.name ?? "Olink Desk")}
+                      {/* An asserted callback must never read like a message
+                          the desk carried — the next agent scanning the
+                          thread has to be able to tell which is which. */}
+                      {m.offChannel ? ` · ${tUi(lang, "ui_msg_off_channel")}` : ""}
                       {" · "}
                       {timeAgo(m.createdAt)}
                     </div>
@@ -1415,7 +1452,19 @@ function InboxWorkspace() {
                       fontFamily: "inherit",
                     }}
                   >
-                    {tUi(lang, mode ? "ui_internal_note" : "ui_public_reply")}
+                    {/* On a ticket with no transport the outward-facing mode
+                        is not "reply to the customer" — the desk cannot — it
+                        is "record the reply you made yourself". Relabelling
+                        the SAME mode rather than adding a third keeps the
+                        composer two-state everywhere. */}
+                    {tUi(
+                      lang,
+                      mode
+                        ? "ui_internal_note"
+                        : detail.conversation
+                          ? "ui_public_reply"
+                          : "ui_log_reply",
+                    )}
                   </button>
                 ))}
                 {/* Draft, not send. What comes back lands in the box the
@@ -1553,12 +1602,13 @@ function InboxWorkspace() {
               ) : macroNote ? (
                 <div style={{ fontSize: 12, color: colors.textMuted }}>{macroNote}</div>
               ) : null}
-              {/* No conversation means no transport. Saying so here — rather
-                  than letting the agent type a reply and discover on send that
-                  it went nowhere — is the same honesty the bulk preview owes
-                  its undeliverable list. An internal note is still fine: it is
-                  for colleagues, not the customer. */}
-              {!detail.conversation && !internal ? (
+              {/* No conversation means no transport, and this used to be a
+                  dead end: a warning over a disabled button, on a ticket
+                  whose first-response clock could then never be stopped. The
+                  desk still cannot send — that part was right — so the mode
+                  becomes RECORDING the reply the agent made themselves, and
+                  the warning explains that rather than just refusing. */}
+              {logging ? (
                 <div style={{ ...ui.warn, fontSize: 12 }}>
                   {tUi(lang, "ui_ticket_no_reply_warning")}
                 </div>
@@ -1567,7 +1617,14 @@ function InboxWorkspace() {
                 <textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
-                  placeholder={tUi(lang, internal ? "ui_note_placeholder" : "ui_reply_placeholder")}
+                  placeholder={tUi(
+                    lang,
+                    internal
+                      ? "ui_note_placeholder"
+                      : logging
+                        ? "ui_log_reply_placeholder"
+                        : "ui_reply_placeholder",
+                  )}
                   rows={2}
                   style={{
                     ...ui.input,
@@ -1582,22 +1639,23 @@ function InboxWorkspace() {
                 />
                 <button
                   onClick={send}
-                  // A ticket with no conversation has no transport at all, so
-                  // the button is disabled rather than left live under a
-                  // warning — a warning plus a working-looking button is still
-                  // a composer that fails on send. An INTERNAL note is fine:
-                  // it is for colleagues, and never leaves the desk.
-                  disabled={sending || !reply.trim() || (!detail.conversation && !internal)}
+                  // Enabled in every mode now. It was disabled whenever the
+                  // desk had no transport, which was honest about sending and
+                  // wrong about everything else: the agent had no way to
+                  // record the callback they had just made, so the ticket
+                  // could not advance and its SLA ran on forever.
+                  disabled={sending || !reply.trim()}
                   style={{
                     ...ui.button,
                     alignSelf: "flex-end",
                     background: internal ? colors.warn : colors.accent,
                     color: internal ? colors.bg : colors.onAccent,
-                    opacity:
-                      sending || !reply.trim() || (!detail.conversation && !internal) ? 0.6 : 1,
+                    opacity: sending || !reply.trim() ? 0.6 : 1,
                   }}
                 >
-                  {sending ? tUi(lang, "ui_sending") : tUi(lang, "ui_send")}
+                  {sending
+                    ? tUi(lang, "ui_sending")
+                    : tUi(lang, logging ? "ui_log_it" : "ui_send")}
                 </button>
               </div>
             </div>

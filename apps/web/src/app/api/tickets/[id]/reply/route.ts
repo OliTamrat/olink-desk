@@ -1,6 +1,6 @@
 // An agent's reply, delivered on the ticket's own channel. AUDITOR is
 // read-only by definition and cannot reply.
-import { sendAgentReply } from "@olink-desk/channels";
+import { logOffChannelReply, sendAgentReply } from "@olink-desk/channels";
 import { prisma, UserRole } from "@olink-desk/database";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -15,6 +15,7 @@ const REASON_STATUS: Record<string, number> = {
   no_outbound_transport: 409,
   delivery_failed: 502,
   empty_body: 400,
+  has_conversation: 409,
 };
 
 export async function POST(
@@ -30,10 +31,16 @@ export async function POST(
 
   let body: unknown;
   let internal = false;
+  let logged = false;
   try {
-    const payload = (await request.json()) as { body?: unknown; internal?: unknown };
+    const payload = (await request.json()) as {
+      body?: unknown;
+      internal?: unknown;
+      logged?: unknown;
+    };
     body = payload.body;
     internal = payload.internal === true;
+    logged = payload.logged === true;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -80,13 +87,24 @@ export async function POST(
     return NextResponse.json({ ok: true, messageId: note.id, internal: true });
   }
 
-  const result = await sendAgentReply({
-    db: prisma,
-    organizationId: principal.organization.id,
-    ticketId: params.id,
-    body,
-    authorUserId: principal.user.id,
-  });
+  // A reply the agent delivered themselves, on a ticket the desk cannot send
+  // on. `logOffChannelReply` refuses a ticket that HAS a transport, so this
+  // flag can never be used to stop an SLA clock on a channel that works.
+  const result = logged
+    ? await logOffChannelReply({
+        db: prisma,
+        organizationId: principal.organization.id,
+        ticketId: params.id,
+        body,
+        authorUserId: principal.user.id,
+      })
+    : await sendAgentReply({
+        db: prisma,
+        organizationId: principal.organization.id,
+        ticketId: params.id,
+        body,
+        authorUserId: principal.user.id,
+      });
   if (!result.ok) {
     return NextResponse.json(
       { error: result.reason },

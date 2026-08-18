@@ -38,6 +38,7 @@ export async function GET(
           // words were erased on purpose.
           redactedAt: true,
           autoAnswered: true,
+          offChannel: true,
           createdAt: true,
           authorUser: { select: { name: true } },
         },

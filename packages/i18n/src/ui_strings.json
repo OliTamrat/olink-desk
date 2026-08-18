@@ -294,7 +294,7 @@
     "ui_channel_walk_in": "In person",
     "ui_ticket_customer": "Customer",
     "ui_ticket_customer_find": "Search for them, or type a new phone number",
-    "ui_ticket_no_reply_warning": "A logged call has no channel to reply on. Answer this one by calling them back — the desk cannot send to it.",
+    "ui_ticket_no_reply_warning": "The desk cannot send on this ticket — answer it by calling them back, then record what you told them. That stops the response clock and keeps the call in your reports.",
     "ui_ticket_created": "Ticket #{n} logged",
     "ui_identify_customer": "Name this customer",
     "ui_identify_hint": "This ticket arrived without a name. Linking it to a customer carries the identity onto everything they send next.",
@@ -501,7 +501,12 @@
     "ui_aa_failed": "Could not change the setting. {error}",
     "ui_aa_badge": "Answered automatically",
     "ui_aa_turn_on": "Turn on",
-    "ui_aa_turn_off": "Turn off"
+    "ui_aa_turn_off": "Turn off",
+    "ui_ticket_update_failed": "Could not update: {error}",
+    "ui_log_reply": "Log a reply",
+    "ui_log_reply_placeholder": "Record what you told the customer…",
+    "ui_log_it": "Log it",
+    "ui_msg_off_channel": "Logged by agent"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -798,7 +803,7 @@
     "ui_channel_walk_in": "በአካል",
     "ui_ticket_customer": "ደንበኛ",
     "ui_ticket_customer_find": "ይፈልጓቸው፣ ወይም አዲስ የስልክ ቁጥር ይተይቡ",
-    "ui_ticket_no_reply_warning": "የተመዘገበ ጥሪ የሚመልስበት ቻናል የለውም። ይህን መልሰው በመደወል ይመልሱ — ዴስኩ ወደዚህ መላክ አይችልም።",
+    "ui_ticket_no_reply_warning": "በዚህ ትኬት ላይ ዴስኩ መላክ አይችልም — መልሰው በመደወል ይመልሱ፣ ከዚያም የነገሩትን ይመዝግቡ። ይህ የምላሽ ሰዓቱን ያቆማል እና ጥሪው በሪፖርቶችዎ ውስጥ እንዲቆይ ያደርጋል።",
     "ui_ticket_created": "ቲኬት #{n} ተመዝግቧል",
     "ui_identify_customer": "ይህን ደንበኛ ይሰይሙ",
     "ui_identify_hint": "ይህ ቲኬት ያለ ስም ደርሷል። ከደንበኛ ጋር ማገናኘት ማንነቱን ቀጥሎ ወደሚልኩት ሁሉ ያሸጋግራል።",
@@ -1005,7 +1010,12 @@
     "ui_aa_failed": "ቅንብሩን መቀየር አልተቻለም። {error}",
     "ui_aa_badge": "በራስ-ሰር ተመልሷል",
     "ui_aa_turn_on": "አብራ",
-    "ui_aa_turn_off": "አጥፋ"
+    "ui_aa_turn_off": "አጥፋ",
+    "ui_ticket_update_failed": "ማዘመን አልተቻለም: {error}",
+    "ui_log_reply": "ምላሽ መዝግብ",
+    "ui_log_reply_placeholder": "ለደንበኛው የነገሩትን ይመዝግቡ…",
+    "ui_log_it": "መዝግብ",
+    "ui_msg_off_channel": "በወኪል የተመዘገበ"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1302,7 +1312,7 @@
     "ui_channel_walk_in": "Dhuunfaadhaan",
     "ui_ticket_customer": "Maamila",
     "ui_ticket_customer_find": "Isaan barbaadi, yookaan lakkoofsa bilbilaa haaraa barreessi",
-    "ui_ticket_no_reply_warning": "Bilbilli galmaa'e karaa deebii itti kennan hin qabu. Kana deebisanii bilbiluudhaan deebisi — deeskiin gara kanaatti erguu hin danda'u.",
+    "ui_ticket_no_reply_warning": "Deskiin tiketii kana irratti erguu hin danda'u — deebi'ii bilbiluudhaan deebisi, sana booda waan itti himte galmeessi. Kun sa'aatii deebii ni dhaaba, bilbilli sunis gabaasa kee keessa ni hafa.",
     "ui_ticket_created": "Tikeetiin #{n} galmaa'eera",
     "ui_identify_customer": "Maamila kana moggaasi",
     "ui_identify_hint": "Tikeetiin kun maqaa malee dhufe. Maamila waliin walqabsiisuun eenyummaa isaa gara waan itti aanee ergan hundatti dabarsa.",
@@ -1509,7 +1519,12 @@
     "ui_aa_failed": "Qindaa'ina jijjiiruun hin danda'amne. {error}",
     "ui_aa_badge": "Ofumaan deebi'e",
     "ui_aa_turn_on": "Bani",
-    "ui_aa_turn_off": "Cufi"
+    "ui_aa_turn_off": "Cufi",
+    "ui_ticket_update_failed": "Haaromsuu hin danda'amne: {error}",
+    "ui_log_reply": "Deebii galmeessi",
+    "ui_log_reply_placeholder": "Waan maamilaaf himte galmeessi…",
+    "ui_log_it": "Galmeessi",
+    "ui_msg_off_channel": "Bakka bu'aadhaan galmaa'e"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -1806,7 +1821,7 @@
     "ui_channel_walk_in": "ብኣካል",
     "ui_ticket_customer": "ዓሚል",
     "ui_ticket_customer_find": "ድለዮም፡ ወይ ሓድሽ ቁጽሪ ተሌፎን ጽሓፍ",
-    "ui_ticket_no_reply_warning": "እተመዝገበ ጻውዒት መልሲ ዝወሃበሉ ቻነል የብሉን። ነዚ መሊስካ ብምድዋል መልሶ — እቲ ደስክ ናብዚ ክሰድድ ኣይክእልን።",
+    "ui_ticket_no_reply_warning": "እዚ ዴስክ ኣብዚ ቲኬት ክሰድድ ኣይክእልን — ደዊልካ መልሰሉ፡ ድሕሪኡ ዝበልካዮ መዝግብ። እዚ ነቲ ሰዓት መልሲ የቋርጾ፡ እቲ ጻውዒት ድማ ኣብ ጸብጻባትካ ይተርፍ።",
     "ui_ticket_created": "ትኬት #{n} ተመዝጊቡ",
     "ui_identify_customer": "ነዚ ዓሚል ሰይሞ",
     "ui_identify_hint": "እዚ ትኬት ብዘይ ስም እዩ መጺኡ። ምስ ዓሚል ምትእስሳር ነቲ መንነት ናብ ዝቕጽል ዝሰዱዎ ኩሉ የሰጋግሮ።",
@@ -2013,7 +2028,12 @@
     "ui_aa_failed": "ውቕረቱ ምቕያር ኣይተኻእለን። {error}",
     "ui_aa_badge": "ብቐጥታ ተመሊሱ",
     "ui_aa_turn_on": "ወልዖ",
-    "ui_aa_turn_off": "ኣጥፍእ"
+    "ui_aa_turn_off": "ኣጥፍእ",
+    "ui_ticket_update_failed": "ምሕዳስ ኣይተኻእለን: {error}",
+    "ui_log_reply": "መልሲ መዝግብ",
+    "ui_log_reply_placeholder": "ነቲ ዓሚል ዝበልካዮ መዝግብ…",
+    "ui_log_it": "መዝግቦ",
+    "ui_msg_off_channel": "ብወኪል እተመዝገበ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2310,7 +2330,7 @@
     "ui_channel_walk_in": "Shakhsi ahaan",
     "ui_ticket_customer": "Macmiil",
     "ui_ticket_customer_find": "Raadi, ama qor lambar taleefan cusub",
-    "ui_ticket_no_reply_warning": "Wicitaan la diiwaan geliyay ma laha kanaal lagaga jawaabo. Kan uga jawaab adigoo dib u wacaya — deesku ma diri karo.",
+    "ui_ticket_no_reply_warning": "Miiska lagama diri karo tikidhkan — ku jawaab adigoo dib u soo wacaya, ka dibna qor waxaad u sheegtay. Taasi waxay joojinaysaa saacadda jawaabta, wacitaankana wuxuu ku sii jiraa warbixinnadaada.",
     "ui_ticket_created": "Tikidh #{n} waa la diiwaan geliyay",
     "ui_identify_customer": "Magacaw macmiilkan",
     "ui_identify_hint": "Tikidhkan wuxuu yimid magac la'aan. Isku xirka macmiil wuxuu aqoonsiga u gudbinayaa wax kasta oo ay xigta soo diraan.",
@@ -2517,7 +2537,12 @@
     "ui_aa_failed": "Lama beddeli karin habeynta. {error}",
     "ui_aa_badge": "Si toos ah ayaa loo jawaabay",
     "ui_aa_turn_on": "Shid",
-    "ui_aa_turn_off": "Demi"
+    "ui_aa_turn_off": "Demi",
+    "ui_ticket_update_failed": "Lama cusboonaysiin karin: {error}",
+    "ui_log_reply": "Diiwaangeli jawaab",
+    "ui_log_reply_placeholder": "Qor waxaad macmiilka u sheegtay…",
+    "ui_log_it": "Diiwaangeli",
+    "ui_msg_off_channel": "Wakiil baa diiwaangeliyay"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -2814,7 +2839,7 @@
     "ui_channel_walk_in": "Ana kwa ana",
     "ui_ticket_customer": "Mteja",
     "ui_ticket_customer_find": "Watafute, au andika namba mpya ya simu",
-    "ui_ticket_no_reply_warning": "Simu iliyorekodiwa haina kituo cha kujibia. Jibu hii kwa kuwapigia tena — dawati haliwezi kutuma humo.",
+    "ui_ticket_no_reply_warning": "Dawati haliwezi kutuma kwa tikiti hii — jibu kwa kumpigia simu, kisha rekodi uliyomwambia. Hii husimamisha saa ya majibu na huweka simu katika ripoti zako.",
     "ui_ticket_created": "Tiketi #{n} imesajiliwa",
     "ui_identify_customer": "Mtaje mteja huyu",
     "ui_identify_hint": "Tiketi hii ilifika bila jina. Kuiunganisha na mteja hupeleka utambulisho kwenye kila kitu watakachotuma baadaye.",
@@ -3021,6 +3046,11 @@
     "ui_aa_failed": "Imeshindwa kubadilisha mpangilio. {error}",
     "ui_aa_badge": "Imejibiwa kiotomatiki",
     "ui_aa_turn_on": "Washa",
-    "ui_aa_turn_off": "Zima"
+    "ui_aa_turn_off": "Zima",
+    "ui_ticket_update_failed": "Imeshindwa kusasisha: {error}",
+    "ui_log_reply": "Rekodi jibu",
+    "ui_log_reply_placeholder": "Rekodi uliyomwambia mteja…",
+    "ui_log_it": "Rekodi",
+    "ui_msg_off_channel": "Imerekodiwa na wakala"
   }
 }
