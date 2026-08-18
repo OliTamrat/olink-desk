@@ -359,6 +359,20 @@ model TicketMessage {
   /// number — which is exactly what this feature must not be.
   autoAnswered Boolean @default(false)
 
+  /// Set on an OUTBOUND row the AGENT delivered themselves — a callback on a
+  /// logged phone ticket, a word at the counter on a walk-in — rather than
+  /// one the desk carried.
+  ///
+  /// A ticket with no conversation has no transport, so `sendAgentReply`
+  /// refuses it. Without this flag that refusal was terminal: the ticket
+  /// could never record a first response, so it stayed "awaiting first
+  /// reply" forever, breached its SLA, kept raising escalations, and left
+  /// every phone call the team actually made invisible in the reports. The
+  /// desk cannot observe a callback, so the agent asserting it is the only
+  /// honest signal available — and it is marked as an assertion rather than
+  /// silently mixed in with messages the desk itself delivered.
+  offChannel Boolean @default(false)
+
   /// Set when the body was emptied by a retention pass or an erasure. The row
   /// stays so the shape of the conversation stays true — who spoke, on which
   /// channel, in which direction, and when. A deleted row would quietly

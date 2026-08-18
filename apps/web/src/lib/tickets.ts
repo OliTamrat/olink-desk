@@ -46,6 +46,12 @@ export interface TimelineMessage {
   redactedAt: string | null;
   /** True when the desk sent this by itself, with no agent involved. */
   autoAnswered?: boolean;
+  /**
+   * True when the AGENT delivered this themselves — a callback on a logged
+   * phone ticket — rather than the desk carrying it. An assertion that a
+   * reply happened, so it must be labelled as one wherever it is shown.
+   */
+  offChannel?: boolean;
   createdAt: string;
   authorUser: { name: string } | null;
 }

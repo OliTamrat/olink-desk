@@ -80,5 +80,10 @@ export {
   ticketNumberInSubject,
   type EmailConfig,
 } from "./email";
-export { sendAgentReply, sendCsatSurvey, type ReplyOutcome } from "./outbound";
+export {
+  logOffChannelReply,
+  sendAgentReply,
+  sendCsatSurvey,
+  type ReplyOutcome,
+} from "./outbound";
 export { handleWebMessage, listWebMessages } from "./web";

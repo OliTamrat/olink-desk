@@ -29,7 +29,10 @@ export type ReplyOutcome =
         | "channel_not_connected"
         | "no_outbound_transport"
         | "delivery_failed"
-        | "empty_body";
+        | "empty_body"
+        // logOffChannelReply only: the ticket HAS a transport, so the reply
+        // belongs on it rather than in a hand-written claim that one happened.
+        | "has_conversation";
     };
 
 const MAX_BODY = 4000;
@@ -106,6 +109,89 @@ export async function sendAgentReply(opts: {
       organizationId,
       actorUserId: authorUserId,
       action: "ticket.replied",
+      entityType: "ticket",
+      entityId: String(ticket.id),
+      metadata: { channel: ticket.channel },
+    },
+  });
+  return { ok: true, messageId: message.id };
+}
+
+/**
+ * Record a reply the AGENT delivered themselves, on a ticket the desk has no
+ * transport for — a callback on a logged phone ticket, a word at the counter
+ * on a walk-in.
+ *
+ * **Why this exists at all.** `sendAgentReply` refuses a ticket with no
+ * conversation, which is right: the desk must never write a timeline row for
+ * a message it did not deliver. But `firstRespondedAt` was written in that
+ * one place, so the refusal was terminal — a phone ticket could never record
+ * a first response no matter what the team did about it. It stayed "awaiting
+ * first reply" for the rest of its life, went at-risk and then breached on
+ * the wallboard, kept raising escalations, and left every callback the team
+ * actually made missing from the first-response median. The team was being
+ * measured as if it had ignored the customer it had just phoned back.
+ *
+ * **Why it is safe.** Two properties, and both are load-bearing:
+ *
+ * 1. **It refuses a ticket that HAS a conversation** (`has_conversation`).
+ *    Otherwise this is a button that stops an SLA clock without sending
+ *    anything — an agent could clear a breaching Telegram ticket by typing
+ *    into it. The rule is not "the agent chose to log it", it is "the desk
+ *    genuinely cannot carry this", which is a fact about the ticket rather
+ *    than a preference.
+ * 2. **The row is flagged `offChannel`**, so a claim that a reply happened is
+ *    never silently mixed in with messages the desk itself delivered. The
+ *    timeline says which is which, and so can any later report that cares.
+ *
+ * It is still an assertion — the desk cannot observe a phone call — and the
+ * audit row records who asserted it.
+ */
+export async function logOffChannelReply(opts: {
+  db: PrismaClient;
+  organizationId: string;
+  ticketId: string;
+  body: string;
+  authorUserId: string;
+}): Promise<ReplyOutcome> {
+  const { db, organizationId, ticketId, authorUserId } = opts;
+  const body = opts.body.trim().slice(0, MAX_BODY);
+  if (!body) return { ok: false, reason: "empty_body" };
+
+  const ticket = await db.ticket.findFirst({
+    where: { id: ticketId, organizationId },
+    include: { conversation: true },
+  });
+  if (!ticket) return { ok: false, reason: "ticket_not_found" };
+  if (ticket.conversation) return { ok: false, reason: "has_conversation" };
+
+  const message = await db.ticketMessage.create({
+    data: {
+      organizationId,
+      ticketId: ticket.id,
+      direction: "OUTBOUND",
+      channel: ticket.channel,
+      body,
+      offChannel: true,
+      authorUserId,
+      contactId: ticket.contactId,
+    },
+  });
+  // The same two stamps a delivered reply earns, for the same reason: the
+  // customer has now heard from us, so the first-response promise is met and
+  // a NEW ticket is one somebody is working.
+  await db.ticket.update({
+    where: { id: ticket.id },
+    data: {
+      status: ticket.status === TicketStatus.NEW ? TicketStatus.OPEN : ticket.status,
+      firstRespondedAt: ticket.firstRespondedAt ?? new Date(),
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      organizationId,
+      actorUserId: authorUserId,
+      action: "ticket.reply_logged",
       entityType: "ticket",
       entityId: String(ticket.id),
       metadata: { channel: ticket.channel },

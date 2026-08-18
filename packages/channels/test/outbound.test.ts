@@ -2,8 +2,10 @@
 // recording only what was accepted, tenant scope from the caller's session.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { openTicket } from "@olink-desk/tickets";
+
 import { sealChannelConfig } from "../src/crypto";
-import { sendAgentReply } from "../src/outbound";
+import { logOffChannelReply, sendAgentReply } from "../src/outbound";
 import { channelReply } from "../src/reply";
 import { handleWebMessage, listWebMessages } from "../src/web";
 import { createOrg, prisma } from "./helpers";
@@ -202,5 +204,173 @@ describe("sendAgentReply", () => {
     const bodies = (poll.body.messages as Array<{ direction: string; body: string }>)
       .map((m) => `${m.direction}:${m.body}`);
     expect(bodies.some((b) => b.startsWith("OUTBOUND:Yes — it was sent"))).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Recording a reply the DESK did not carry.
+//
+// The bug this closes: `firstRespondedAt` was written in exactly one place —
+// `sendAgentReply` — which refuses a ticket with no conversation. So a logged
+// phone call could never record a first response no matter what the team did
+// about it. It stayed "awaiting first reply" for life, went at-risk and then
+// breached on the wallboard, kept raising escalations, and left every callback
+// the team actually made out of the first-response median. The desk measured
+// the team as having ignored a customer it had just phoned back.
+describe("logOffChannelReply", () => {
+  async function phoneTicket(org: Awaited<ReturnType<typeof createOrg>>) {
+    return openTicket(prisma, {
+      organizationId: org.id,
+      channel: "PHONE",
+      language: "en",
+      subject: "Customer called about a failed transfer",
+      priority: "HIGH",
+    });
+  }
+
+  it("stops the first-response clock a phone ticket could never stop before", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const ticket = await phoneTicket(org);
+
+    // The precondition, asserted rather than assumed: this is the state the
+    // ticket was previously stuck in forever.
+    expect(ticket.firstRespondedAt).toBeNull();
+    expect(ticket.firstResponseDueAt).not.toBeNull();
+
+    const result = await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "Called back — walked them through resetting the PIN.",
+      authorUserId: agent.id,
+    });
+    expect(result.ok).toBe(true);
+
+    const after = await prisma.ticket.findUnique({
+      where: { id: ticket.id },
+      include: { messages: true },
+    });
+    expect(after!.firstRespondedAt).not.toBeNull();
+    expect(after!.status).toBe("OPEN");
+    // Flagged, so a claim that a reply happened is never mistaken for a
+    // message the desk delivered.
+    const logged = after!.messages.filter((m) => m.direction === "OUTBOUND");
+    expect(logged).toHaveLength(1);
+    expect(logged[0].offChannel).toBe(true);
+    expect(logged[0].authorUserId).toBe(agent.id);
+  });
+
+  it("sends nothing — no transport is touched", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const ticket = await phoneTicket(org);
+
+    await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "Called the customer back.",
+      authorUserId: agent.id,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // The property that stops this being a button that clears an SLA breach
+  // without answering anybody. Without it an agent could stop a live clock on
+  // a working Telegram ticket by typing into the composer.
+  it("REFUSES a ticket that has a transport, so a live clock cannot be faked", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const inbound = await telegramTicket(org);
+
+    const result = await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: inbound.ticketId,
+      body: "pretend I called them",
+      authorUserId: agent.id,
+    });
+    expect(!result.ok && result.reason).toBe("has_conversation");
+
+    const after = await prisma.ticket.findUnique({ where: { id: inbound.ticketId } });
+    expect(after!.firstRespondedAt).toBeNull();
+  });
+
+  it("keeps the first response time of the first record, not the latest", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const ticket = await phoneTicket(org);
+
+    await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "First callback.",
+      authorUserId: agent.id,
+    });
+    const first = (await prisma.ticket.findUnique({ where: { id: ticket.id } }))!
+      .firstRespondedAt;
+
+    await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "Second callback, same day.",
+      authorUserId: agent.id,
+    });
+    const second = (await prisma.ticket.findUnique({ where: { id: ticket.id } }))!
+      .firstRespondedAt;
+    expect(second!.getTime()).toBe(first!.getTime());
+  });
+
+  it("does not reopen a resolved ticket that gets a late record", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const ticket = await phoneTicket(org);
+    await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { status: "RESOLVED", resolvedAt: new Date() },
+    });
+
+    await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "Logging the call after the fact.",
+      authorUserId: agent.id,
+    });
+    const after = await prisma.ticket.findUnique({ where: { id: ticket.id } });
+    expect(after!.status).toBe("RESOLVED");
+  });
+
+  it("is tenant-scoped: another org's ticket is simply not found", async () => {
+    const org = await createOrg();
+    const other = await createOrg();
+    const agent = await agentFor(other.id);
+    const ticket = await phoneTicket(org);
+
+    const result = await logOffChannelReply({
+      db: prisma,
+      organizationId: other.id,
+      ticketId: ticket.id,
+      body: "should not land",
+      authorUserId: agent.id,
+    });
+    expect(!result.ok && result.reason).toBe("ticket_not_found");
+  });
+
+  it("refuses an empty body", async () => {
+    const org = await createOrg();
+    const agent = await agentFor(org.id);
+    const ticket = await phoneTicket(org);
+    const result = await logOffChannelReply({
+      db: prisma,
+      organizationId: org.id,
+      ticketId: ticket.id,
+      body: "   ",
+      authorUserId: agent.id,
+    });
+    expect(!result.ok && result.reason).toBe("empty_body");
   });
 });
