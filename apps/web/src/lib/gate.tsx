@@ -1,12 +1,18 @@
 "use client";
-// The sign-in gate: two panes, and the right one is an argument.
+// The sign-in gate: a pitch on the left, the sign-in on the right.
 //
-// Ported from Bank Assist (ADR-0029). The stage is not decoration and not a
-// stock illustration — it shows the product doing the thing the product is
-// for: one ordinary customer question, answered, arriving in all six languages
-// in turn. This screen is the first thing staff see every morning and the
-// first thing a prospect sees in a demo, and saying "six languages" in a badge
-// is a claim while showing it is an argument.
+// Ported from Bank Assist (ADR-0029) and then rearranged here, because the two
+// panes are doing two different jobs and were in the wrong order for both.
+//
+//  - LEFT is the pitch. Headline, the channel line, and three claims the
+//    product can actually be held to. A prospect reads left-to-right, so the
+//    argument goes first and the form is what they arrive at.
+//  - RIGHT is the sign-in, and the six-language mock now sits directly above
+//    it. It is not decoration and not a stock illustration: it shows the
+//    product doing the thing the product is for — one ordinary customer
+//    question, answered, arriving in all six languages in turn. Saying "six
+//    languages" in a badge is a claim; showing it is an argument, and it is
+//    the argument staff and prospects look straight at while they type.
 //
 // It replaced a single still. A still has to pick ONE language to illustrate a
 // product whose whole point is six, and whichever it picks is the wrong one
@@ -140,28 +146,36 @@ function ChatMock({ lang }: { lang: Language }) {
   const line = lines.current[idx % lines.current.length];
 
   return (
-    <div style={{ perspective: 1400, maxWidth: 430 }} data-chat-mock>
+    <div style={{ width: "100%" }} data-chat-mock>
       <div
-        // The widget itself, tilted. Showing the real thing beats any
-        // abstraction of it: a prospect sees what they would be buying.
+        // The widget itself, upright and carrying its OWN dark surface.
+        //
+        // It used to be a glass card tilted in 3D on a dark stage, which
+        // worked because the stage was behind it. It now sits on the sign-in
+        // pane, whose background flips with the theme — so translucency would
+        // have made it invisible on light and the tilt would have read as a
+        // broken element beside a square form. Painting its own field makes it
+        // legible on either theme and reads as what it is: a screenshot of the
+        // customer's side of the product.
         style={{
-          transform: "rotateY(-19deg) rotateX(7deg) rotate(-1.6deg)",
-          transformOrigin: "left center",
-          background: "rgba(10, 12, 18, .72)",
-          backdropFilter: "blur(18px)",
-          WebkitBackdropFilter: "blur(18px)",
-          border: "1px solid rgba(255,255,255,.13)",
-          borderRadius: 18,
-          boxShadow:
-            "0 50px 110px -34px rgba(0,0,0,.92), 0 6px 20px rgba(0,0,0,.35)",
-          padding: 16,
+          // A top-lit field rather than a flat one. On the LIGHT theme a flat
+          // dark rectangle already reads as a device; on DARK it sat within a
+          // few points of the page behind it and read as an empty outline.
+          // The wash gives it a lit edge, and the ring is what draws its
+          // outline on both.
+          background: `linear-gradient(168deg, ${stageColours.lift} 0%, ${stageColours.field} 62%)`,
+          border: `1px solid ${stageColours.hairline}`,
+          borderRadius: 16,
+          boxShadow: `0 1px 0 ${stageColours.sheen} inset, 0 18px 44px -24px rgba(0,0,0,.6)`,
+          padding: 14,
           display: "grid",
-          gap: 10,
+          gap: 9,
           // Reserved so the card does not resize as each language's answer
           // types in — a box that grows and shrinks six times a minute is the
           // most distracting thing that could happen on this screen.
-          minHeight: 198,
+          minHeight: 176,
           alignContent: "start",
+          overflow: "hidden",
         }}
         lang={line.lang}
       >
@@ -278,11 +292,18 @@ function ChatMock({ lang }: { lang: Language }) {
 /* ------------------------------------------------------------- the gate */
 
 /**
- * Whether the stage is worth running at all.
+ * Whether the mock is worth running at all.
  *
- * Two real costs, not niceties: below 1024px the stage does not render, so the
+ * Two real costs, not niceties: below 1024px the mock is not shown, so the
  * timer would be pure battery on a phone; and a login page left open in a
  * background tab is the normal case rather than the exception.
+ *
+ * Width only — the SHORT-viewport cut is CSS, deliberately. A media query
+ * that hides the mock cannot be observed from here without a second listener
+ * that would then have to agree with the stylesheet, and two rules for one
+ * decision drift. The cost of the disagreement is a timer running behind
+ * `display: none` on a laptop, which is a fraction of what it saves on a
+ * phone.
  */
 function useStageActive(): boolean {
   const [active, setActive] = useState(false);
@@ -300,7 +321,22 @@ function useStageActive(): boolean {
   return active;
 }
 
-export function Gate({ lang, children }: { lang: Language; children: ReactNode }) {
+/**
+ * `picker` is a prop rather than part of `children` because of where it has
+ * to land. The language control belongs at the top of the sign-in column,
+ * above everything — and `children` is the form. Left inside the form's own
+ * markup it rendered BETWEEN the mock and the card, floating right, attached
+ * to neither.
+ */
+export function Gate({
+  lang,
+  picker,
+  children,
+}: {
+  lang: Language;
+  picker?: ReactNode;
+  children: ReactNode;
+}) {
   const stage = useStageActive();
   return (
     <main style={{ minHeight: "100vh", display: "grid" }} data-gate>
@@ -312,31 +348,9 @@ export function Gate({ lang, children }: { lang: Language; children: ReactNode }
           driving it, not by reading the diff. */}
       <style dangerouslySetInnerHTML={{ __html: gateCss }} />
       <div className="gate-grid">
-        {/* The form pane */}
-        <div className="gate-pane">
-          <div style={{ width: "100%", maxWidth: 448 }}>
-            {children}
-            {/* Sized by the WRAPPER, not by this line. `place-items: center`
-                makes a grid item shrink-to-fit, so a nowrap sentence here
-                would otherwise decide the width of the card above it — which
-                is how Bank Assist's card ended up exactly as wide as this
-                sentence happened to be in whichever language was showing. */}
-            <p
-              style={{
-                margin: "14px 0 0",
-                fontSize: 11.5,
-                lineHeight: 1.6,
-                textAlign: "center",
-                color: colors.textMuted,
-              }}
-            >
-              {tUi(lang, "ui_gate_trust")}
-            </p>
-          </div>
-        </div>
-
-        {/* The stage. Hidden below 1024px by CSS, and not mounted at all when
-            inactive so no timer runs behind a hidden tab. */}
+        {/* The pitch. Hidden below 1024px by CSS — a phone gets the form and
+            nothing else, because a promo pane stacked above a login is a
+            screenful of scrolling between someone and their work. */}
         <aside className="gate-stage" aria-hidden>
           <div className="aurora">
             <i />
@@ -384,9 +398,70 @@ export function Gate({ lang, children }: { lang: Language; children: ReactNode }
             >
               {tUi(lang, "ui_gate_sub")}
             </p>
-            {stage ? <ChatMock lang={lang} /> : null}
+            {/* Three claims rather than three adjectives. Each one is
+                something the product can be held to in a demo — grounded
+                answers, an SLA clock, tenant isolation — which is what makes
+                this a pitch rather than a wallpaper with a headline on it. */}
+            <ul className="stage-proof" lang={lang}>
+              {(["ui_gate_proof_grounded", "ui_gate_proof_sla", "ui_gate_proof_tenancy"] as const).map(
+                (key) => (
+                  <li key={key}>
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M3.5 8.4l3 3 6-7"
+                        stroke={stageColours.bloomB}
+                        strokeWidth="1.9"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>{tUi(lang, key)}</span>
+                  </li>
+                ),
+              )}
+            </ul>
           </div>
         </aside>
+
+        {/* The sign-in */}
+        <div className="gate-pane">
+          <div style={{ width: "100%", maxWidth: 448 }}>
+            {picker ? (
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}
+              >
+                {picker}
+              </div>
+            ) : null}
+            {/* Above the form, not beside it: it is the last thing read before
+                the cursor lands in the first field. Not mounted at all when
+                inactive, so no timer runs behind a hidden tab, and dropped
+                entirely on a short viewport by CSS — the form must never
+                scroll to make room for an animation. */}
+            {stage ? (
+              <div className="gate-mock">
+                <ChatMock lang={lang} />
+              </div>
+            ) : null}
+            {children}
+            {/* Sized by the WRAPPER, not by this line. `place-items: center`
+                makes a grid item shrink-to-fit, so a nowrap sentence here
+                would otherwise decide the width of the card above it — which
+                is how Bank Assist's card ended up exactly as wide as this
+                sentence happened to be in whichever language was showing. */}
+            <p
+              style={{
+                margin: "14px 0 0",
+                fontSize: 11.5,
+                lineHeight: 1.6,
+                textAlign: "center",
+                color: colors.textMuted,
+              }}
+            >
+              {tUi(lang, "ui_gate_trust")}
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -411,16 +486,24 @@ const gateCss = `
      and this did not budge when the type came down. */
   box-sizing: border-box;
   min-height: 100vh; position: relative; z-index: 1;
+  /* A wash, and only where the pitch pane is not. Below 1024px this is the
+     WHOLE page — flat \`--bg\` with one card on it, which is what a phone was
+     getting — while on desktop the same wash would compete with the lit pane
+     18px to its left. Overridden back to flat in the desktop query. */
   background:
-    radial-gradient(90% 60% at 50% 0%, ${colors.accentFaint} 0%, transparent 70%),
+    radial-gradient(120% 62% at 50% -6%, ${colors.accentFaint} 0%, transparent 64%),
     ${colors.bg};
 }
 .gate-stage { display: none; }
+.gate-mock { margin-bottom: 18px; }
 
 @media (min-width: 1024px) {
-  /* Both columns are fr units, so the card and the stage resize together
-     rather than the stage eating the card at narrow desktop widths. */
-  .gate-grid { grid-template-columns: minmax(400px, .82fr) 1fr; }
+  /* The pitch takes the larger share and the form the smaller: a form has a
+     fixed comfortable width and gains nothing from more, while the headline
+     is what the extra pixels are for. Both are fr units so neither pane can
+     eat the other at a narrow desktop width. */
+  .gate-grid { grid-template-columns: 1fr minmax(408px, .84fr); }
+  .gate-pane { background: ${colors.bg}; }
   .gate-stage {
     display: block; position: relative; overflow: hidden;
     background: ${stageColours.field};
@@ -428,9 +511,12 @@ const gateCss = `
 }
 
 /* Aurora. THREE blurred blooms rather than one gradient: a single ramp reads
-   as a backdrop, overlapping blooms read as light. Two carry the accent and
-   one is rotated off it, which is what stops the pane looking like a flat
-   tint of the brand colour. */
+   as a backdrop, overlapping blooms read as light. They sit in one cool
+   quadrant — brand blue, a cyan a few degrees off it, and a deep indigo
+   carrying almost no saturation — so the pane reads as depth rather than as
+   three colours. The blooms gather toward the INNER edge, next to the form,
+   so the light falls across the fold instead of off the far side of the
+   screen. */
 .aurora { position: absolute; inset: -20%; pointer-events: none; }
 .aurora i {
   position: absolute; display: block; border-radius: 50%;
@@ -438,17 +524,17 @@ const gateCss = `
   animation: gateDrift 26s ease-in-out infinite alternate;
 }
 .aurora i:nth-child(1) {
-  width: 46%; height: 52%; top: 2%; right: 6%;
+  width: 48%; height: 54%; top: 0%; right: 4%;
   background: ${stageColours.bloomA};
 }
 .aurora i:nth-child(2) {
-  width: 42%; height: 44%; top: 26%; right: 30%;
+  width: 42%; height: 44%; top: 34%; right: 24%;
   background: ${stageColours.bloomB};
   animation-delay: -9s; animation-duration: 32s;
 }
 .aurora i:nth-child(3) {
-  width: 38%; height: 40%; bottom: 8%; right: 2%;
-  background: ${stageColours.bloomC}; opacity: .3;
+  width: 44%; height: 46%; bottom: 2%; right: 10%;
+  background: ${stageColours.bloomC}; opacity: .34;
   animation-delay: -17s; animation-duration: 38s;
 }
 @keyframes gateDrift {
@@ -474,26 +560,41 @@ const gateCss = `
 }
 .gate-stage::after {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse 76% 64% at 42% 40%, transparent 44%, rgba(0,0,0,.5) 100%);
+  background: radial-gradient(ellipse 80% 70% at 34% 42%, transparent 46%, rgba(0,0,0,.52) 100%);
 }
 .stage-inner {
   position: relative; z-index: 2; height: 100%;
   display: flex; flex-direction: column; justify-content: center;
-  gap: 30px; padding: 56px 60px;
+  gap: 26px; padding: 56px clamp(44px, 5vw, 76px);
 }
+.stage-proof {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 12px; max-width: 44ch;
+}
+.stage-proof li {
+  display: grid; grid-template-columns: 15px 1fr; gap: 11px;
+  align-items: start;
+  font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,.76);
+}
+.stage-proof svg { margin-top: 3px; }
 
 /* A laptop is about 600–660 CSS px tall once the browser's own chrome is out,
-   and this stage was built at a size needing ~730 — so it scrolled, and the
-   mock card's citation chip was cut in half at the fold, on the screen whose
-   entire job is the first impression. */
+   and this pane was built at a size needing ~730 — so it scrolled, and the
+   bottom of the pitch was cut off at the fold on the screen whose entire job
+   is the first impression. */
+@media (min-width: 1024px) and (max-height: 860px) {
+  /* The mock goes FIRST, and before anything is squeezed. It sits above a
+     form whose height is fixed by its fields, so on a short screen it is the
+     one thing that can be removed without making anything else worse — and
+     leaving it in is what pushes the sign-in button below the fold. */
+  .gate-mock { display: none; }
+}
 @media (min-width: 1024px) and (max-height: 780px) {
   .stage-inner { gap: 18px; padding: 32px 44px; }
   .stage-line { font-size: clamp(24px, 2.1vw, 32px) !important; }
   .stage-sub { font-size: 13.5px !important; }
-  /* The reserve shrinks with everything else. Keeping it at its full-height
-     value is what still pushed the stage past the fold after the type came
-     down — the card is the tallest single thing on this pane. */
-  [data-chat-mock] > div { min-height: 168px !important; padding: 13px !important; }
+  .stage-proof { gap: 9px; }
+  .stage-proof li { font-size: 12.5px; }
 }
 /* Genuinely short: a 13" laptop with a toolbar and a bookmarks bar. The sub
    line is the one thing here that repeats what the headline already said, so
