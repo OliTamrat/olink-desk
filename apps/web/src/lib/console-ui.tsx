@@ -1978,12 +1978,37 @@ export const ui = {
     border: `1px solid ${colors.border}`,
     borderRadius: radius.lg,
     padding: 22,
+    // A card is an OBJECT on the page, not a rectangle drawn on it. Every
+    // surface in the console was border-only, which reads as a wireframe once
+    // you have seen the sign-in gate next to it — and on the light theme a
+    // 1.16-contrast border is doing all the work alone. The token carries the
+    // whole box-shadow rather than a colour precisely so the dark theme can
+    // use a heavy black drop and the light one a tight, lighter lift; on white
+    // that same heavy drop reads as dirt.
+    boxShadow: colors.shadow,
     // border-box or a declared flex width lies: padding and border would
     // add to it and push fixed-width panes off the right edge.
     boxSizing: "border-box",
   } as CSSProperties,
-  h1: { margin: 0, fontSize: 22, color: colors.textPrimary } as CSSProperties,
-  h2: { margin: 0, fontSize: 16, color: colors.textPrimary } as CSSProperties,
+  // A page title is the one piece of type on a screen allowed to be
+  // confident. At 22px with default tracking these read as a section label on
+  // a form; the negative tracking is what Inter's display cut is FOR, and
+  // `font-optical-sizing: auto` (set globally) moves it onto that cut at this
+  // size rather than blowing the text cut up.
+  h1: {
+    margin: 0,
+    fontSize: 26,
+    fontWeight: 700,
+    letterSpacing: "-.02em",
+    color: colors.textPrimary,
+  } as CSSProperties,
+  h2: {
+    margin: 0,
+    fontSize: 17,
+    fontWeight: 600,
+    letterSpacing: "-.01em",
+    color: colors.textPrimary,
+  } as CSSProperties,
   sub: { margin: "4px 0 0", color: colors.textSecondary, fontSize: 14 } as CSSProperties,
   label: {
     display: "block",

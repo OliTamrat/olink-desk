@@ -123,6 +123,10 @@ export default function DashboardPage() {
         style={{
           fontSize: 34,
           fontWeight: 700,
+          // Same reason as the page title: at display size Inter's default
+          // tracking is loose, and a number is the one thing on a dashboard
+          // somebody reads at a glance from across a desk.
+          letterSpacing: "-.02em",
           color: colors.textPrimary,
           lineHeight: 1,
           marginTop: 16,

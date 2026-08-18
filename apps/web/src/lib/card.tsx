@@ -171,6 +171,7 @@ export function Figure({
           style={{
             fontSize: 28,
             fontWeight: 700,
+            letterSpacing: "-.02em",
             color: colors.textPrimary,
             lineHeight: 1.1,
             fontVariantNumeric: "tabular-nums",
