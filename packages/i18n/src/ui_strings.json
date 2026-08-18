@@ -501,7 +501,8 @@
     "ui_aa_failed": "Could not change the setting. {error}",
     "ui_aa_badge": "Answered automatically",
     "ui_aa_turn_on": "Turn on",
-    "ui_aa_turn_off": "Turn off"
+    "ui_aa_turn_off": "Turn off",
+    "ui_ticket_update_failed": "Could not update: {error}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -1005,7 +1006,8 @@
     "ui_aa_failed": "ቅንብሩን መቀየር አልተቻለም። {error}",
     "ui_aa_badge": "በራስ-ሰር ተመልሷል",
     "ui_aa_turn_on": "አብራ",
-    "ui_aa_turn_off": "አጥፋ"
+    "ui_aa_turn_off": "አጥፋ",
+    "ui_ticket_update_failed": "ማዘመን አልተቻለም: {error}"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1509,7 +1511,8 @@
     "ui_aa_failed": "Qindaa'ina jijjiiruun hin danda'amne. {error}",
     "ui_aa_badge": "Ofumaan deebi'e",
     "ui_aa_turn_on": "Bani",
-    "ui_aa_turn_off": "Cufi"
+    "ui_aa_turn_off": "Cufi",
+    "ui_ticket_update_failed": "Haaromsuu hin danda'amne: {error}"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -2013,7 +2016,8 @@
     "ui_aa_failed": "ውቕረቱ ምቕያር ኣይተኻእለን። {error}",
     "ui_aa_badge": "ብቐጥታ ተመሊሱ",
     "ui_aa_turn_on": "ወልዖ",
-    "ui_aa_turn_off": "ኣጥፍእ"
+    "ui_aa_turn_off": "ኣጥፍእ",
+    "ui_ticket_update_failed": "ምሕዳስ ኣይተኻእለን: {error}"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2517,7 +2521,8 @@
     "ui_aa_failed": "Lama beddeli karin habeynta. {error}",
     "ui_aa_badge": "Si toos ah ayaa loo jawaabay",
     "ui_aa_turn_on": "Shid",
-    "ui_aa_turn_off": "Demi"
+    "ui_aa_turn_off": "Demi",
+    "ui_ticket_update_failed": "Lama cusboonaysiin karin: {error}"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -3021,6 +3026,7 @@
     "ui_aa_failed": "Imeshindwa kubadilisha mpangilio. {error}",
     "ui_aa_badge": "Imejibiwa kiotomatiki",
     "ui_aa_turn_on": "Washa",
-    "ui_aa_turn_off": "Zima"
+    "ui_aa_turn_off": "Zima",
+    "ui_ticket_update_failed": "Imeshindwa kusasisha: {error}"
   }
 }

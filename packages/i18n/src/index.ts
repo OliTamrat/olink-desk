@@ -140,6 +140,7 @@ export const UI_NOTES: Record<string, string> = {
   ui_copy: "Button that copies the embed snippet.",
   ui_copied: "Copy button after a successful copy.",
   ui_open_widget: "Link that opens the org's widget page in a new tab.",
+  ui_ticket_update_failed: "Error when a ticket-rail change (status, priority, assignee, queue, customer) could not be saved — the select simply reverts to the server's value otherwise, with nothing telling the agent why. {error} is the reason (e.g. 'Forbidden' for an AUDITOR's read-only account).",
   ui_status: "Ticket rail label: the ticket's status field.",
   ui_priority: "Ticket rail label: the ticket's priority field.",
   ui_assignee: "Ticket rail label: the agent responsible for the ticket.",

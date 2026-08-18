@@ -214,6 +214,12 @@ function InboxWorkspace() {
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  // A rail change (status, priority, assignee, queue, customer) that the
+  // server refuses — an AUDITOR's read-only account, most often — used to
+  // fail with NOTHING shown: the select just snaps back to the server's
+  // value on the next reload, and an agent staring at a dropdown that
+  // "won't take" has no way to tell a permission wall from a stuck click.
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
   const [queues, setQueues] = useState<Array<{ id: string; name: string }>>([]);
   const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const [meId, setMeId] = useState<string | null>(null);
@@ -466,12 +472,25 @@ function InboxWorkspace() {
 
   async function patchTicket(change: Record<string, unknown>) {
     if (!selectedId) return;
+    setPropertiesError(null);
     const resp = await fetch(`/api/tickets/${selectedId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(change),
     });
-    if (resp.ok) await Promise.all([loadDetail(selectedId), loadList()]);
+    if (resp.ok) {
+      await Promise.all([loadDetail(selectedId), loadList()]);
+      return;
+    }
+    // loadDetail is what makes every select snap back to the server's
+    // value — without an error next to it, that snap-back is the ONLY
+    // signal a denied change produces, and it looks identical to a click
+    // that never registered.
+    const body = (await resp.json().catch(() => null)) as { error?: string } | null;
+    setPropertiesError(
+      tUi(lang, "ui_ticket_update_failed", { error: body?.error ?? `HTTP ${resp.status}` }),
+    );
+    await loadDetail(selectedId);
   }
 
   async function bulk(change: Record<string, unknown>) {
@@ -895,6 +914,9 @@ function InboxWorkspace() {
         }}
       >
         <RailHeading>{tUi(lang, "ui_properties")}</RailHeading>
+        {propertiesError ? (
+          <div style={{ ...ui.error, marginBottom: 10, fontSize: 12.5 }}>{propertiesError}</div>
+        ) : null}
         <div style={{ display: "grid", gap: 12 }}>
           <Labelled label={tUi(lang, "ui_assignee")}>
             <select
