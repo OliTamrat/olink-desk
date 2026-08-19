@@ -1,44 +1,16 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
-import { colors, font } from "../lib/theme";
+import { SitePage } from "../lib/site";
+
+// The public product page. It replaced a placeholder — a heading, one
+// sentence and a Sign in button — which was the first thing a prospect met
+// and said nothing about what the desk does.
+export const metadata: Metadata = {
+  title: "Olink Desk — every customer conversation, on one desk",
+  description:
+    "Telegram, WhatsApp, SMS, USSD and your own website in one inbox. Replies drafted from your own knowledge base, in six languages, with an SLA clock on every ticket.",
+};
 
 export default function Home() {
-  return (
-    <main
-      style={{
-        display: "grid",
-        placeItems: "center",
-        minHeight: "100vh",
-        // Was `system-ui, sans-serif` and three literal hex values — the one
-        // page in the app that predated the token file and never joined it,
-        // so it stayed light while everything else was dark and would have
-        // stayed the wrong shade of blue after the accent changed.
-        fontFamily: font,
-        background: colors.bg,
-        color: colors.textBody,
-      }}
-    >
-      <div style={{ textAlign: "center", padding: 24 }}>
-        <h1 style={{ marginBottom: 8, color: colors.textPrimary }}>Olink Desk</h1>
-        <p style={{ color: colors.textSecondary, marginBottom: 20 }}>
-          Customer support, task &amp; call tracking for Ethiopian
-          organizations.
-        </p>
-        <Link
-          href="/login"
-          style={{
-            display: "inline-block",
-            padding: "10px 20px",
-            borderRadius: 8,
-            background: colors.accentSolid,
-            color: colors.onAccent,
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          Staff sign in
-        </Link>
-      </div>
-    </main>
-  );
+  return <SitePage />;
 }
