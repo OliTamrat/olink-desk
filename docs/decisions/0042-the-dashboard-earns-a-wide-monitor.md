@@ -60,9 +60,12 @@ and a live activity rail. That is what the page is now:
   so it follows the reader down the page. Deliberately NOT another card: two
   zones with the same texture read as one wide mess; the different feel is
   what makes the layout legible.
-- **The dashboard opts out of the shell's 1440 cap** (`fullBleed`) and
-  carries its own 1760 — an overview is the one screen bought FOR a big
-  monitor. Work screens keep 1440.
+- **The dashboard opts out of the shell's 1440 cap** (`fullBleed`) and fills
+  the display — an overview is the one screen bought FOR a big monitor, and
+  the founder's report circled the voids themselves, so a taller cap was not
+  an answer. A 2400 limit exists only as an ultrawide fuse. Work screens
+  keep 1440. Above 1900px the activity rail widens to 400–520px so its share
+  of the extra space is spent on subjects, not margins.
 
 Below 1280 the rail stacks under the analysis column in source order; the
 phone layout is unchanged.

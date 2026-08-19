@@ -156,14 +156,15 @@ export default function DashboardPage() {
   );
 
   return (
-    // fullBleed, then our own cap: the shell's 1440 is right for work screens,
-    // but an overview is the one page bought FOR a big monitor, and at 2560
-    // the old cap left two 500px voids and called it centring. 1760 is wide
-    // enough to earn the screen and still short of line-lengths nobody can
-    // scan. Below the cap nothing changes — width: 100% is the common case.
+    // fullBleed, and effectively uncapped: the shell's 1440 is right for work
+    // screens, but the founder circled the voids on both sides of a centred
+    // dashboard and the complaint was the emptiness itself — so the overview
+    // fills the display the way the wallboard does. 2400 is not a layout, it
+    // is a fuse for ultrawide monitors, where a status bar three monitors of
+    // glass wide stops being readable; no ordinary screen ever reaches it.
     <ConsoleShell lang={lang} onLang={setLang} me={me} active="dashboard" fullBleed>
       <style dangerouslySetInnerHTML={{ __html: dashCss }} />
-      <div style={{ maxWidth: 1760, margin: "0 auto", width: "100%" }}>
+      <div style={{ maxWidth: 2400, margin: "0 auto", width: "100%" }}>
       <header style={{ marginBottom: 22 }}>
         <h1 style={ui.h1}>{tUi(lang, "ui_nav_dashboard")}</h1>
         {me ? (
@@ -611,6 +612,14 @@ const dashCss = `
 .dash-side { min-width: 0; }
 @media (min-width: 1280px) {
   .dash-zones { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); }
+}
+@media (min-width: 1900px) {
+  /* The rail earns more of a big display than a phone-width strip: wider
+     rows stop truncating Amharic subjects, and the analysis column keeps a
+     measure a person can actually sweep. */
+  .dash-zones { grid-template-columns: minmax(0, 1fr) minmax(400px, 520px); gap: 32px; }
+}
+@media (min-width: 1280px) {
   /* The feed follows its reader down a long page: analysis scrolls, the live
      column stays. 80px = the 56px bar plus the page's own top padding. */
   .dash-side { position: sticky; top: 80px; }
