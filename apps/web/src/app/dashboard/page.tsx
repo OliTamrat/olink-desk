@@ -21,6 +21,7 @@ import {
   StatusOverview,
 } from "../../lib/status-overview";
 import { composition, type LifecycleKey } from "@olink-desk/reports";
+import { LIFECYCLE_INK } from "../../lib/theme";
 
 const glyph = {
   fill: "none",
@@ -55,7 +56,12 @@ export default function DashboardPage() {
     let cancelled = false;
     const load = async () => {
       const [list, counted] = await Promise.all([
-        fetch("/api/tickets"),
+        // view=all, explicitly: the bare endpoint defaults to the OPEN view,
+        // which quietly made every derived number on this page a number
+        // about open tickets only — "Resolved today" was permanently 0, the
+        // Done drill-down was permanently empty, and the channel bars forgot
+        // a ticket the moment it was solved.
+        fetch("/api/tickets?view=all"),
         // The overview counts the WHOLE workspace, not the page of tickets
         // the list happens to return — a share computed from a truncated list
         // is a wrong number that looks right.
@@ -94,6 +100,14 @@ export default function DashboardPage() {
     (t) => new Date(t.createdAt) >= todayStart,
   );
   const awaiting = open.filter((t) => !t.firstRespondedAt);
+  // Resolved today closes the loop the other three tiles open: open work,
+  // new work, work owed a reply — and what actually got finished. A desk
+  // whose first three numbers only ever grow reads as a treadmill.
+  const resolvedToday = (tickets ?? []).filter(
+    (t) =>
+      ["RESOLVED", "CLOSED"].includes(t.status) &&
+      new Date(t.updatedAt) >= todayStart,
+  );
   const byChannel = new Map<string, number>();
   for (const t of tickets ?? []) {
     byChannel.set(t.channel, (byChannel.get(t.channel) ?? 0) + 1);
@@ -142,7 +156,14 @@ export default function DashboardPage() {
   );
 
   return (
-    <ConsoleShell lang={lang} onLang={setLang} me={me} active="dashboard">
+    // fullBleed, then our own cap: the shell's 1440 is right for work screens,
+    // but an overview is the one page bought FOR a big monitor, and at 2560
+    // the old cap left two 500px voids and called it centring. 1760 is wide
+    // enough to earn the screen and still short of line-lengths nobody can
+    // scan. Below the cap nothing changes — width: 100% is the common case.
+    <ConsoleShell lang={lang} onLang={setLang} me={me} active="dashboard" fullBleed>
+      <style dangerouslySetInnerHTML={{ __html: dashCss }} />
+      <div style={{ maxWidth: 1760, margin: "0 auto", width: "100%" }}>
       <header style={{ marginBottom: 22 }}>
         <h1 style={ui.h1}>{tUi(lang, "ui_nav_dashboard")}</h1>
         {me ? (
@@ -152,6 +173,8 @@ export default function DashboardPage() {
         ) : null}
       </header>
 
+      <div className="dash-zones">
+      <div className="dash-main">
       {/* The setup checklist. Every step is derived from real workspace data
           by /api/onboarding — there is no "mark as done" anywhere, so it
           cannot claim a desk is configured when it is not. It sits ABOVE the
@@ -327,15 +350,19 @@ export default function DashboardPage() {
             <path d="M12 7v5l3 2" />
           </svg>,
         )}
+        {tile(
+          tUi(lang, "ui_kpi_resolved_today"),
+          tickets ? resolvedToday.length : null,
+          LIFECYCLE_INK.DONE,
+          "/inbox?view=solved",
+          <svg width="20" height="20" viewBox="0 0 24 24" {...glyph}>
+            <path d="M20 6 9 17l-5-5" />
+          </svg>,
+        )}
       </div>
 
-      {/* `alignItems: flex-start` let these two find their own heights, so
-          their bottom edges never lined up and the pair read as two loose
-          cards rather than a row. Stretched, they end level. The 1:1.6 split
-          gives the recent-ticket list the room its lines actually need while
-          keeping the channel bars wide enough to compare. */}
-      {/* The lifecycle overview, above the two panels: it is the shape of the
-          whole desk, and the panels under it are details of one corner. */}
+      {/* The lifecycle overview: it is the shape of the whole desk, and the
+          channel card under it is a detail of one corner. */}
       {counts ? (
         <div style={{ display: "grid", gap: 16, marginBottom: 16 }}>
           <StatusOverview
@@ -366,14 +393,6 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: 16,
-          alignItems: "stretch",
-        }}
-      >
         {/* A floor on the height, so a card that is LOADING still has the
             shape of a card. Without it the first paint is two title strips
             with nothing under them, which reads as a broken page rather than
@@ -446,15 +465,46 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section
-          style={{
-            ...ui.card,
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 200,
-          }}
-        >
-          <h2 style={{ ...ui.h2, marginBottom: 14 }}>{tUi(lang, "ui_recent_tickets")}</h2>
+      </div>
+
+        {/* ────────────────────────────────────────────── the activity rail
+
+            Deliberately NOT another card. The left zone is analysis — boxed,
+            shadowed, computed; this column is the live feed, so it sits
+            directly on the page with hairline rows and its own header, the
+            way every desk product separates "numbers" from "what is
+            happening". Two zones that look the same read as one wide mess;
+            two zones with different textures read as a layout. */}
+        <aside className="dash-side">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              gap: 10,
+              marginBottom: 6,
+              paddingBottom: 10,
+              borderBottom: `2px solid ${colors.borderStrong}`,
+            }}
+          >
+            <h2 style={ui.h2}>{tUi(lang, "ui_recent_tickets")}</h2>
+            <Link
+              href="/inbox?view=all"
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: colors.accent,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {tUi(lang, "ui_overview_see_all", {
+                n: counts
+                  ? Object.values(counts).reduce((a, b) => a + b, 0)
+                  : (tickets ?? []).length,
+              })} →
+            </Link>
+          </div>
           {tickets && tickets.length === 0 ? (
             <p
               style={{
@@ -474,8 +524,12 @@ export default function DashboardPage() {
               </Link>
             </p>
           ) : (
-            <div style={{ display: "grid" }}>
-              {(tickets ?? []).slice(0, 8).map((t, i) => (
+            // minmax(0,1fr): a bare implicit track sizes to the widest
+            // row's max-content — the full nowrap subject — and an auto track
+            // may overflow its grid. This exact wrapper is what pushed the
+            // whole dashboard 56px off the right of a 1440px screen.
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)" }}>
+              {(tickets ?? []).slice(0, 10).map((t) => (
                 <Link
                   key={t.id}
                   // Drills to THIS ticket, not the inbox in general: landing
@@ -486,65 +540,79 @@ export default function DashboardPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
-                    padding: "10px 4px",
+                    padding: "11px 4px",
                     textDecoration: "none",
-                    borderTop: i === 0 ? "none" : `1px solid ${colors.border}`,
+                    borderBottom: `1px solid ${colors.border}`,
                   }}
                 >
-                  <span
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: 13,
-                      fontVariantNumeric: "tabular-nums",
-                      width: 44,
-                    }}
-                  >
-                    #{t.number}
-                  </span>
-                  <span
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      color: colors.textBody,
-                      fontSize: 14,
-                    }}
-                  >
-                    {/* Subject first — it is the customer's own opening
-                        words. messages[0] is the NEWEST message, which on a
-                        fresh ticket is our own auto-acknowledgement, so
-                        preferring it previewed the desk talking to itself.
-                        Same bug the inbox list had; this surface was missed. */}
-                    {t.subject ?? t.messages[0]?.body ?? ""}
-                  </span>
-                  {/* `flexShrink: 0` on both, or the flex line squeezes them
-                      to nothing on a phone and the status badge is clipped
-                      mid-word. It produced no document overflow — the text was
-                      cut off INSIDE the row — so only looking at it found it. */}
-                  <span style={{ flexShrink: 0 }}>
-                    <Badge tone={t.status === "NEW" ? "info" : t.status === "PENDING" ? "warn" : t.status === "OPEN" ? "success" : "muted"}>
-                      {tUi(lang, statusKey(t.status))}
-                    </Badge>
-                  </span>
-                  <span
-                    style={{
-                      color: colors.textMuted,
-                      fontSize: 12,
-                      width: 60,
-                      flexShrink: 0,
-                      textAlign: "right",
-                    }}
-                  >
-                    {timeAgo(t.updatedAt)}
+                  {/* Two lines, not one: in a 320–400px rail a single line
+                      split between number, subject, badge and age left the
+                      subject about fifteen characters — the one part a person
+                      actually reads. The subject gets the full width; the
+                      metadata goes underneath. */}
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span
+                      style={{
+                        display: "block",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        color: colors.textBody,
+                        fontSize: 14,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {/* Subject first — it is the customer's own opening
+                          words. messages[0] is the NEWEST message, which on a
+                          fresh ticket is our own auto-acknowledgement, so
+                          preferring it previewed the desk talking to itself. */}
+                      {t.subject ?? t.messages[0]?.body ?? ""}
+                    </span>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 4,
+                        fontSize: 12,
+                        color: colors.textMuted,
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      <span>#{t.number}</span>
+                      <Badge tone={t.status === "NEW" ? "info" : t.status === "PENDING" ? "warn" : t.status === "OPEN" ? "success" : "muted"}>
+                        {tUi(lang, statusKey(t.status))}
+                      </Badge>
+                      <span style={{ marginInlineStart: "auto" }}>{timeAgo(t.updatedAt)}</span>
+                    </span>
                   </span>
                 </Link>
               ))}
             </div>
           )}
-        </section>
+        </aside>
+      </div>
       </div>
     </ConsoleShell>
   );
 }
+
+/**
+ * The two zones, as classes, because inline styles cannot express the media
+ * query. One breakpoint only: below it the rail stacks under the analysis
+ * column in source order, which is also reading order.
+ *
+ * `minmax(0, 1fr)` on the main track for the same reason as the row grids —
+ * a plain 1fr is minmax(auto, 1fr), and `auto` lets a wide child (the status
+ * bar, a long macro name) push the track instead of shrinking into it.
+ */
+const dashCss = `
+.dash-zones { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.dash-side { min-width: 0; }
+@media (min-width: 1280px) {
+  .dash-zones { grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); }
+  /* The feed follows its reader down a long page: analysis scrolls, the live
+     column stays. 80px = the 56px bar plus the page's own top padding. */
+  .dash-side { position: sticky; top: 80px; }
+}
+`;
