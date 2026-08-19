@@ -280,7 +280,7 @@ secrets, and whether the model actually responds.
 5. **No secrets in the repository**, and no API key for the model.
 6. **Drive the real screen before believing it.** More defects here have been
    found by opening the page than by any test.
-7. **Record the decision.** `docs/decisions/` holds 41 ADRs explaining why each
+7. **Record the decision.** `docs/decisions/` holds 42 ADRs explaining why each
    load-bearing choice was made. Read the index before re-deriving one.
 
 **Project status:** deployed and operating; pilot onboarding in progress.

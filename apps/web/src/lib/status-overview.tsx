@@ -132,7 +132,15 @@ export function StatusOverview({
           ))}
       </div>
 
-      <div style={{ display: "grid" }} data-overview-rows>
+      <div
+        // minmax(0,1fr), never a bare implicit track: an implicit grid column
+        // is `auto`, which sizes to the widest row's MAX-content — a nowrap
+        // subject line at full length — and an auto track is allowed to
+        // overflow its own grid. That is how the dashboard's recent-ticket
+        // rows ran 56px off the right of every ~1440px screen.
+        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)" }}
+        data-overview-rows
+      >
         {slices.map((s) => {
           const empty = s.count === 0;
           const on = selected === s.key;
@@ -278,7 +286,9 @@ export function StatusDrilldown({
           {t("ui_no_tickets")}
         </p>
       ) : (
-        <div style={{ display: "grid" }}>
+        // Same minmax(0,1fr) as the overview rows above — a bare implicit
+        // track would size to the longest subject's max-content and overflow.
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)" }}>
           {rows.map((r) => (
             <Link
               key={r.id}
@@ -304,6 +314,8 @@ export function StatusDrilldown({
               </span>
               <span
                 style={{
+                  flex: 1,
+                  minWidth: 0,
                   color: colors.textBody,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
