@@ -592,7 +592,9 @@
     "ui_site_cta_sub": "Create a workspace, paste the widget on your site, and answer your first ticket today.",
     "ui_site_footer": "Customer support, task and call tracking for Ethiopian organizations.",
     "ui_site_demo_draft_label": "Drafted reply",
-    "ui_kpi_resolved_today": "Resolved today"
+    "ui_kpi_resolved_today": "Resolved today",
+    "ui_attention_title": "Needs attention",
+    "ui_attention_waiting": "Waiting {t}"
   },
   "am": {
     "ui_login_title": "ይግቡ",
@@ -1187,7 +1189,9 @@
     "ui_site_cta_sub": "የሥራ ቦታ ይፍጠሩ፣ ዊጅቱን በጣቢያዎ ላይ ይለጥፉ፣ እና የመጀመሪያ ትኬትዎን ዛሬ ይመልሱ።",
     "ui_site_footer": "ለኢትዮጵያ ድርጅቶች የደንበኛ ድጋፍ፣ የተግባርና የጥሪ ክትትል።",
     "ui_site_demo_draft_label": "የተዘጋጀ መልስ",
-    "ui_kpi_resolved_today": "ዛሬ የተፈቱ"
+    "ui_kpi_resolved_today": "ዛሬ የተፈቱ",
+    "ui_attention_title": "ትኩረት የሚሹ",
+    "ui_attention_waiting": "{t} ጠብቋል"
   },
   "om": {
     "ui_login_title": "Seenaa",
@@ -1782,7 +1786,9 @@
     "ui_site_cta_sub": "Iddoo hojii uumi, wijiitii sana saayitii kee irratti maxxansi, tikeetii jalqabaa kees har'a deebisi.",
     "ui_site_footer": "Dhaabbilee Itoophiyaaf deeggarsa maamilaa, hordoffii hojii fi bilbilaa.",
     "ui_site_demo_draft_label": "Deebii qophaa'e",
-    "ui_kpi_resolved_today": "Har'a furaman"
+    "ui_kpi_resolved_today": "Har'a furaman",
+    "ui_attention_title": "Xiyyeeffannoo barbaadu",
+    "ui_attention_waiting": "{t} eegaa jira"
   },
   "ti": {
     "ui_login_title": "እተዉ",
@@ -2377,7 +2383,9 @@
     "ui_site_cta_sub": "ናይ ስራሕ ቦታ ፍጠር፡ ነቲ ዊጅት ኣብ ሳይትካ ለጥፎ፡ ንቀዳማይ ቲኬትካ ድማ ሎሚ መልስ።",
     "ui_site_footer": "ንኢትዮጵያውያን ትካላት ናይ ዓማዊል ደገፍ፡ ናይ ዕዮን ጻውዒትን ክትትል።",
     "ui_site_demo_draft_label": "ዝተዳለወ መልሲ",
-    "ui_kpi_resolved_today": "ሎሚ ዝተፈትሑ"
+    "ui_kpi_resolved_today": "ሎሚ ዝተፈትሑ",
+    "ui_attention_title": "ኣቓልቦ ዘድልዮም",
+    "ui_attention_waiting": "{t} ተጸብዩ"
   },
   "so": {
     "ui_login_title": "Gal",
@@ -2972,7 +2980,9 @@
     "ui_site_cta_sub": "Samee goob shaqo, ku dheji wijitka boggaaga, oo maanta ka jawaab tikitkaaga koowaad.",
     "ui_site_footer": "Taageero macmiil, la socodka hawlaha iyo wicitaannada hay'adaha Itoobiya.",
     "ui_site_demo_draft_label": "Jawaab la diyaariyay",
-    "ui_kpi_resolved_today": "Maanta la xalliyay"
+    "ui_kpi_resolved_today": "Maanta la xalliyay",
+    "ui_attention_title": "U baahan feejignaan",
+    "ui_attention_waiting": "{t} sugaya"
   },
   "sw": {
     "ui_login_title": "Ingia",
@@ -3567,6 +3577,8 @@
     "ui_site_cta_sub": "Fungua eneo la kazi, bandika wijeti kwenye tovuti yako, na ujibu tikiti lako la kwanza leo.",
     "ui_site_footer": "Msaada kwa wateja, ufuatiliaji wa kazi na simu kwa mashirika ya Ethiopia.",
     "ui_site_demo_draft_label": "Jibu lililoandaliwa",
-    "ui_kpi_resolved_today": "Zilizotatuliwa leo"
+    "ui_kpi_resolved_today": "Zilizotatuliwa leo",
+    "ui_attention_title": "Zinahitaji umakini",
+    "ui_attention_waiting": "Imesubiri {t}"
   }
 }

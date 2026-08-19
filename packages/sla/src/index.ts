@@ -29,3 +29,8 @@ export {
   type EscalationKind,
   type EscalationTicket,
 } from "./escalation";
+export {
+  attentionQueue,
+  type AttentionEntry,
+  type AttentionQueue,
+} from "./attention";
