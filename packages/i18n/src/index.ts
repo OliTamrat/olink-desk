@@ -111,6 +111,8 @@ export const UI_NOTES: Record<string, string> = {
   ui_go_register: "Link from the sign-in page to the register page.",
   ui_nav_dashboard: "Sidebar navigation item: the overview screen with today's numbers.",
   ui_nav_inbox: "Sidebar navigation item: the list of customer tickets.",
+  ui_attention_title: "Header of the dashboard's needs-attention queue: tickets past or near their reply deadline, and tickets nobody has taken. A call to act, not a warning label.",
+  ui_attention_waiting: "On an unassigned row in that queue: how long the ticket has sat with no owner. {t} is a duration like '45m' or '2h 10m'.",
   ui_kpi_resolved_today: "Dashboard tile: tickets finished today (resolved or closed). Past and done — it must not read as work remaining; it is the counterweight to the three tiles beside it, which only ever grow.",
   ui_kpi_open: "Stat tile label: tickets currently open (new + open + waiting).",
   ui_kpi_new_today: "Stat tile label: tickets opened today.",

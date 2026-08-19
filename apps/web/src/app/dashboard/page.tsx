@@ -20,6 +20,7 @@ import {
   StatusDrilldown,
   StatusOverview,
 } from "../../lib/status-overview";
+import { humanMinutes } from "@olink-desk/i18n";
 import { composition, type LifecycleKey } from "@olink-desk/reports";
 import { LIFECYCLE_INK } from "../../lib/theme";
 
@@ -43,19 +44,33 @@ interface SetupState {
   canDismiss: boolean;
 }
 
+type AttentionKind = "SLA_BREACHED" | "SLA_AT_RISK" | "UNASSIGNED_WAITING";
+interface AttentionItem {
+  id: string;
+  number: number;
+  subject: string | null;
+  kind: AttentionKind;
+  minutes: number;
+}
+interface AttentionState {
+  items: AttentionItem[];
+  totals: Record<AttentionKind, number>;
+}
+
 export default function DashboardPage() {
   const [lang, setLang] = useConsoleLanguage();
   const me = useMe();
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
   const [setup, setSetup] = useState<SetupState | null>(null);
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [attention, setAttention] = useState<AttentionState | null>(null);
   const [drill, setDrill] = useState<LifecycleKey | null>(null);
 
   useEffect(() => {
     if (!me) return;
     let cancelled = false;
     const load = async () => {
-      const [list, counted] = await Promise.all([
+      const [list, counted, needy] = await Promise.all([
         // view=all, explicitly: the bare endpoint defaults to the OPEN view,
         // which quietly made every derived number on this page a number
         // about open tickets only — "Resolved today" was permanently 0, the
@@ -66,6 +81,10 @@ export default function DashboardPage() {
         // the list happens to return — a share computed from a truncated list
         // is a wrong number that looks right.
         fetch("/api/tickets/counts"),
+        // Ranked server-side over the WHOLE open set — the paged list above
+        // is recency-ordered, and the oldest breach is precisely the row a
+        // recency page drops.
+        fetch("/api/tickets/attention"),
       ]);
       if (list.ok && !cancelled) {
         const body = (await list.json()) as { tickets: TicketRow[] };
@@ -74,6 +93,9 @@ export default function DashboardPage() {
       if (counted.ok && !cancelled) {
         const body = (await counted.json()) as { byStatus?: Record<string, number> };
         setCounts(body.byStatus ?? {});
+      }
+      if (needy.ok && !cancelled) {
+        setAttention((await needy.json()) as AttentionState);
       }
     };
     void load();
@@ -477,6 +499,134 @@ export default function DashboardPage() {
             happening". Two zones that look the same read as one wide mess;
             two zones with different textures read as a layout. */}
         <aside className="dash-side">
+          {/* ── Needs attention: the rail's first block, because it is the
+              reason a person opens the overview at all. Rendered ONLY once
+              the endpoint has answered — a "Needs attention: 0" flashing
+              before data arrives is an all-clear nobody issued. */}
+          {attention ? (
+            <div style={{ marginBottom: 26 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 10,
+                  marginBottom: 6,
+                  paddingBottom: 10,
+                  // The rail's section rule, tinted by state: the one place
+                  // on the page where colour is a summary rather than a
+                  // decoration. Grey when clear, amber when something is at
+                  // risk, red the moment a promise is broken.
+                  borderBottom: `2px solid ${
+                    attention.totals.SLA_BREACHED > 0
+                      ? colors.danger
+                      : attention.totals.SLA_AT_RISK > 0
+                        ? colors.warn
+                        : colors.borderStrong
+                  }`,
+                }}
+              >
+                <h2 style={ui.h2}>{tUi(lang, "ui_attention_title")}</h2>
+                <span
+                  style={{
+                    marginInlineStart: "auto",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                    color:
+                      attention.totals.SLA_BREACHED > 0
+                        ? colors.danger
+                        : attention.totals.SLA_AT_RISK > 0
+                          ? colors.warn
+                          : colors.textMuted,
+                  }}
+                >
+                  {attention.totals.SLA_BREACHED +
+                    attention.totals.SLA_AT_RISK +
+                    attention.totals.UNASSIGNED_WAITING}
+                </span>
+              </div>
+              {attention.items.length === 0 ? (
+                <p style={{ margin: 0, padding: "12px 4px", fontSize: 13, color: colors.textMuted }}>
+                  {tUi(lang, "ui_alerts_none")}
+                </p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)" }}>
+                  {attention.items.map((a) => (
+                    <Link
+                      key={a.id}
+                      href={`/inbox?view=all&ticket=${a.id}`}
+                      style={{
+                        display: "block",
+                        padding: "11px 4px",
+                        textDecoration: "none",
+                        borderBottom: `1px solid ${colors.border}`,
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          color: colors.textBody,
+                          fontSize: 14,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {a.subject ?? `#${a.number}`}
+                      </span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginTop: 4,
+                          fontSize: 12,
+                          color: colors.textMuted,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        <span>#{a.number}</span>
+                        <Badge
+                          tone={
+                            a.kind === "SLA_BREACHED"
+                              ? "danger"
+                              : a.kind === "SLA_AT_RISK"
+                                ? "warn"
+                                : "muted"
+                          }
+                        >
+                          {tUi(
+                            lang,
+                            a.kind === "SLA_BREACHED"
+                              ? "ui_wb_breached"
+                              : a.kind === "SLA_AT_RISK"
+                                ? "ui_wb_at_risk"
+                                : "ui_unassigned",
+                          )}
+                        </Badge>
+                        {/* The magnitude beside the reason, phrased per kind:
+                            overdue BY, due IN, waiting FOR. Same minutes
+                            number, three different meanings. */}
+                        <span style={{ marginInlineStart: "auto" }}>
+                          {tUi(
+                            lang,
+                            a.kind === "SLA_BREACHED"
+                              ? "ui_sla_overdue"
+                              : a.kind === "SLA_AT_RISK"
+                                ? "ui_sla_first_due"
+                                : "ui_attention_waiting",
+                            { t: humanMinutes(a.minutes) },
+                          )}
+                        </span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div
             style={{
               display: "flex",
